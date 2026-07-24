@@ -157,72 +157,80 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| US-1.0 | Phase 1 | Pending |
-| PRD-INTAKE-001 | Phase 1 | Pending |
-| PRD-INTAKE-002 | Phase 1 | Pending |
-| PRD-INTAKE-003 | Phase 1 | Pending |
-| PRD-INTAKE-005 | Phase 1 | Pending |
-| PRD-INTAKE-006 | Phase 1 | Pending |
-| PRD-INTAKE-007 | Phase 1 | Pending |
-| PRD-INTAKE-008 | Phase 2 | Pending |
-| PRD-INTAKE-009 | Phase 2 | Pending |
-| PRD-INTAKE-010 | Phase 2 | Pending |
-| PRD-INTAKE-011 | Phase 2 | Pending |
-| PRD-INTAKE-012 | Phase 2 | Pending |
-| PRD-INTAKE-013 | Phase 2 | Pending |
-| PRD-INTAKE-014 | Phase 3 | Pending |
-| PRD-INTAKE-015 | Phase 3 | Pending |
-| PRD-INTAKE-017 | Phase 3 | Pending |
-| PRD-INTAKE-018 | Phase 3 | Pending |
-| PRD-INTAKE-019 | Phase 4 | Pending |
-| PRD-INTAKE-020 | Phase 4 | Pending |
-| PRD-INTAKE-021 | Phase 4 | Pending |
-| PRD-INTAKE-022 | Phase 4 | Pending |
-| PRD-INTAKE-023 | Phase 4 | Pending |
-| PRD-INTAKE-024 | Phase 4 | Pending |
-| PRD-INTAKE-025 | Phase 5 | Pending |
-| PRD-INTAKE-026 | Phase 5 | Pending |
-| PRD-INTAKE-027 | Phase 5 | Pending |
-| PRD-INTAKE-029 | Phase 5 | Pending |
-| PRD-INTAKE-030 | Phase 6 | Pending |
-| PRD-INTAKE-031 | Phase 6 | Pending |
-| PRD-INTAKE-032 | Phase 6 | Pending |
-| PRD-INTAKE-033 | Phase 6 | Pending |
-| PRD-INTAKE-035 | Phase 6 | Pending |
-| PRD-INTAKE-036 | Phase 6 | Pending |
-| PRD-INTAKE-037 | Phase 7 | Pending |
-| PRD-INTAKE-038 | Phase 7 | Pending |
-| PRD-INTAKE-039 | Phase 7 | Pending |
-| PRD-INTAKE-040 | Phase 7 | Pending |
-| PRD-INTAKE-041 | Phase 7 | Pending |
-| PRD-INTAKE-042 | Phase 7 | Pending |
-| PRD-INTAKE-043 | Phase 7 | Pending |
-| PRD-INTAKE-044 | Phase 8 | Pending |
-| PRD-INTAKE-045 | Phase 8 | Pending |
-| PRD-INTAKE-047 | Phase 8 | Pending |
-| PRD-INTAKE-048 | Phase 8 | Pending |
-| PRD-INTAKE-049 | Phase 9 | Pending |
-| PRD-INTAKE-050 | Phase 9 | Pending |
-| PRD-INTAKE-051 | Phase 9 | Pending |
-| PRD-INTAKE-052 | Phase 9 | Pending |
-| PRD-INTAKE-053 | Phase 9 | Pending |
-| PRD-INTAKE-054 | Phase 9 | Pending |
-| PRD-INTAKE-055 | Phase 9 | Pending |
-| PRD-INTAKE-056 | Phase 10 | Pending |
-| PRD-INTAKE-057 | Phase 10 | Pending |
-| PRD-INTAKE-058 | Phase 10 | Pending |
-| PRD-INTAKE-059 | Phase 10 | Pending |
-| PRD-INTAKE-060 | Phase 10 | Pending |
-| PRD-INTAKE-061 | Phase 10 | Pending |
-| PRD-INTAKE-062 | Phase 11 | Pending |
-| PRD-INTAKE-063 | Phase 11 | Pending |
-| PRD-INTAKE-064 | Phase 11 | Pending |
+| US-1.0 | Phase 1 — Platform Foundation & Opportunity Setup | Pending |
+| PRD-INTAKE-001 | Phase 1 — Platform Foundation & Opportunity Setup | Pending |
+| PRD-INTAKE-002 | Phase 1 — Platform Foundation & Opportunity Setup | Pending |
+| PRD-INTAKE-003 | Phase 1 — Platform Foundation & Opportunity Setup | Pending |
+| PRD-INTAKE-005 | Phase 1 — Platform Foundation & Opportunity Setup | Pending |
+| PRD-INTAKE-006 | Phase 1 — Platform Foundation & Opportunity Setup | Pending |
+| PRD-INTAKE-007 | Phase 1 — Platform Foundation & Opportunity Setup | Pending |
+| PRD-INTAKE-008 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-009 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-010 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-011 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-012 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-013 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-014 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-015 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-017 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-018 | Phase 2 — Eligibility & Intake Rules Configuration | Pending |
+| PRD-INTAKE-019 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-020 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-021 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-022 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-023 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-024 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-025 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-026 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-027 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-029 | Phase 3 — Organization Profile & Eligibility Pre-Screening | Pending |
+| PRD-INTAKE-030 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-031 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-032 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-033 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-035 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-036 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-037 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-038 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-039 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-040 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-041 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-042 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-043 | Phase 4 — Application Workspace & Form Capture | Pending |
+| PRD-INTAKE-044 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-045 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-047 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-048 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-049 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-050 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-051 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-052 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-053 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-054 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-055 | Phase 5 — Q&A, Submission & Validation | Pending |
+| PRD-INTAKE-056 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
+| PRD-INTAKE-057 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
+| PRD-INTAKE-058 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
+| PRD-INTAKE-059 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
+| PRD-INTAKE-060 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
+| PRD-INTAKE-061 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
+| PRD-INTAKE-062 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
+| PRD-INTAKE-063 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
+| PRD-INTAKE-064 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
 
 **Coverage:**
 - v1 requirements: 61 total (60 MVP + US-1.0 grantor shell)
 - Mapped to phases: 61
 - Unmapped: 0 ✓
 
+**Phase mapping (11 PRD stages → 6 roadmap phases):**
+- Phase 1: US-1.0 + Stage 1 (7 requirements)
+- Phase 2: Stage 2 + Stage 3 (10 requirements)
+- Phase 3: Stage 4 + Stage 5 (10 requirements)
+- Phase 4: Stage 6 + Stage 7 (13 requirements)
+- Phase 5: Stage 8 + Stage 9 (11 requirements)
+- Phase 6: Stage 10 + Stage 11 (9 requirements)
+
 ---
 *Requirements defined: 2026-07-24*
-*Last updated: 2026-07-24 after initial definition*
+*Last updated: 2026-07-24 — Traceability updated after roadmap creation (6-phase structure)*
