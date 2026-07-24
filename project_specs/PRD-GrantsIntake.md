@@ -424,11 +424,11 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 #### F21: Credential Expiration Warnings
 *Maps to: PRD-INTAKE-022*
 
-**Description:** The system monitors the expiration status of credentials, documents, and registrations stored in the organization profile. Applicants are warned when items are expired or approaching expiration before they become submission blockers.
+**Description:** The system monitors the expiration status of credentials, documents, and registrations stored in the organization profile. Applicants are warned when items are expired or approaching expiration before they become submission blockers. The warning window is configurable per credential type by the organization administrator, defaulting to 60 days.
 
 **Capabilities:**
-- Configurable expiration tracking for SAM registration, IRS letters, audit reports, insurance
-- In-app warnings when credentials are expired or within expiration window
+- Org-admin-configurable expiration warning window per credential type (default: 60 days); applies to SAM registration, IRS letters, audit reports, insurance
+- In-app warnings when credentials are expired or within the configured expiration window
 - Warnings surfaced in organization profile and application workspace checklist
 
 **Priority:** P0 — MVP
@@ -487,11 +487,11 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 #### F25: Eligibility Result Display
 *Maps to: PRD-INTAKE-026*
 
-**Description:** After completing the pre-screen questionnaire, applicants receive a clear eligibility result displayed as one of four states: Eligible, Likely Eligible, Needs Attention, or Ineligible. Each state carries a distinct visual treatment and guidance.
+**Description:** After completing the pre-screen questionnaire, applicants receive a clear eligibility result displayed as one of four states: Eligible, Likely Eligible, Needs Attention, or Ineligible. Each state carries a **distinct visual treatment** and guidance. Likely Eligible and Needs Attention are semantically different and must not share the same visual treatment.
 
 **Capabilities:**
 - Four-state result display: Eligible, Likely Eligible, Needs Attention, Ineligible
-- Clear visual differentiation between states (USWDS alert components)
+- Distinct visual treatment per state using USWDS alert components: Eligible = green (success), Likely Eligible = blue/teal (info), Needs Attention = yellow (warning), Ineligible = red (error)
 - Guidance on next steps for each result state
 
 **Priority:** P0 — MVP
@@ -873,13 +873,14 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 #### F51: Authorized Representative Certification
 *Maps to: PRD-INTAKE-052*
 
-**Description:** Before submission, the system requires a final certification action by an authorized representative. This certification is a formal, legally meaningful step that must be completed by a user with the authorized representative role.
+**Description:** Before submission, the system requires a final certification action by an authorized representative. This certification is a formal, legally meaningful step that must be completed by a user with the authorized representative role. Before certifying, the Authorized Representative can flag concerns on any section of the submission preview; concerns notify the Proposal Lead without blocking the application.
 
 **Capabilities:**
 - Certification step required as final action before submission
 - Only users with Authorized Representative role can certify
 - Certification includes legal language configurable by grantor
 - Certification action logged as an audit event with timestamp
+- Pre-certification concern flag: Authorized Representative can leave a private comment or flag on any section of the submission package preview; flag is grantee-private, notifies the Proposal Lead, and does not change application status or initiate submission
 
 **Priority:** P0 — MVP
 
@@ -986,13 +987,15 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 #### F58: Correction and Clarification Requests
 *Maps to: PRD-INTAKE-059*
 
-**Description:** When permitted by opportunity rules, grantors can formally request that an applicant correct or clarify specific aspects of their submission. The request is tracked, timestamped, and tied to the original submission record.
+**Description:** When permitted by opportunity rules, grantors can formally request that an applicant correct or clarify specific aspects of their submission. The request is tracked, timestamped, and tied to the original submission record. If the correction window expires without a resubmission, the system automatically applies an Administratively Rejected disposition with notifications and audit logging; the intake administrator can override the auto-rejection with a required reason.
 
 **Capabilities:**
 - Grantor-initiated correction or clarification request
 - Request tied to specific sections or attachments
 - Request triggers applicant notification with instructions
 - Correction window configurable per opportunity
+- Automatic Administratively Rejected disposition when correction window expires without resubmission; applicant team and intake administrator notified; `CORRECTION_WINDOW_EXPIRED` audit event logged
+- Intake administrator can override the auto-rejection post-expiry with a required override reason
 
 **Priority:** P0 — MVP
 

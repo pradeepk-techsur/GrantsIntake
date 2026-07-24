@@ -5,7 +5,7 @@
 **Document Type:** User Stories  
 **Version:** 1.0 Draft  
 **Date:** July 24, 2026  
-**Scope:** MVP features F0–F63 (59 P0 features across 11 intake stages)  
+**Scope:** MVP features F0–F63 + grantor portal shell (60 P0 user stories across 11 intake stages)  
 **Related PRD:** `project_specs/PRD-GrantsIntake.md`  
 **Related FRD:** `project_specs/FRD-GrantsIntake.md`
 
@@ -37,6 +37,21 @@
 ## Epic 1: Program and Opportunity Setup (Stage 1)
 
 *Enable grantors to create structured, accessible, and configurable grant opportunities.*
+
+---
+
+### US-1.0: Access the Grantor Portal and Navigate to Core Workflows
+**As a** Marcus Webb (Program Officer) or Diana Reyes (Grant Intake Administrator), **I want to** land in a clear, role-appropriate grantor portal after logging in and navigate to the Opportunity Builder or Intake Queue without hunting, **so that** I can start my core workflow immediately without orientation overhead.
+
+**Acceptance Criteria:**
+- [ ] After login, grantor users are routed to a role-appropriate landing page: Program Officers see the Opportunity Builder entry point and active opportunity summary; Intake Administrators see the Intake Queue entry point and pending screening summary
+- [ ] The primary navigation includes at minimum: Opportunities (for Program Officers), Intake Queue (for Intake Administrators), Program Dashboard, Q&A Inbox, and Settings
+- [ ] Navigation items are role-restricted: Intake Administrators do not see the Opportunity Builder create action; Program Officers see intake queue in read-only summary only
+- [ ] A "Create New Opportunity" action is accessible from the grantor landing page and the Opportunities section for users with create permission
+- [ ] The grantor portal is WCAG 2.1 AA compliant and uses USWDS components throughout
+- [ ] A `GRANTOR_LOGIN` audit event is logged with timestamp and user attribution on each authenticated session
+
+**Priority:** P0 | **Feature Ref:** Supports F0–F63 (grantor-side entry shell)
 
 ---
 
@@ -359,7 +374,8 @@
 
 **Acceptance Criteria:**
 - [ ] The system tracks expiration dates for SAM registration, IRS determination letters, audit reports, and insurance certificates
-- [ ] In-app warnings are displayed when a tracked credential is expired or within a configurable expiration warning window
+- [ ] The organization administrator can configure a warning window per credential type (e.g., 90 days for SAM, 30 days for insurance); the system default is 60 days if not customized
+- [ ] In-app warnings are displayed when a tracked credential is expired or within the configured expiration warning window
 - [ ] Expiration warnings appear in both the organization profile view and the application workspace readiness checklist
 - [ ] An expired credential that is required for a specific opportunity is surfaced as a blocking error in the readiness dashboard
 - [ ] Warnings are shown to both the organization administrator and the proposal lead
@@ -421,10 +437,10 @@
 
 **Acceptance Criteria:**
 - [ ] Eligibility results are displayed in one of four states: Eligible, Likely Eligible, Needs Attention, or Ineligible
-- [ ] Each state has a distinct visual treatment using USWDS alert components (green for Eligible, yellow for Needs Attention/Likely Eligible, red for Ineligible)
+- [ ] Each state has a visually distinct treatment using USWDS alert components: Eligible = green (success), Likely Eligible = blue/teal (info — positive advisory), Needs Attention = yellow (warning — requires awareness), Ineligible = red (error — blocked)
 - [ ] Each result state includes guidance text on the recommended next steps
 - [ ] The result screen is presented immediately after the final questionnaire question is answered
-- [ ] Hard Blocker violations result in an Ineligible state; Advisory violations result in Needs Attention
+- [ ] Hard Blocker violations result in an Ineligible state; Advisory violations with no hard blockers result in Needs Attention; no violations result in Eligible; minor advisory-only concerns with no triggered warnings result in Likely Eligible
 
 **Priority:** P0 | **Feature Ref:** F25 (PRD-INTAKE-026)
 
@@ -676,7 +692,7 @@
 **Acceptance Criteria:**
 - [ ] Grantors draft a Q&A response in the system and publish it to the opportunity page
 - [ ] Published responses are visible to all applicants on the opportunity detail page
-- [ ] Applicants are notified when new answers are published
+- [ ] Applicants with a saved or started application receive in-app and email notifications within 15 minutes of a Q&A response being published
 - [ ] Q&A responses are displayed chronologically with timestamps
 - [ ] Published Q&A creates an Addendum record and appears in the opportunity's Updates & Addenda section
 
@@ -702,10 +718,10 @@
 **As a** Jordan Kim (Proposal Lead), **I want to** be notified automatically when the grantor publishes an addendum or changes a deadline, **so that** I can update my application promptly and never miss a change.
 
 **Acceptance Criteria:**
-- [ ] In-app and email notifications are sent to all applicants with a saved or started application when an addendum is published
+- [ ] In-app and email notifications are sent to all applicants with a saved or started application within 15 minutes of an addendum being published
 - [ ] Deadline change notifications include both the old and new deadline values
 - [ ] Required application change notifications include a link to the impacted section in the workspace
-- [ ] Notifications are sent promptly after the addendum is published — not batched or delayed
+- [ ] Notifications are triggered immediately on addendum publication — not batched or delayed
 - [ ] Applicants who have not yet started a workspace (no saved application) do not receive these notifications
 
 **Priority:** P0 | **Feature Ref:** F47 (PRD-INTAKE-048)
@@ -769,6 +785,8 @@
 - [ ] The certification presents legally appropriate language configurable by the grantor
 - [ ] The certification action is logged as an audit event with timestamp and user attribution
 - [ ] The application cannot be submitted unless the certification is completed in the same session by an authorized representative
+- [ ] Before certifying, the Authorized Representative can leave a private flag or comment on any section of the submission package preview; flagging a concern notifies the Proposal Lead without blocking or reverting the application
+- [ ] A pre-certification concern flag does not change the application status; it is stored as a grantee-private note visible to the applicant team only
 
 **Priority:** P0 | **Feature Ref:** F51 (PRD-INTAKE-052)
 
@@ -872,6 +890,8 @@
 - [ ] The request triggers an applicant notification with instructions on what to correct and a link to the application workspace
 - [ ] A correction window duration is configurable per opportunity
 - [ ] The request and its status (open, resolved, timed out) are visible in the intake queue
+- [ ] When the correction window expires without the applicant resubmitting, the system automatically transitions the application to **Administratively Rejected** disposition, notifies the applicant team and Diana, and logs a `CORRECTION_WINDOW_EXPIRED` audit event with timestamp and attribution
+- [ ] Diana can manually override the auto-rejection and apply a different disposition after the window expires, with an override reason required
 
 **Priority:** P0 | **Feature Ref:** F58 (PRD-INTAKE-059)
 
@@ -960,6 +980,7 @@
 
 | Story ID | Title | Priority | Feature Ref | Persona |
 |---|---|---|---|---|
+| US-1.0 | Access the Grantor Portal and Navigate to Core Workflows | P0 | Shell / F0–F63 | Marcus Webb / Diana Reyes |
 | US-1.1 | Create Opportunity from Template | P0 | F0 | Marcus Webb |
 | US-1.2 | Capture Structured Opportunity Metadata | P0 | F1 | Marcus Webb |
 | US-1.3 | Write Descriptions with Plain-Language Guidance | P0 | F2 | Marcus Webb |

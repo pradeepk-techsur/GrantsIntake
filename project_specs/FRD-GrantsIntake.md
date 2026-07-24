@@ -107,18 +107,20 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 
 ## Notification Model (MVP)
 
-| Notification | Recipient | Trigger |
-|---|---|---|
-| Opportunity published | Subscribers / applicants | Opportunity status → Published |
-| Opportunity modified | Applicants with saved/started application | Addendum or date change published |
-| Question answered | Applicants | Public answer posted |
-| Workspace created | Applicant team | Application workspace creation |
-| Deadline approaching | Applicant team | Configured days before due date |
-| Missing required item | Proposal lead | Blocking validation detected |
-| Ready for submission | Authorized representative | Internal checklist complete |
-| Submission received | Applicant team + grantor intake admin | Final submit |
-| Returned for correction | Applicant team | Grantor disposition |
-| Intake accepted for review | Applicant team + reviewers | Screening complete |
+| Notification | Recipient | Trigger | SLA |
+|---|---|---|---|
+| Opportunity published | Subscribers / applicants | Opportunity status → Published | — |
+| Opportunity modified | Applicants with saved/started application | Addendum or date change published | Within 15 minutes |
+| Question answered | Applicants with saved/started application | Public answer posted | Within 15 minutes |
+| Workspace created | Applicant team | Application workspace creation | — |
+| Deadline approaching | Applicant team | Configured days before due date | — |
+| Missing required item | Proposal lead | Blocking validation detected | — |
+| Ready for submission | Authorized representative | Internal checklist complete | — |
+| AR concern flagged | Proposal lead | Authorized Representative flags a concern on submission preview | — |
+| Submission received | Applicant team + grantor intake admin | Final submit | — |
+| Returned for correction | Applicant team | Grantor disposition | — |
+| Correction window expired | Applicant team + intake administrator | Correction deadline passes without resubmission; auto-rejection applied | — |
+| Intake accepted for review | Applicant team + reviewers | Screening complete | — |
 
 ---
 
@@ -1360,18 +1362,19 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 ## F21: Credential Expiration Warnings
 *Maps to: PRD-INTAKE-022 | Priority: P0 — MVP*
 
-**Description:** The system monitors the expiration status of credentials, documents, and registrations stored in the organization profile. When an item is expired or approaching expiration, the system warns the applicant in the organization profile and in the application workspace readiness dashboard, before the expired credential becomes a submission blocker.
+**Description:** The system monitors the expiration status of credentials, documents, and registrations stored in the organization profile. When an item is expired or approaching expiration, the system warns the applicant in the organization profile and in the application workspace readiness dashboard, before the expired credential becomes a submission blocker. The expiration warning window is configurable per credential type by the organization administrator, with a system default of 60 days.
 
 **Sub-features:**
 - Monitor SAM registration expiration date
 - Monitor expiration dates of stored documents (audit reports, insurance certificates, IRS letters)
+- Allow org admin to configure warning window per credential type (default: 60 days; org admin may set different windows per type, e.g., 90 days for SAM, 30 days for insurance)
 - Display in-app warnings when items are expired or within the configured warning window
 - Surface expiration warnings in org profile and application workspace readiness dashboard
 
 **Inputs:**
 - `item_type` (enum): `sam_registration | irs_determination_letter | audit_report | insurance_certificate | indirect_cost_agreement | other`
 - `expiration_date` (date): Date from org profile or document record
-- `warning_threshold_days` (integer, configurable): Days before expiration to trigger warning (default: 90 days)
+- `warning_threshold_days` (integer, org-admin-configurable per credential type): Days before expiration to trigger warning; system default is 60 days if not customized by org admin
 
 **Outputs:**
 - In-app warning displayed in organization profile for expired/expiring items
@@ -1383,7 +1386,7 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 - MUST: Expired credentials MUST display as `EXPIRED` (red/error state) in the org profile
 - MUST: Credentials within warning threshold MUST display as `EXPIRING SOON` (yellow/warning state)
 - MUST: Expired credentials that are required by an opportunity MUST appear as blocking errors in the readiness dashboard
-- SHOULD: Warning threshold default SHOULD be 90 days but SHOULD be configurable per credential type
+  - MUST: Org Admin MUST be able to configure the warning threshold per credential type; system default MUST be 60 days when no custom threshold is set
 
 **Error States:**
 | Scenario | HTTP Status | Error Code | Message |
@@ -1584,9 +1587,11 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 | Result State | Trigger Condition | USWDS Alert Type | Next Step |
 |---|---|---|---|
 | Eligible | No blockers triggered, no advisories triggered | Success (green) | "You appear eligible. Click 'Start Application' to proceed." |
-| Likely Eligible | No blockers triggered, ≥1 advisory triggered | Warning (yellow) | "You may be eligible. Review advisory notes below before proceeding." |
-| Needs Attention | No hard blockers, ≥2 advisories or high-severity advisory | Warning (yellow, prominent) | "Please review the concerns below carefully before starting your application." |
+| Likely Eligible | No blockers triggered, ≥1 advisory triggered (minor/informational concerns only) | Info (blue/teal) | "You are likely eligible. Note the advisory information below before proceeding." |
+| Needs Attention | No hard blockers, ≥1 advisory triggered that raises a significant concern requiring the applicant to review before proceeding | Warning (yellow) | "Please review the concerns below carefully before starting your application." |
 | Ineligible | ≥1 hard blocker triggered | Error (red) | "Based on your responses, you do not appear to be eligible. See explanations below." |
+
+**Note:** Likely Eligible and Needs Attention MUST have distinct visual treatments. Likely Eligible uses the USWDS Info (blue/teal) alert component to signal a positive advisory state. Needs Attention uses the USWDS Warning (yellow) alert component to signal a concern requiring active review. The grantor configures advisory rule severity; the system derives the result state from the evaluation.
 
 **Process:**
 1. System receives evaluated responses from F24
@@ -1608,7 +1613,8 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 **Validation:**
 - MUST: Result state computation MUST be deterministic and based solely on the configured rule evaluations
 - MUST: Ineligible result MUST hide the "Start Application" button when `enforcement_point = pre_workspace`
-- MUST: All four result states MUST use the correct USWDS alert variant
+- MUST: All four result states MUST use the correct USWDS alert variant: Eligible = Success (green), Likely Eligible = Info (blue/teal), Needs Attention = Warning (yellow), Ineligible = Error (red)
+- MUST: Likely Eligible and Needs Attention MUST use visually distinct alert variants — they MUST NOT share the same color or component type
 - MUST: Result page MUST be WCAG 2.1 AA accessible
 - MUST: All triggered rule explanations MUST be displayed in plain language (F7 `explanation_text`)
 
@@ -2792,7 +2798,7 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 ## F51: Authorized Representative Certification
 *Maps to: PRD-INTAKE-052 | Priority: P0 — MVP*
 
-**Description:** Before submission, the system requires a final certification action by an authenticated user with the Authorized Representative role. This certification is a formal, legally meaningful step with configurable certification language. The certification action is logged as an immutable audit event.
+**Description:** Before submission, the system requires a final certification action by an authenticated user with the Authorized Representative role. This certification is a formal, legally meaningful step with configurable certification language. The certification action is logged as an immutable audit event. Before certifying, the Authorized Representative may flag a concern on any section of the submission package preview — a grantee-private note that notifies the Proposal Lead without blocking or altering the application.
 
 **Sub-features:**
 - Require certification action as the final step before submission
@@ -2801,27 +2807,33 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 - Require explicit acknowledgment (checkbox or click-through) — not a handwritten signature in MVP
 - Log certification as an immutable audit event
 - Certification linked to specific workspace and submission attempt
+- Pre-certification concern flag: AR can leave a private comment or flag on any section of the submission package preview; flag is grantee-private, stored in the grantee-private zone, notifies the Proposal Lead via in-app notification, and does not change application status, alter the submission package, or initiate submission
 
 **Process:**
 1. All blocking errors are resolved; `is_ready_to_submit = true` (F50)
 2. Authorized Representative navigates to the Certification step in the Review / Submit section
-3. System displays the certification text (configured by grantor or system default)
-4. Authorized Representative reads the certification text
-5. AR clicks "I Certify" checkbox or button
-6. System verifies that the authenticated user has the `authorized_representative` role for this org
-7. If verified: certification record created; submission proceeds to F52
-8. Audit event created: `CERTIFICATION_COMPLETED` with user, timestamp, certification text hash
+3. System displays the submission package preview and the certification text (configured by grantor or system default)
+4. Optionally: AR flags a concern on any section — concern is saved as a grantee-private note; Proposal Lead is notified; AR may then choose to certify or defer
+5. Authorized Representative reads the certification text
+6. AR clicks "I Certify" checkbox or button
+7. System verifies that the authenticated user has the `authorized_representative` role for this org
+8. If verified: certification record created; submission proceeds to F52
+9. Audit event created: `CERTIFICATION_COMPLETED` with user, timestamp, certification text hash
 
 **Inputs:**
 - `workspace_id` (UUID, required)
 - `certifying_user_id` (UUID, required): Must have `authorized_representative` role
 - `certification_text` (string): The text the user certified to (stored in audit record)
 - `certification_timestamp` (UTC datetime, system)
+- For concern flags (optional, pre-certification):
+  - `section_ref` (string, optional): The section the concern is about
+  - `concern_note` (text, required when flagging, max 1000 chars): The AR's concern text
 
 **Outputs:**
 - Certification record stored with `workspace_id`, `certifying_user_id`, `certification_text`, `certification_timestamp`
 - Audit event: `CERTIFICATION_COMPLETED`
 - Submission proceeds to snapshot generation (F52)
+- If concern flag submitted: `ar_concern_notes` record created (grantee-private zone); in-app notification sent to Proposal Lead; no application status change
 
 **Validation:**
 - MUST: Certifying user MUST have the `authorized_representative` role for the applicant organization
@@ -2829,6 +2841,8 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 - MUST: Certification text MUST be displayed in full before acknowledgment
 - MUST: Certification action MUST be logged as an immutable audit event
 - MUST: Certification is role-and-user-specific — certification by User A does not allow User B to submit
+- MUST: Concern flags MUST be stored in the grantee-private data zone and MUST NOT appear in the submission package, grantor intake queue, or any grantor-visible view
+- MUST: Concern flags MUST NOT alter the application status or prevent submission if the AR chooses to certify after flagging
 
 **Error States:**
 | Scenario | HTTP Status | Error Code | Message |
@@ -2836,9 +2850,9 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 | Certifier lacks AR role | 403 | NOT_AUTHORIZED_REPRESENTATIVE | "You must have the Authorized Representative role to certify this application." |
 | Certification text missing | 500 | CERTIFICATION_TEXT_UNAVAILABLE | "Certification text is unavailable. Please contact support." |
 
-**API Surface (this feature):** `POST /api/v1/workspaces/{workspace_id}/certify` (certification action, triggers F52 on success) — see `Y1d-api-submission.md` §Certification.
+**API Surface (this feature):** `POST /api/v1/workspaces/{workspace_id}/certify` (certification action, triggers F52 on success); `POST /api/v1/workspaces/{workspace_id}/ar-concern` (submit concern flag, grantee-private) — see `Y1d-api-submission.md` §Certification.
 
-**Schema Surface (this feature):** `certifications` table (cert_id, workspace_id FK, certifying_user_id FK, certification_text, certification_timestamp UTC, created_at) — see `Y0d-schema-submission.md` §certifications.
+**Schema Surface (this feature):** `certifications` table (cert_id, workspace_id FK, certifying_user_id FK, certification_text, certification_timestamp UTC, created_at); `ar_concern_notes` table (concern_id, workspace_id FK, section_ref, concern_note, created_by, created_at) — grantee-private zone — see `Y0d-schema-submission.md` §certifications, §ar_concern_notes.
 
 ---
 
@@ -3187,7 +3201,7 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 ## F58: Correction and Clarification Requests
 *Maps to: PRD-INTAKE-059 | Priority: P0 — MVP*
 
-**Description:** When permitted by opportunity rules, grantors can formally request that an applicant correct or clarify specific aspects of their submitted application. The request is tied to the original submission record, triggers applicant notification, and creates a correction window with a configurable deadline.
+**Description:** When permitted by opportunity rules, grantors can formally request that an applicant correct or clarify specific aspects of their submitted application. The request is tied to the original submission record, triggers applicant notification, and creates a correction window with a configurable deadline. If the correction window expires without a resubmission, the system automatically transitions the application to Administratively Rejected, notifies the applicant and intake administrator, and logs an audit event. The intake administrator can manually override the auto-rejection post-expiry with a required reason.
 
 **Sub-features:**
 - Grantor initiates correction/clarification request from intake queue
@@ -3196,6 +3210,8 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 - Configurable correction window deadline
 - Workspace unlocked for specified sections only (F54)
 - Original submission snapshot preserved (F59)
+- Automatic Administratively Rejected disposition when correction deadline expires without resubmission
+- Intake administrator override of auto-rejection with required override reason
 
 **Process:**
 1. Administrator opens application in intake queue
@@ -3206,6 +3222,8 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 6. Status updated to `Returned for Correction`
 7. Applicant notification sent: "Returned for Correction — {instructions}" with correction deadline
 8. Applicant makes corrections in unlocked sections; resubmits (F52 flow with new snapshot)
+9. If correction deadline passes without resubmission: system automatically applies `administratively_rejected` disposition; applicant team and intake administrator notified; `CORRECTION_WINDOW_EXPIRED` audit event logged
+10. Intake administrator may override the auto-rejection by applying a different disposition with a required `override_reason` text field
 
 **Inputs:**
 - `entry_id` (UUID, required)
@@ -3219,12 +3237,16 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 - Workspace status = `Returned for Correction`
 - Applicant notification with instructions and deadline
 - Audit event: `CORRECTION_REQUESTED`
+- On deadline expiry without resubmission: `administratively_rejected` disposition applied; `CORRECTION_WINDOW_EXPIRED` audit event logged; applicant team and intake administrator notified
 
 **Validation:**
 - MUST: `correction_instructions` MUST be provided
 - MUST: `correction_deadline` MUST be in the future at time of request
 - MUST: Only the specified sections MUST be unlocked; all other sections remain locked
 - MUST: Original submission snapshot MUST be preserved (F59)
+- MUST: When correction deadline expires without resubmission, system MUST automatically apply `administratively_rejected` disposition and log `CORRECTION_WINDOW_EXPIRED` audit event
+- MUST: Auto-rejection notification MUST be sent to both the applicant team and the intake administrator
+- MUST: Override of auto-rejection MUST require an `override_reason` text field from the intake administrator
 
 **Error States:**
 | Scenario | HTTP Status | Error Code | Message |
@@ -3232,10 +3254,11 @@ This FRD specifies the functional behavior of the GrantsIntake platform's Grants
 | Correction deadline in past | 422 | DEADLINE_IN_PAST | "Correction deadline must be in the future." |
 | No sections specified | 422 | SECTIONS_REQUIRED | "At least one section must be specified for correction." |
 | Opportunity doesn't allow corrections | 403 | CORRECTIONS_NOT_ALLOWED | "This opportunity does not allow correction requests." |
+| Override reason missing | 422 | OVERRIDE_REASON_REQUIRED | "An override reason is required when overriding an auto-rejection disposition." |
 
-**API Surface (this feature):** `POST /api/v1/intake-queue/{entry_id}/correction-request` — see `Y1d-api-submission.md` §Correction Requests.
+**API Surface (this feature):** `POST /api/v1/intake-queue/{entry_id}/correction-request`; `POST /api/v1/intake-queue/{entry_id}/disposition-override` (override auto-rejection) — see `Y1d-api-submission.md` §Correction Requests.
 
-**Schema Surface (this feature):** `correction_requests` table (request_id, entry_id FK, snapshot_id FK, correction_sections JSONB, correction_instructions, correction_deadline, requested_by FK, requested_at) — see `Y0d-schema-submission.md` §correction_requests.
+**Schema Surface (this feature):** `correction_requests` table (request_id, entry_id FK, snapshot_id FK, correction_sections JSONB, correction_instructions, correction_deadline, requested_by FK, requested_at, expired_at, auto_rejected_at); `intake_dispositions.override_reason` column — see `Y0d-schema-submission.md` §correction_requests.
 
 ---
 

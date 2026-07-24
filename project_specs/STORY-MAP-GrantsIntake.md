@@ -17,7 +17,7 @@
 
 ## Overview
 
-This story map organizes GrantsIntake's 66 user stories (59 MVP + 7 deferred) across two axes:
+This story map organizes GrantsIntake's 67 user stories (60 MVP + 7 deferred) across two axes:
 
 - **X-axis (columns):** The 11 intake stages from the PRD, derived from user journey stages in JOURNEYS-GrantsIntake.md. These represent the natural flow of both grantors (Stages 1–3, 8, 11) and applicants (Stages 4–9) through the intake process, converging at Stages 10–11.
 - **Y-axis (rows):** Activities within each stage, organized by epic and mapped to specific user stories (US-X.Y).
@@ -219,13 +219,13 @@ Full traceability: JTBD outcome → journey stage → NaC → user story
 
 ### R1: MVP — Complete Intake Boundary
 **Theme:** End-to-end structured intake — from opportunity creation through application submission and administrative handoff to review  
-**Release:** All 59 P0 user stories  
-**Stories:** US-1.1 through US-11.3 (all P0 stories)  
+**Release:** All 60 P0 user stories  
+**Stories:** US-1.0 through US-11.3 (all P0 stories)  
 **Journey Completeness:** Delivers all 6 persona journeys (JRN-01.1, JRN-01.2, JRN-02.1, JRN-03.1, JRN-04.1, JRN-05.1) in their entirety
 
 | Epic | Stage | Stories | Count |
 |---|---|---|---|
-| Epic 1 | Program & Opportunity Setup | US-1.1, 1.2, 1.3, 1.4, 1.5, 1.6 | 6 |
+| Epic 1 | Program & Opportunity Setup | US-1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6 | 7 |
 | Epic 2 | Eligibility & Intake Rules | US-2.1, 2.2, 2.3, 2.4, 2.5, 2.6 | 6 |
 | Epic 3 | Opportunity Publication & Discovery | US-3.1, 3.2, 3.3, 3.4 | 4 |
 | Epic 4 | Organization Profile & Credential Readiness | US-4.1, 4.2, 4.3, 4.4, 4.5, 4.6 | 6 |
@@ -236,7 +236,7 @@ Full traceability: JTBD outcome → journey stage → NaC → user story
 | Epic 9 | Validation and Submission | US-9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7 | 7 |
 | Epic 10 | Intake Queue & Administrative Screening | US-10.1, 10.2, 10.3, 10.4, 10.5, 10.6 | 6 |
 | Epic 11 | Intake Analytics & Reporting | US-11.1, 11.2, 11.3 | 3 |
-| **Total** | | | **59** |
+| **Total** | | | **60** |
 
 **Persona Coverage (R1):**
 
