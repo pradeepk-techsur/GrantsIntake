@@ -209,7 +209,7 @@ describe('Versioning API (F6 - Version History)', () => {
       expect(res.body[0].version_number).toBe(3);
       expect(res.body[1].version_number).toBe(2);
       expect(res.body[2].version_number).toBe(1);
-      expect(res.body[2].modification_reason).toBe('Initial publication');
+      expect(res.body[2].modification_reason).toBe('OPPORTUNITY_PUBLISHED'); // Updated: plan 02-04 delegates to publicationService which uses 'OPPORTUNITY_PUBLISHED' as the snapshot reason
     });
 
     it('returns empty array for draft opportunity (no versions)', async () => {
