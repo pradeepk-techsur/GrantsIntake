@@ -1,0 +1,81 @@
+import { Outlet, Navigate } from 'react-router-dom';
+import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useAuthStore } from '../store/authStore';
+import { GrantorSidebar } from '../components/nav/GrantorSidebar';
+
+/**
+ * Layout for the grantor portal.
+ * Uses USWDS usa-header, usa-sidenav, and usa-layout-docs__main.
+ * Includes skip-to-main-content link for WCAG 2.1 AA compliance.
+ * Auth guard: redirects to /login if not authenticated (T-02-05 mitigation).
+ */
+export function GrantorLayout() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const { user, grantor_memberships, isLoading } = useCurrentUser();
+
+  // Auth guard: redirect unauthenticated users to login
+  if (!accessToken) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="usa-layout-docs" style={{ padding: '2rem' }}>
+        <span className="usa-sr-only">Loading...</span>
+        <div aria-busy="true" aria-label="Loading portal">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* WCAG 2.1 AA: Skip-to-main-content link */}
+      <a className="usa-skipnav" href="#main-content">
+        Skip to main content
+      </a>
+
+      {/* USWDS Header */}
+      <header className="usa-header usa-header--basic" role="banner">
+        <div className="usa-nav-container">
+          <div className="usa-navbar">
+            <div className="usa-logo">
+              <em className="usa-logo__text">
+                GrantsIntake — Grantor Portal
+              </em>
+            </div>
+          </div>
+          <nav aria-label="Primary navigation" className="usa-nav">
+            <div className="usa-nav__inner">
+              {user && (
+                <span className="usa-nav__primary-item" style={{ fontSize: '0.875rem', color: '#1b1b1b' }}>
+                  {user.full_name}
+                </span>
+              )}
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      {/* Main layout: sidebar + content */}
+      <div className="usa-layout-docs usa-section">
+        <div className="grid-container">
+          <div className="grid-row grid-gap">
+            {/* Sidebar */}
+            <div className="usa-layout-docs__sidenav desktop:grid-col-3">
+              <GrantorSidebar grantor_memberships={grantor_memberships} />
+            </div>
+
+            {/* Main content */}
+            <main
+              id="main-content"
+              className="usa-layout-docs__main desktop:grid-col-9 usa-prose"
+              tabIndex={-1}
+            >
+              <Outlet />
+            </main>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

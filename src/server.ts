@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
 import { env } from './config/env';
 import { authRouter } from './routes/auth';
 import { programsRouter } from './routes/programs';
@@ -42,6 +43,11 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Serve React client build (for production and e2e tests)
+// The client build output is at ./client/dist
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+app.use(express.static(clientDistPath));
+
 // Additional routes can be registered before finalizing (for testing)
 // The 404 handler is registered last via finalizeApp()
 let appFinalized = false;
@@ -49,9 +55,20 @@ let appFinalized = false;
 export function finalizeApp() {
   if (!appFinalized) {
     appFinalized = true;
-    // 404 handler (must be last)
-    app.use((_req, res) => {
-      res.status(404).json({ error: 'NOT_FOUND' });
+    // For non-API routes, serve the React SPA (client-side routing)
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api/')) {
+        res.status(404).json({ error: 'NOT_FOUND' });
+        return;
+      }
+      // Serve React app for all non-API routes (SPA routing)
+      const indexPath = path.join(clientDistPath, 'index.html');
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          // If client build doesn't exist (dev mode), return 404
+          res.status(404).json({ error: 'NOT_FOUND' });
+        }
+      });
     });
   }
 }
