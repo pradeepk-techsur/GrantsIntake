@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 01-platform-foundation-opportunity-setup-01-05-PLAN.md
-last_updated: "2026-07-25T04:26:56.212Z"
+stopped_at: Completed 01-platform-foundation-opportunity-setup-01-06-PLAN.md
+last_updated: "2026-07-25T13:22:48.422Z"
 last_activity: "2026-07-25 — Plan 01-05 complete: Programs seed, org idempotency fix, no-programs warning alert"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 6
-  completed_plans: 5
-  percent: 100
+  total_plans: 8
+  completed_plans: 6
+  percent: 83
 ---
 
 # Project State
@@ -60,6 +60,7 @@ Progress: [████████░░] 83%
 | Phase 01-platform-foundation-opportunity-setup P03 | 10 min | 2 tasks | 20 files |
 | Phase 01-platform-foundation-opportunity-setup P04 | 9min | 2 tasks | 14 files |
 | Phase 01-platform-foundation-opportunity-setup P05 | 4min | 2 tasks | 2 files |
+| Phase 01-platform-foundation-opportunity-setup P06 | 2 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,7 @@ Recent decisions affecting current work:
 - [Phase 01-platform-foundation-opportunity-setup]: Dry run pattern: POST /publish?dry_run=true returns completeness result without state change (used by Check Readiness button)
 - [Phase 01-platform-foundation-opportunity-setup]: Client-side completeness derived from opportunity prop for real-time checklist feedback; server is authoritative at actual publish
 - [Phase 01-platform-foundation-opportunity-setup]: SELECT-then-INSERT for programs seed (no UNIQUE constraint on program_name) and for grantor_organizations fix
+- [Phase 01-platform-foundation-opportunity-setup]: funding_amount_max is a builder field, not a creation prerequisite — optional at creation, consistent with updateOpportunitySchema
 
 ### Pending Todos
 
@@ -94,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-25T04:26:56.211Z
-Stopped at: Completed 01-platform-foundation-opportunity-setup-01-05-PLAN.md
+Last session: 2026-07-25T13:22:48.421Z
+Stopped at: Completed 01-platform-foundation-opportunity-setup-01-06-PLAN.md
 Resume file: None
