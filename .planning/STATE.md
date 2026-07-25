@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-eligibility-intake-rules-configuration-02-04-PLAN.md
-last_updated: "2026-07-25T23:16:51.580Z"
-last_activity: "2026-07-25 — Plan 01-05 complete: Programs seed, org idempotency fix, no-programs warning alert"
+stopped_at: Completed 02-eligibility-intake-rules-configuration-02-04-PLAN.md (gap closure)
+last_updated: "2026-07-25T23:28:00.000Z"
+last_activity: "2026-07-25 — Phase 2 complete: gap closure plan 02-04 executed; all 4 UAT gaps closed; VERIFICATION.md status=passed"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 12
   completed_plans: 12
-  percent: 83
+  percent: 85
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 1 of 6 (Platform Foundation & Opportunity Setup) — COMPLETE
-Plan: 5 of 5 in current phase — All plans complete
-Status: Phase 1 Complete
-Last activity: 2026-07-25 — Plan 01-05 complete: Programs seed, org idempotency fix, no-programs warning alert
+Phase: 2 of 6 (Eligibility & Intake Rules Configuration) — COMPLETE
+Plan: 4 of 4 in current phase — All plans complete (including gap closure plan 02-04)
+Status: Phase 2 Complete — verification passed (5/5 must-haves)
+Last activity: 2026-07-25 — Plan 02-04 complete: OpportunitiesIndex live fetch + publish route public_slug fix; all UAT gaps closed
 
 Progress: [████████░░] 83%
 
