@@ -1,4 +1,4 @@
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, Link } from 'react-router-dom';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useAuthStore } from '../store/authStore';
 import { GrantorSidebar } from '../components/nav/GrantorSidebar';
@@ -45,13 +45,23 @@ export function GrantorLayout() {
             </div>
           </div>
           <nav aria-label="Primary navigation" className="usa-nav">
-            <div className="usa-nav__inner">
-              {user && (
-                <span className="usa-nav__primary-item" style={{ fontSize: '0.875rem', color: '#1b1b1b' }}>
-                  {user.full_name}
-                </span>
-              )}
-            </div>
+            <ul className="usa-nav__primary usa-accordion">
+              <li className="usa-nav__primary-item">
+                <Link to="/opportunities" className="usa-nav__link">
+                  <span>Find Opportunities</span>
+                </Link>
+              </li>
+              <li className="usa-nav__primary-item">
+                <Link to="/grantor/dashboard" className="usa-nav__link">
+                  <span>Grantor Portal</span>
+                </Link>
+              </li>
+            </ul>
+            {user && (
+              <span style={{ fontSize: '0.875rem', color: '#1b1b1b', padding: '0.5rem 1rem' }}>
+                {user.full_name}
+              </span>
+            )}
           </nav>
         </div>
       </header>
