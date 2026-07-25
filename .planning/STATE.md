@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-eligibility-intake-rules-configuration-02-03-PLAN.md
-last_updated: "2026-07-25T21:58:40.480Z"
+stopped_at: Completed 02-eligibility-intake-rules-configuration-02-04-PLAN.md
+last_updated: "2026-07-25T23:16:51.580Z"
 last_activity: "2026-07-25 — Plan 01-05 complete: Programs seed, org idempotency fix, no-programs warning alert"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 12
+  completed_plans: 12
   percent: 83
 ---
 
@@ -64,6 +64,7 @@ Progress: [████████░░] 83%
 | Phase 02-eligibility-intake-rules-configuration P01 | 10 min | 2 tasks | 14 files |
 | Phase 02-eligibility-intake-rules-configuration P02 | 9 min | 2 tasks | 17 files |
 | Phase 02-eligibility-intake-rules-configuration P03 | 10 min | 2 tasks | 17 files |
+| Phase 02-eligibility-intake-rules-configuration P04 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,7 @@ Recent decisions affecting current work:
 - [Phase 02-eligibility-intake-rules-configuration]: Section conditions: PUT uses ON CONFLICT upsert — idempotent semantics for same section_key per opportunity
 - [Phase 02-eligibility-intake-rules-configuration]: Auto-criteria delete guard implemented at service layer (screeningCriteriaService.delete) — cannot be bypassed
 - [Phase 02-eligibility-intake-rules-configuration]: Migration numbered 009: slots 001-008 occupied; publicOpportunitiesRouter mounted before opportunitiesRouter for unauthenticated public access; GIN index uses executive_summary+eligibility_summary (not description); optional auth on detail route via dynamic verifyAccessToken import
+- [Phase 02-eligibility-intake-rules-configuration]: Publish route delegates entirely to publicationService.publish() — no inline SQL in route handler; versioningService import retained (used by PATCH and GET /versions)
 
 ### Pending Todos
 
@@ -106,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-25T21:58:40.479Z
-Stopped at: Completed 02-eligibility-intake-rules-configuration-02-03-PLAN.md
+Last session: 2026-07-25T23:16:51.579Z
+Stopped at: Completed 02-eligibility-intake-rules-configuration-02-04-PLAN.md
 Resume file: None
