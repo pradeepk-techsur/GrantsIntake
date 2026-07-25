@@ -190,6 +190,75 @@ async function seed() {
     }
     console.log('Seeded 5 system opportunity templates (idempotent)');
 
+    // Seed guidance prompts for key narrative fields (idempotent via field_id UNIQUE)
+    const guidancePrompts = [
+      {
+        field_id: 'executive_summary',
+        prompt_text: 'Write a clear, plain-language overview of your funding opportunity. Describe the purpose of the grant, what you hope to achieve, and who should apply. Aim for a 6th-8th grade reading level.',
+        example_text: 'The Community Health Innovation Grant supports non-profit organizations that develop new approaches to reducing childhood obesity in underserved communities. Awards of $50,000–$200,000 will fund 12-month projects that demonstrate measurable health outcomes.',
+        uswds_tips: JSON.stringify([
+          'Lead with the most important information (who, what, how much)',
+          'Avoid jargon and acronyms — spell them out on first use',
+          'Use active voice: "We will fund" not "Funding will be provided"',
+        ]),
+      },
+      {
+        field_id: 'eligibility_summary',
+        prompt_text: 'Clearly describe who is eligible to apply. Include organization types, geographic requirements, and any prior experience or certification requirements. Be specific so applicants can self-screen.',
+        example_text: 'Eligible applicants include 501(c)(3) non-profit organizations and local health departments located in rural communities with populations under 50,000. Applicants must have at least 2 years of experience delivering health programs and a current UEI number.',
+        uswds_tips: JSON.stringify([
+          'List eligibility criteria as a bulleted list for easy scanning',
+          'Clearly state who is NOT eligible to reduce ineligible applications',
+          'Include any registration requirements (SAM.gov, UEI, state registration)',
+        ]),
+      },
+      {
+        field_id: 'contact_name',
+        prompt_text: 'Provide the name of the primary point of contact who can answer questions about this funding opportunity. This person should be available during the application period.',
+        example_text: 'Dr. Maria Johnson, Program Officer',
+        uswds_tips: JSON.stringify([
+          'Include professional title or role after the name',
+          'Ensure the contact person is available during the application period',
+          'Consider providing a backup contact for high-volume opportunities',
+        ]),
+      },
+      {
+        field_id: 'contact_email',
+        prompt_text: 'Provide an official government or organization email address for applicant questions. Avoid personal email addresses. Consider using a shared inbox for high-volume opportunities.',
+        example_text: 'grants@example.gov',
+        uswds_tips: JSON.stringify([
+          'Use an official organizational email domain',
+          'A shared inbox (grants@ or programs@) is better than individual email for high-volume opportunities',
+          'Set up an auto-reply confirming receipt of questions',
+        ]),
+      },
+      {
+        field_id: 'program_area',
+        prompt_text: 'Specify the primary program area or subject matter focus of this funding opportunity. This helps applicants find opportunities relevant to their work and supports reporting and categorization.',
+        example_text: 'Public Health / Community Health Improvement',
+        uswds_tips: JSON.stringify([
+          'Use standard program area classifications from your agency or organization',
+          'Be specific enough to be meaningful but broad enough to include all eligible projects',
+          'Align with your organization\'s strategic plan categories when possible',
+        ]),
+      },
+    ];
+
+    for (const prompt of guidancePrompts) {
+      const existingPrompt = await pool.query(
+        `SELECT 1 FROM guidance_prompts WHERE field_id = $1`,
+        [prompt.field_id],
+      );
+      if (existingPrompt.rows.length === 0) {
+        await pool.query(
+          `INSERT INTO guidance_prompts (field_id, prompt_text, example_text, uswds_tips)
+           VALUES ($1, $2, $3, $4::jsonb)`,
+          [prompt.field_id, prompt.prompt_text, prompt.example_text, prompt.uswds_tips],
+        );
+      }
+    }
+    console.log('Seeded 5 guidance prompts (idempotent)');
+
     console.log('Seed complete — admin@example.gov / TestPassword123!');
   } catch (err) {
     console.error('Seed failed:', err);

@@ -6,6 +6,8 @@ import { env } from './config/env';
 import { authRouter } from './routes/auth';
 import { programsRouter } from './routes/programs';
 import { opportunityTemplatesRouter } from './routes/opportunityTemplates';
+import { opportunitiesRouter } from './routes/opportunities';
+import { guidanceRouter } from './routes/guidance';
 
 const app = express();
 
@@ -37,6 +39,11 @@ app.use('/api/v1/auth', authRouter);
 // Mount opportunity domain routes
 app.use('/api/v1/programs', programsRouter);
 app.use('/api/v1/opportunity-templates', opportunityTemplatesRouter);
+
+// Mount opportunities and guidance routes (plan 01-03)
+// Note: opportunitiesRouter handles both /programs/:id/opportunities and /opportunities/:id patterns
+app.use('/api/v1', opportunitiesRouter);
+app.use('/api/v1/guidance-prompts', guidanceRouter);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
