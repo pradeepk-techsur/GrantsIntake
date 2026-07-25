@@ -23,9 +23,42 @@ export interface Opportunity {
   contact_title: string | null;
   program_area: string;
   status: string;
+  published_at: string | null;
+  published_by: string | null;
+  // Deadline fields (F4)
+  application_open_date: string | null;
+  application_close_date: string | null;
+  pre_application_deadline: string | null;
+  loi_deadline: string | null;
+  loi_required: boolean;
+  rolling_review_enabled: boolean;
+  rolling_review_cadence_days: number | null;
+  deadline_timezone: string;
   created_by: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface OpportunityVersion {
+  version_id: string;
+  opportunity_id: string;
+  version_number: number;
+  snapshot: Opportunity;
+  delta: Record<string, { old: unknown; new: unknown }> | null;
+  modification_reason: string;
+  created_by: string;
+  created_at: string;
+}
+
+export interface CompletenessBlocker {
+  field: string;
+  section: string;
+  message: string;
+}
+
+export interface CompletenessResult {
+  is_ready: boolean;
+  blockers: CompletenessBlocker[];
 }
 
 export interface CreateOpportunityPayload {
@@ -49,7 +82,19 @@ export interface CreateOpportunityPayload {
   program_area: string;
 }
 
-export type UpdateOpportunityPayload = Partial<CreateOpportunityPayload>;
+export interface UpdateOpportunityPayload extends Partial<CreateOpportunityPayload> {
+  // Deadline fields (F4)
+  application_open_date?: string | null;
+  application_close_date?: string | null;
+  pre_application_deadline?: string | null;
+  loi_deadline?: string | null;
+  loi_required?: boolean;
+  rolling_review_enabled?: boolean;
+  rolling_review_cadence_days?: number | null;
+  deadline_timezone?: string;
+  // Post-publication modification reason
+  modification_reason?: string;
+}
 
 /**
  * Hook to fetch a single opportunity by ID.
@@ -108,6 +153,56 @@ export function useUpdateOpportunity(id: string | null) {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['opportunity', id], data);
+      // Invalidate versions and completeness queries when opportunity changes
+      queryClient.invalidateQueries({ queryKey: ['opportunity-versions', id] });
     },
+  });
+}
+
+/**
+ * Hook to publish an opportunity.
+ * Returns mutation for POST /api/v1/opportunities/:id/publish
+ */
+export function usePublishOpportunity(id: string | null) {
+  const queryClient = useQueryClient();
+
+  return useMutation<Opportunity, Error, void>({
+    mutationFn: async () => {
+      const response = await apiClient.post<Opportunity>(`/opportunities/${id}/publish`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['opportunity', id], data);
+      queryClient.invalidateQueries({ queryKey: ['opportunity-versions', id] });
+    },
+  });
+}
+
+/**
+ * Hook to check publication readiness (dry run).
+ */
+export function useCheckReadiness(id: string | null) {
+  return useMutation<CompletenessResult, Error, void>({
+    mutationFn: async () => {
+      const response = await apiClient.post<CompletenessResult>(
+        `/opportunities/${id}/publish?dry_run=true`,
+      );
+      return response.data;
+    },
+  });
+}
+
+/**
+ * Hook to fetch version history for an opportunity.
+ */
+export function useOpportunityVersions(id: string | null) {
+  return useQuery<OpportunityVersion[]>({
+    queryKey: ['opportunity-versions', id],
+    queryFn: async () => {
+      const response = await apiClient.get<OpportunityVersion[]>(`/opportunities/${id}/versions`);
+      return response.data;
+    },
+    enabled: !!id,
+    staleTime: 10 * 1000,
   });
 }

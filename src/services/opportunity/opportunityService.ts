@@ -242,6 +242,15 @@ export class OpportunityService {
       'geography',
       'application_url',
       'status',
+      // Deadline fields (F4)
+      'application_open_date',
+      'application_close_date',
+      'pre_application_deadline',
+      'loi_deadline',
+      'loi_required',
+      'rolling_review_enabled',
+      'rolling_review_cadence_days',
+      'deadline_timezone',
     ];
 
     const setClauses: string[] = [];
