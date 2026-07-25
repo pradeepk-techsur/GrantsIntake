@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-eligibility-intake-rules-configuration-02-01-PLAN.md
-last_updated: "2026-07-25T21:31:03.517Z"
+stopped_at: Completed 02-eligibility-intake-rules-configuration-02-02-PLAN.md
+last_updated: "2026-07-25T21:44:05.635Z"
 last_activity: "2026-07-25 — Plan 01-05 complete: Programs seed, org idempotency fix, no-programs warning alert"
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 83
 ---
 
@@ -62,6 +62,7 @@ Progress: [████████░░] 83%
 | Phase 01-platform-foundation-opportunity-setup P05 | 4min | 2 tasks | 2 files |
 | Phase 01-platform-foundation-opportunity-setup P06 | 2 min | 2 tasks | 5 files |
 | Phase 02-eligibility-intake-rules-configuration P01 | 10 min | 2 tasks | 14 files |
+| Phase 02-eligibility-intake-rules-configuration P02 | 9 min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,9 @@ Recent decisions affecting current work:
 - [Phase 02-eligibility-intake-rules-configuration]: Migration numbering: 006/007 (not 005/006) — pre-existing 005_funding_amount_max_nullable.sql occupied slot 005
 - [Phase 02-eligibility-intake-rules-configuration]: IDOR for eligibility rule update/delete: grantor_roles membership check inside service layer, returns 404 (not 403) to prevent org enumeration
 - [Phase 02-eligibility-intake-rules-configuration]: criterion_value JSONB: string | string[] | number accepted at route layer (comma-separated treated as string array)
+- [Phase 02-eligibility-intake-rules-configuration]: Migration numbered 008 (not 007) — 007_prescreening_schema.sql already occupied slot 007
+- [Phase 02-eligibility-intake-rules-configuration]: Section conditions: PUT uses ON CONFLICT upsert — idempotent semantics for same section_key per opportunity
+- [Phase 02-eligibility-intake-rules-configuration]: Auto-criteria delete guard implemented at service layer (screeningCriteriaService.delete) — cannot be bypassed
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-25T21:31:03.515Z
-Stopped at: Completed 02-eligibility-intake-rules-configuration-02-01-PLAN.md
+Last session: 2026-07-25T21:44:05.634Z
+Stopped at: Completed 02-eligibility-intake-rules-configuration-02-02-PLAN.md
 Resume file: None
