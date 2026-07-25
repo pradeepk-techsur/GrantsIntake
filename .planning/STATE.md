@@ -2,15 +2,15 @@
 pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 01-platform-foundation-opportunity-setup-01-04-PLAN.md
-last_updated: "2026-07-25T02:51:51.710Z"
-last_activity: "2026-07-25 — Plan 01-03 complete: Opportunities schema, OpportunityService, API endpoints, Opportunity Builder React UI"
+status: completed
+stopped_at: Completed 01-platform-foundation-opportunity-setup-01-05-PLAN.md
+last_updated: "2026-07-25T04:26:56.212Z"
+last_activity: "2026-07-25 — Plan 01-05 complete: Programs seed, org idempotency fix, no-programs warning alert"
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 0
+  total_plans: 6
+  completed_plans: 5
   percent: 100
 ---
 
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 1 of 6 (Platform Foundation & Opportunity Setup) — COMPLETE
-Plan: 4 of 4 in current phase — All plans complete
+Plan: 5 of 5 in current phase — All plans complete
 Status: Phase 1 Complete
-Last activity: 2026-07-25 — Plan 01-04 complete: Deadlines, Completeness Validation, and Opportunity Versioning
+Last activity: 2026-07-25 — Plan 01-05 complete: Programs seed, org idempotency fix, no-programs warning alert
 
-Progress: [██████████] 100%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [██████████] 100%
 | Phase 01-platform-foundation-opportunity-setup P02 | 8min | 2 tasks | 27 files |
 | Phase 01-platform-foundation-opportunity-setup P03 | 10 min | 2 tasks | 20 files |
 | Phase 01-platform-foundation-opportunity-setup P04 | 9min | 2 tasks | 14 files |
+| Phase 01-platform-foundation-opportunity-setup P05 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,7 @@ Recent decisions affecting current work:
 - [Phase 01-platform-foundation-opportunity-setup]: Test cleanup for immutable tables: ALTER TABLE DISABLE/ENABLE TRIGGER in afterAll — immutability trigger fires even during test cleanup
 - [Phase 01-platform-foundation-opportunity-setup]: Dry run pattern: POST /publish?dry_run=true returns completeness result without state change (used by Check Readiness button)
 - [Phase 01-platform-foundation-opportunity-setup]: Client-side completeness derived from opportunity prop for real-time checklist feedback; server is authoritative at actual publish
+- [Phase 01-platform-foundation-opportunity-setup]: SELECT-then-INSERT for programs seed (no UNIQUE constraint on program_name) and for grantor_organizations fix
 
 ### Pending Todos
 
@@ -92,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-25T02:51:51.709Z
-Stopped at: Completed 01-platform-foundation-opportunity-setup-01-04-PLAN.md
+Last session: 2026-07-25T04:26:56.211Z
+Stopped at: Completed 01-platform-foundation-opportunity-setup-01-05-PLAN.md
 Resume file: None
