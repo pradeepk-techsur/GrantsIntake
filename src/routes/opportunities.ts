@@ -62,11 +62,11 @@ const updateOpportunitySchema = z.object({
   geography: z.object({}).passthrough().nullable().optional(),
   application_url: z.string().url().max(2048).nullable().optional(),
   status: z.enum(['draft', 'published', 'closed', 'archived']).optional(),
-  // Deadline fields (F4)
-  application_open_date: z.string().datetime().nullable().optional(),
-  application_close_date: z.string().datetime().nullable().optional(),
-  pre_application_deadline: z.string().datetime().nullable().optional(),
-  loi_deadline: z.string().datetime().nullable().optional(),
+  // Deadline fields (F4) — coerce to Date so parsed.data matches UpdateOpportunityInput
+  application_open_date: z.coerce.date().nullable().optional(),
+  application_close_date: z.coerce.date().nullable().optional(),
+  pre_application_deadline: z.coerce.date().nullable().optional(),
+  loi_deadline: z.coerce.date().nullable().optional(),
   loi_required: z.boolean().optional(),
   rolling_review_enabled: z.boolean().optional(),
   rolling_review_cadence_days: z.number().int().nullable().optional(),

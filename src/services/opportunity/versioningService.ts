@@ -55,8 +55,8 @@ export class VersioningService {
     for (const key of allKeys) {
       // Skip system-managed fields that change on every update
       if (key === 'updated_at') continue;
-      const oldVal = (oldSnapshot as Record<string, unknown>)[key];
-      const newVal = (newSnapshot as Record<string, unknown>)[key];
+      const oldVal = (oldSnapshot as unknown as Record<string, unknown>)[key];
+      const newVal = (newSnapshot as unknown as Record<string, unknown>)[key];
       if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
         delta[key] = { old: oldVal, new: newVal };
       }
