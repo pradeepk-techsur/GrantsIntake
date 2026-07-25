@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 02-eligibility-intake-rules-configuration
 source: 02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md
 started: 2026-07-25T22:30:00Z
@@ -125,13 +125,13 @@ screenshots:
   severity: major
   test: 4
   source: user
-  root_cause: "OpportunitiesIndex component (client/src/pages/grantor/OpportunitiesIndex.tsx:30-60) is a Phase 1 placeholder that always renders 'No opportunities yet' without fetching from the API. The GET /api/v1/programs/:id/opportunities endpoint exists and returns the UAT Test Grant, but the UI never calls it. Grantors cannot navigate to any existing opportunity through normal navigation."
+  root_cause: "OpportunitiesIndex (client/src/pages/grantor/OpportunitiesIndex.tsx:39-56) unconditionally renders the 'No opportunities yet' alert. useFirstProgramId() (lines 13-25) correctly fetches /programs and stores the program_id, but it is only passed to <TemplateLibrary> for the create flow — never used to fetch existing opportunities. No useEffect calls GET /api/v1/programs/:programId/opportunities; no opportunity list is rendered."
   artifacts:
     - path: "client/src/pages/grantor/OpportunitiesIndex.tsx"
-      issue: "Component always shows 'No opportunities yet' alert — never fetches or renders existing opportunities list. useFirstProgramId() fetches the program but the program ID is never used to fetch opportunities."
+      issue: "Lines 39-56: unconditionally renders 'No opportunities yet' alert without fetching; useFirstProgramId() result never used to fetch or list existing opportunities"
   missing:
-    - "Add opportunities fetch: useEffect calling GET /api/v1/programs/:programId/opportunities and render a list of opportunities with links to /grantor/opportunities/:id"
-  debug_session: ""
+    - "Add useState<Opportunity[]> + useEffect that fires on programId resolve, fetches GET /api/v1/programs/:programId/opportunities, renders results as clickable cards/links to /grantor/opportunities/:id. Show 'No opportunities yet' only when fetched list is empty."
+  debug_session: "ses_0647d42ccffe9d2sT4HReip3Hr"
 
 - truth: "Pre-Screening tab is accessible from the Opportunity Builder and allows building questionnaires"
   status: failed
@@ -149,32 +149,31 @@ screenshots:
 
 - truth: "A published opportunity receives a public_slug for use in the public detail URL"
   status: failed
-  reason: "Self-check and user-reported (blocked downstream tests): POST /api/v1/opportunities/:id/publish sets status=published and published_at but public_slug remains NULL in DB. Route handler bypasses PublicationService."
+  reason: "Self-check: POST /api/v1/opportunities/:id/publish sets status=published and published_at but public_slug remains NULL. Route handler at src/routes/opportunities.ts:413-419 runs hand-rolled UPDATE omitting public_slug, never calls publicationService.publish() which generates it."
   severity: major
   test: 7
   source: self_check
-  root_cause: "src/routes/opportunities.ts:413-415 runs its own inline SQL UPDATE (SET status=published, published_at=now(), published_by=$1) — it never calls publicationService.publish(). publicationService.publish() at publicationService.ts:92-107 generates the slug via this.generateUniqueSlug() and sets public_slug in its own UPDATE. Since the route bypasses the service, public_slug is always NULL."
+  root_cause: "src/routes/opportunities.ts:413-419 contains a hand-rolled UPDATE (status, published_at, published_by, updated_at only — public_slug absent). publicationService.publish() at publicationService.ts:92-106 calls generateUniqueSlug() and includes public_slug=$1 in its own UPDATE, but the route never calls the service. The route also duplicates completeness check, snapshot creation, and audit event — double-writing those when service is eventually wired."
   artifacts:
     - path: "src/routes/opportunities.ts"
-      issue: "publish route handler (line ~413) runs inline SQL UPDATE missing public_slug — never calls publicationService.publish()"
+      issue: "publish handler lines ~413-443: inline pool.query UPDATE omits public_slug; duplicates service logic (completeness, snapshot, audit event)"
     - path: "src/services/opportunity/publicationService.ts"
-      issue: "publish() method (line 92-107) correctly generates slug but is never invoked by the route"
+      issue: "publish() method lines 92-106 correctly generates slug but is never called by the route"
   missing:
-    - "Replace inline SQL in src/routes/opportunities.ts publish handler with: const published = await publicationService.publish(id, req.user!.user_id); res.status(200).json(published);"
-  debug_session: ""
+    - "Replace lines 412-443 of src/routes/opportunities.ts with: const publishedOpp = await publicationService.publish(id, req.user!.user_id); res.status(200).json(publishedOpp); — remove duplicate snapshot and audit event writes from route"
+  debug_session: "ses_0647d42ccffe9d2sT4HReip3Hr"
 
 - truth: "Client build succeeds without TypeScript errors"
   status: failed
-  reason: "Self-check: tsc -b fails with 2 errors: OpportunityListPage.tsx imports OpportunityListItem as value (needs type-only import), AttachmentRequirementsConfig.tsx declares unused STAGE_LABEL_MAP constant."
+  reason: "Self-check: tsc -b fails with 2 TS errors. FIXED during UAT self-check — client now builds successfully."
   severity: minor
   test: 8
   source: self_check
-  root_cause: "TypeScript verbatimModuleSyntax requires 'import type' for type-only imports. STAGE_LABEL_MAP was defined but never used in the component."
+  root_cause: "verbatimModuleSyntax requires type-only imports for type-only symbols. STAGE_LABEL_MAP was declared but never referenced in JSX."
   artifacts:
     - path: "client/src/pages/applicant/OpportunityListPage.tsx"
-      issue: "line 2: OpportunityListItem imported as value, needs 'import type'"
+      issue: "FIXED: now uses 'import type { OpportunityListItem }'"
     - path: "client/src/pages/grantor/opportunities/AttachmentRequirementsConfig.tsx"
-      issue: "line 78: STAGE_LABEL_MAP declared but never read (TS6133)"
-  missing:
-    - "Both fixed during self-check: type-only import applied, unused const removed. Client builds successfully."
+      issue: "FIXED: STAGE_LABEL_MAP const removed"
+  missing: []
   debug_session: ""
