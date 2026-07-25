@@ -8,6 +8,8 @@ import { programsRouter } from './routes/programs';
 import { opportunityTemplatesRouter } from './routes/opportunityTemplates';
 import { opportunitiesRouter } from './routes/opportunities';
 import { guidanceRouter } from './routes/guidance';
+import { eligibilityRouter } from './routes/eligibility';
+import { prescreeningRouter } from './routes/prescreening';
 
 const app = express();
 
@@ -44,6 +46,10 @@ app.use('/api/v1/opportunity-templates', opportunityTemplatesRouter);
 // Note: opportunitiesRouter handles both /programs/:id/opportunities and /opportunities/:id patterns
 app.use('/api/v1', opportunitiesRouter);
 app.use('/api/v1/guidance-prompts', guidanceRouter);
+
+// Mount eligibility and prescreening routes (plan 02-01)
+app.use('/api/v1', eligibilityRouter);
+app.use('/api/v1', prescreeningRouter);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
