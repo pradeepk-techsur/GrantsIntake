@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-eligibility-intake-rules-configuration-02-02-PLAN.md
-last_updated: "2026-07-25T21:44:05.635Z"
+stopped_at: Completed 02-eligibility-intake-rules-configuration-02-03-PLAN.md
+last_updated: "2026-07-25T21:58:40.480Z"
 last_activity: "2026-07-25 — Plan 01-05 complete: Programs seed, org idempotency fix, no-programs warning alert"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 83
 ---
 
@@ -63,6 +63,7 @@ Progress: [████████░░] 83%
 | Phase 01-platform-foundation-opportunity-setup P06 | 2 min | 2 tasks | 5 files |
 | Phase 02-eligibility-intake-rules-configuration P01 | 10 min | 2 tasks | 14 files |
 | Phase 02-eligibility-intake-rules-configuration P02 | 9 min | 2 tasks | 17 files |
+| Phase 02-eligibility-intake-rules-configuration P03 | 10 min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,7 @@ Recent decisions affecting current work:
 - [Phase 02-eligibility-intake-rules-configuration]: Migration numbered 008 (not 007) — 007_prescreening_schema.sql already occupied slot 007
 - [Phase 02-eligibility-intake-rules-configuration]: Section conditions: PUT uses ON CONFLICT upsert — idempotent semantics for same section_key per opportunity
 - [Phase 02-eligibility-intake-rules-configuration]: Auto-criteria delete guard implemented at service layer (screeningCriteriaService.delete) — cannot be bypassed
+- [Phase 02-eligibility-intake-rules-configuration]: Migration numbered 009: slots 001-008 occupied; publicOpportunitiesRouter mounted before opportunitiesRouter for unauthenticated public access; GIN index uses executive_summary+eligibility_summary (not description); optional auth on detail route via dynamic verifyAccessToken import
 
 ### Pending Todos
 
@@ -104,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-25T21:44:05.634Z
-Stopped at: Completed 02-eligibility-intake-rules-configuration-02-02-PLAN.md
+Last session: 2026-07-25T21:58:40.479Z
+Stopped at: Completed 02-eligibility-intake-rules-configuration-02-03-PLAN.md
 Resume file: None
