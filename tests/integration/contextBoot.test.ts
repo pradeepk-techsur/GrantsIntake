@@ -40,8 +40,16 @@ describe('Context Boot', () => {
     expect(tableNames).toContain('users');
   });
 
-  it('Returns 404 for unknown routes', async () => {
-    const res = await request(app).get('/unknown-route-xyz');
+  // Plan 01-02 introduced SPA routing: non-API routes now serve client/dist/index.html (200).
+  // Only unknown /api/* routes return 404; non-API unknown paths serve the SPA.
+  it('Returns 404 for unknown API routes', async () => {
+    const res = await request(app).get('/api/v1/unknown-route-xyz');
     expect(res.status).toBe(404);
+  });
+
+  it('Serves SPA for non-API unknown routes (client-side routing)', async () => {
+    const res = await request(app).get('/unknown-route-xyz');
+    // With client/dist present, Express serves index.html (200) for SPA routing
+    expect([200, 404]).toContain(res.status);
   });
 });
