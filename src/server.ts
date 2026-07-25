@@ -10,6 +10,9 @@ import { opportunitiesRouter } from './routes/opportunities';
 import { guidanceRouter } from './routes/guidance';
 import { eligibilityRouter } from './routes/eligibility';
 import { prescreeningRouter } from './routes/prescreening';
+import { sectionConditionsRouter } from './routes/sectionConditions';
+import { attachmentRequirementsRouter } from './routes/attachmentRequirements';
+import { screeningCriteriaRouter } from './routes/screeningCriteria';
 
 const app = express();
 
@@ -50,6 +53,11 @@ app.use('/api/v1/guidance-prompts', guidanceRouter);
 // Mount eligibility and prescreening routes (plan 02-01)
 app.use('/api/v1', eligibilityRouter);
 app.use('/api/v1', prescreeningRouter);
+
+// Mount intake configuration routes (plan 02-02)
+app.use('/api/v1', sectionConditionsRouter);
+app.use('/api/v1', attachmentRequirementsRouter);
+app.use('/api/v1', screeningCriteriaRouter);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
