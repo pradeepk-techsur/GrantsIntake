@@ -115,6 +115,40 @@ async function verifyOpportunityAccess(
   }
 }
 
+// ─── GET /api/v1/programs/:programId/opportunities ────────────────────────────
+
+opportunitiesRouter.get(
+  '/programs/:programId/opportunities',
+  authenticate,
+  async (req: Request, res: Response): Promise<void> => {
+    const { programId } = req.params;
+
+    try {
+      // T-03-01: Verify program belongs to caller's grantor org
+      const grantorOrgId = await getGrantorOrgIdForUser(req.user!.user_id);
+      const programCheck = await pool.query<{ count: string }>(
+        `SELECT COUNT(*) FROM programs WHERE program_id = $1 AND grantor_org_id = $2 AND archived_at IS NULL`,
+        [programId, grantorOrgId],
+      );
+      if (parseInt(programCheck.rows[0].count) === 0) {
+        res.status(403).json({ error: 'PERMISSION_DENIED', message: 'Program not found or access denied' });
+        return;
+      }
+
+      const opportunities = await opportunityService.listByProgram(programId);
+      res.status(200).json(opportunities);
+    } catch (err: unknown) {
+      const error = err as { code?: string; status?: number; message?: string };
+      if (error.code === 'NO_GRANTOR_ORG') {
+        res.status(403).json({ error: 'PERMISSION_DENIED', message: 'No grantor organization membership' });
+        return;
+      }
+      console.error('GET /programs/:programId/opportunities error:', err);
+      res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to list opportunities' });
+    }
+  },
+);
+
 // ─── POST /api/v1/programs/:programId/opportunities ───────────────────────────
 
 opportunitiesRouter.post(
