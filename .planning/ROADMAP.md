@@ -43,6 +43,7 @@ Plans:
 - [ ] 01-06-PLAN.md — Gap closure: make funding_amount_max optional in createOpportunitySchema, remove funding_amount_max: 0 from TemplateLibrary payload, surface create errors via USWDS alert (fixes silent "Create Opportunity" failure — unblocks UAT Tests 3–7)
 
 ### Phase 2: Eligibility & Intake Rules Configuration
+**Status**: In Progress
 **Goal**: Grantors can define enforceable eligibility rules, configure pre-screening questionnaires, set attachment requirements and administrative screening criteria, and publish opportunities to an applicant-facing portal with search and discovery
 **Depends on**: Phase 1
 **Requirements**: PRD-INTAKE-008, PRD-INTAKE-009, PRD-INTAKE-010, PRD-INTAKE-011, PRD-INTAKE-012, PRD-INTAKE-013, PRD-INTAKE-014, PRD-INTAKE-015, PRD-INTAKE-017, PRD-INTAKE-018
