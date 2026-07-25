@@ -36,6 +36,7 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
   const { templates, isLoading } = useOpportunityTemplates();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [showSelectionError, setShowSelectionError] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const createOpportunity = useCreateOpportunity(programId);
   const navigate = useNavigate();
 
@@ -68,7 +69,6 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
       funding_source: 'To be determined',
       announcement_type: 'Initial',
       opportunity_number: `DRAFT-${Date.now()}`,
-      funding_amount_max: 0,
       eligibility_summary: 'To be completed.',
       executive_summary: 'To be completed.',
       contact_name: 'To be determined',
@@ -77,10 +77,13 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
     };
 
     try {
+      setCreateError(null);
       const opportunity = await createOpportunity.mutateAsync(payload);
       navigate(`/grantor/opportunities/${opportunity.opportunity_id}`);
-    } catch {
-      // Error handled by mutation
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.';
+      setCreateError(message);
     }
   };
 
@@ -142,6 +145,21 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
             >
               <div className="usa-alert__body">
                 <p className="usa-alert__text">Please select a template before continuing.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error alert when opportunity creation fails */}
+          {createError && (
+            <div
+              className="usa-alert usa-alert--error usa-alert--slim"
+              role="alert"
+              data-testid="create-opportunity-error"
+            >
+              <div className="usa-alert__body">
+                <p className="usa-alert__text">
+                  Could not create opportunity: {createError}
+                </p>
               </div>
             </div>
           )}
