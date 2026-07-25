@@ -78,10 +78,17 @@ export function OpportunitiesIndex() {
       )}
 
       {showTemplateLibrary && !programId && (
-        <div className="usa-alert usa-alert--warning" role="alert">
+        <div
+          className="usa-alert usa-alert--warning"
+          role="alert"
+          data-testid="no-programs-warning"
+        >
           <div className="usa-alert__body">
+            <h4 className="usa-alert__heading">No programs configured</h4>
             <p className="usa-alert__text">
-              You must create a program before creating an opportunity.
+              Your organization has no programs set up yet. A program is required before
+              you can create a funding opportunity. Please contact your system administrator
+              to configure a program for your organization.
             </p>
           </div>
         </div>
