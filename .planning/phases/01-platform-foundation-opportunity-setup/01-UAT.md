@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-platform-foundation-opportunity-setup
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md]
 started: 2026-07-25T03:12:00Z
-updated: 2026-07-25T03:35:00Z
+updated: 2026-07-25T03:40:00Z
 ---
 
 ## Current Test
@@ -96,7 +96,13 @@ per_test:
   severity: major
   test: 3
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Seed creates no programs. useFirstProgramId() fetches /programs → gets [] → programId stays null. TemplateLibrary only mounts when programId is truthy (OpportunitiesIndex.tsx:73-78), so the modal is never rendered. Instead a warning alert is shown (line 80-88) but may not be visible. The button click sets showTemplateLibrary=true but with programId=null the modal never appears."
+  artifacts:
+    - path: "src/db/seed.ts"
+      issue: "No INSERT INTO programs — programs table is empty after seed"
+    - path: "client/src/pages/grantor/OpportunitiesIndex.tsx"
+      issue: "Lines 13-25: useFirstProgramId() returns null when no programs exist; lines 73-78: TemplateLibrary gated on programId being truthy"
+  missing:
+    - "Add idempotent program seed to src/db/seed.ts linked to the seeded grantor org"
+    - "Make the 'no programs' warning alert visible and actionable for the user"
+  debug_session: "ses_06889e0f0ffeApkn2eyV8yGL5z"
