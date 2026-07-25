@@ -22,7 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Platform Foundation & Opportunity Setup
-**Status**: In Progress
+**Status**: passed
 **Goal**: Grantors can authenticate, access a role-appropriate portal, and create well-structured, validated funding opportunities from templates
 **Depends on**: Nothing (first phase)
 **Requirements**: US-1.0, PRD-INTAKE-001, PRD-INTAKE-002, PRD-INTAKE-003, PRD-INTAKE-005, PRD-INTAKE-006, PRD-INTAKE-007
@@ -52,12 +52,12 @@ Plans:
   3. A grantor can configure conditional forms/sections, required attachment types by applicant type and stage, and administrative screening criteria
   4. An applicant (unauthenticated) can browse published opportunities with search and filters (funder, program area, geography, eligibility type, funding amount, deadline, keyword) and view public opportunity detail pages
   5. Applicants with in-progress applications see opportunity changes, addenda, Q&A updates, and deadline changes displayed on the opportunity page
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 02-01: Eligibility rule definition engine (F7), hard blockers vs. advisory indicators (F8), pre-screening questionnaire builder (F9)
-- [ ] 02-02: Conditional forms/sections (F10), attachment requirement configuration (F11), administrative screening criteria configuration (F12)
-- [ ] 02-03: Applicant-facing opportunity portal publication (F13), search & filtering (F14), public opportunity pages & authenticated workspace links (F16), opportunity changes & addenda display (F17)
+- [ ] 02-01-PLAN.md — eligibility_rules + prescreening_questionnaires/questions/options migrations; EligibilityService + PrescreeningService; REST API (eligibility-rules, prescreening); EligibilityRuleBuilder + PrescreeningBuilder UI tabs wired into OpportunityBuilder; USWDS Error/Warning alert styling for hard blockers vs advisory; integration + Playwright tests
+- [ ] 02-02-PLAN.md — section_condition_configs + attachment_requirements + screening_criteria migration; SectionConditionService + AttachmentRequirementService + ScreeningCriteriaService; REST APIs; ConditionalSectionConfig + AttachmentRequirementsConfig + ScreeningCriteriaConfig UI tabs; auto-criteria lock; integration + Playwright tests
+- [ ] 02-03-PLAN.md — addenda migration + GIN full-text index; PublicationService (public_slug, OPPORTUNITY_PUBLISHED audit) + AddendaService (immutable) + SearchService (GIN keyword + facets); public GET /opportunities search + detail + workspace-status; POST /addenda (grantor); OpportunityListPage + OpportunityDetailPage + AddendaTimeline; "Find Opportunities" nav link; integration + Playwright tests
 
 ### Phase 3: Organization Profile & Eligibility Pre-Screening
 **Goal**: Applicants can create a reusable organization profile with credentials and team roles, and run an eligibility pre-screen to get a clear, explained determination before investing effort in an application
