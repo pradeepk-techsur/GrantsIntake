@@ -70,7 +70,7 @@ export class OpportunityService {
         data.opportunity_number,
         data.assistance_listing_number ?? null,
         data.funding_amount_min ?? null,
-        data.funding_amount_max,
+        data.funding_amount_max ?? null,
         data.total_program_funding ?? null,
         data.expected_awards_min ?? null,
         data.expected_awards_max ?? null,

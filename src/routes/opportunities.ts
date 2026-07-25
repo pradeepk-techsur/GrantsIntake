@@ -26,7 +26,7 @@ const createOpportunitySchema = z.object({
   opportunity_number: z.string().min(1, 'opportunity_number is required').max(100),
   assistance_listing_number: z.string().max(10).optional(),
   funding_amount_min: z.number().positive().optional(),
-  funding_amount_max: z.number().positive({ message: 'funding_amount_max must be positive' }),
+  funding_amount_max: z.number().positive({ message: 'funding_amount_max must be positive' }).optional(),
   total_program_funding: z.number().positive().optional(),
   expected_awards_min: z.number().int().positive().optional(),
   expected_awards_max: z.number().int().positive().optional(),

@@ -64,7 +64,7 @@ export interface CreateOpportunityInput {
   opportunity_number: string;
   assistance_listing_number?: string;
   funding_amount_min?: number;
-  funding_amount_max: number;
+  funding_amount_max?: number;
   total_program_funding?: number;
   expected_awards_min?: number;
   expected_awards_max?: number;
