@@ -13,6 +13,8 @@ import { prescreeningRouter } from './routes/prescreening';
 import { sectionConditionsRouter } from './routes/sectionConditions';
 import { attachmentRequirementsRouter } from './routes/attachmentRequirements';
 import { screeningCriteriaRouter } from './routes/screeningCriteria';
+import { publicOpportunitiesRouter } from './routes/publicOpportunities';
+import { addendaRouter } from './routes/addenda';
 
 const app = express();
 
@@ -44,6 +46,11 @@ app.use('/api/v1/auth', authRouter);
 // Mount opportunity domain routes
 app.use('/api/v1/programs', programsRouter);
 app.use('/api/v1/opportunity-templates', opportunityTemplatesRouter);
+
+// Mount public opportunity portal routes (plan 02-03) — BEFORE grantor routes
+// so unauthenticated GET /opportunities and GET /opportunities/:id take priority
+app.use('/api/v1', publicOpportunitiesRouter);
+app.use('/api/v1', addendaRouter);
 
 // Mount opportunities and guidance routes (plan 01-03)
 // Note: opportunitiesRouter handles both /programs/:id/opportunities and /opportunities/:id patterns
