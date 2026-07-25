@@ -100,6 +100,17 @@ export interface UpdateOpportunityInput {
   geography?: object | null;
   application_url?: string | null;
   status?: OpportunityStatus;
+  // Deadline fields (F4)
+  application_open_date?: Date | null;
+  application_close_date?: Date | null;
+  pre_application_deadline?: Date | null;
+  loi_deadline?: Date | null;
+  loi_required?: boolean;
+  rolling_review_enabled?: boolean;
+  rolling_review_cadence_days?: number | null;
+  deadline_timezone?: string;
+  // Post-publication modification reason (required for published opportunities)
+  modification_reason?: string;
 }
 
 export interface GuidancePrompt {
