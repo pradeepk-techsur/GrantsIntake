@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { OpportunityCard, OpportunityListItem } from './components/OpportunityCard';
+import { OpportunityCard } from './components/OpportunityCard';
+import type { OpportunityListItem } from './components/OpportunityCard';
 import { SearchFilters } from './components/SearchFilters';
 
 interface OpportunitySearchParams {

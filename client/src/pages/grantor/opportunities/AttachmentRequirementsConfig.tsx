@@ -75,12 +75,6 @@ const EMPTY_FORM: AttachmentFormData = {
   max_file_size_mb: '50',
 };
 
-const STAGE_LABEL_MAP: Record<string, string> = {
-  pre_application: 'Pre-Application',
-  loi: 'Letter of Intent',
-  full_application: 'Full Application',
-};
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequirementsConfigProps) {
