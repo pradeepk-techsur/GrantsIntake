@@ -114,37 +114,19 @@ if [[ ! -f .env && -f .env.example ]]; then
   done < .env.example > .env
 fi
 
-# === Optional pre-exec snippet ===
+# === Optional pre-exec snippet (JDK install, rustup, golang one-shot setup) ===
+# Catalog entries with PRE_EXEC_SNIPPET inject heavyweight one-time installs
+# here. Empty string when not needed.
 # (none) — express needs no system-level pre-install setup. DB seeding deliberately
 # does NOT live here: the pre-exec slot runs BEFORE `npm ci`, so no node_modules /
-# prisma client exists yet. Migrate is folded into the exec command below, which
+# prisma client exists yet. Migrate is folded into the EXEC command below, which
 # runs after install. See references/runtime-environment.md §3.
-
-# === Compose DB/Redis startup ===
-# This project ships a docker-compose.yml with postgres and redis services.
-# Start only the dependency services (db + redis) in detached mode so the
-# native tsx dev runner can connect to them. The `app` service in compose is
-# intentionally NOT started here — the native dev runner below owns the app
-# process for hot-reload support.
-if docker info >/dev/null 2>&1 && [[ -f docker-compose.yml ]]; then
-  echo "[pivota] starting compose dependency services (db, redis)"
-  docker compose up -d db redis 2>&1 || echo "[pivota] WARN: docker compose up -d db redis returned non-zero (continuing)"
-  # Wait for DB healthcheck to pass (up to 60s)
-  echo "[pivota] waiting for db to be healthy..."
-  for _i in $(seq 1 12); do
-    if docker compose ps db 2>/dev/null | grep -q "healthy"; then
-      echo "[pivota] db is healthy"
-      break
-    fi
-    sleep 5
-  done
-fi
 
 # === D-12: idempotent install via lockfile hash + presence check ===
 SENTINEL="/tmp/pivota-setup-sentinel"
 LOCK_FILE_PATH="package-lock.json"
 INSTALL_PRESENCE_CHECK="node_modules"
-INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'
+INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'   # single-quoted: catalog must escape internal quotes correctly
 
 run_install() {
   echo "[pivota] running install: $INSTALL_CMD"
@@ -209,66 +191,49 @@ elif [[ -n "$INSTALL_CMD" ]]; then
   fi
 fi
 
-# === node-express exec: migrate then launch dev runner ===
-# Inlined as a function to avoid quoting hazards in the EXEC_CMD variable.
-# The retry loop below calls this function.
-pivota_exec() {
-  HAS_SCRIPT() { node -e "process.exit(((require('./package.json').scripts||{})['$1'])?0:1)" 2>/dev/null; }
-
-  # (1) Migrate after install — only when the app is configured with a DB
-  # (its own .env / config supplies DATABASE_URL). Loud, non-fatal.
-  if [ -n "${DATABASE_URL:-}" ]; then
-    SEED=""
-    for s in migrate:schema migrate db:migrate migrate:deploy migrate:prod prisma:migrate db:push; do
-      if HAS_SCRIPT "$s"; then SEED="$s"; break; fi
-    done
-    if [ -n "$SEED" ]; then
-      echo "[pivota] seeding DB via the declared project script: npm run $SEED"
-      npm run "$SEED" || echo "[pivota] npm run $SEED returned non-zero (continuing)"
-    elif [ -f prisma/schema.prisma ]; then
-      echo "[pivota] no migrate script declared; seeding via prisma"
-      npx prisma generate 2>&1 | tail -2 || true
-      if [ -d prisma/migrations ]; then
-        npx prisma migrate deploy || echo "[pivota] prisma migrate deploy non-zero (continuing)"
-      else
-        npx prisma db push --skip-generate --accept-data-loss || echo "[pivota] prisma db push non-zero (continuing)"
-      fi
-    else
-      echo "[pivota] WARNING: DATABASE_URL is set but no migrate script or prisma schema found — the app may serve on an EMPTY database"
-    fi
-  fi
-
-  # (2) Launch. Prefer the project's own dev runner (nodemon / ts-node / tsx —
-  # encodes the correct entry and needs no build), then npm start. If `start`
-  # points at a compiled dist/ that a fresh clone has not built (dist/ is
-  # gitignored — runtime-environment.md §7), build first.
-  if HAS_SCRIPT dev; then
-    exec npm run dev
-  elif HAS_SCRIPT start:dev; then
-    exec npm run start:dev
-  elif HAS_SCRIPT start; then
-    if node -e 'process.exit(/\b(dist|build)\//.test((require("./package.json").scripts||{}).start||"")?0:1)' \
-        && [ ! -d dist ] && [ ! -d build ]; then
-      echo "[pivota] start script targets a compiled entry; building first"
-      npm run build || echo "[pivota] npm run build returned non-zero (continuing)"
-    fi
-    exec npm start
-  else
-    MAIN_ENTRY=$(node -e 'console.log(require("./package.json").main || "index.js")')
-    exec node "$MAIN_ENTRY"
-  fi
-}
-
 # === D-14: retry loop (3 attempts, exponential backoff 1s / 2s / 4s) ===
 # Final-attempt exit code propagates the INNER command's exit code, not a
 # fixed 1, so the caller (platform / Daytona) can distinguish "wrapper bug"
 # from "user command failed with N".
-EXEC_CMD='pivota_exec'
+EXEC_CMD='HAS_SCRIPT() { node -e "process.exit(((require(\"./package.json\").scripts||{})[\"$1\"])?0:1)" 2>/dev/null; }
+
+if [ -n "${DATABASE_URL:-}" ]; then
+  SEED=""
+  for s in migrate:schema migrate db:migrate migrate:deploy migrate:prod prisma:migrate db:push; do
+    if HAS_SCRIPT "$s"; then SEED="$s"; break; fi
+  done
+  if [ -n "$SEED" ]; then
+    echo "[pivota] seeding DB via the declared project script: npm run $SEED"
+    npm run "$SEED" || echo "[pivota] npm run $SEED returned non-zero (continuing)"
+  elif [ -f prisma/schema.prisma ]; then
+    echo "[pivota] no migrate script declared; seeding via prisma"
+    npx prisma generate 2>&1 | tail -2 || true
+    if [ -d prisma/migrations ]; then
+      npx prisma migrate deploy || echo "[pivota] prisma migrate deploy non-zero (continuing)"
+    else
+      npx prisma db push --skip-generate --accept-data-loss || echo "[pivota] prisma db push non-zero (continuing)"
+    fi
+  else
+    echo "[pivota] WARNING: DATABASE_URL is set but no migrate script or prisma schema found — the app may serve on an EMPTY database"
+  fi
+fi
+
+if HAS_SCRIPT dev; then exec npm run dev
+elif HAS_SCRIPT start:dev; then exec npm run start:dev
+elif HAS_SCRIPT start; then
+  if node -e '"'"'process.exit(/\b(dist|build)\//.test((require("./package.json").scripts||{}).start||"")?0:1)'"'"' && [ ! -d dist ] && [ ! -d build ]; then
+    echo "[pivota] start script targets a compiled entry; building first"
+    npm run build || echo "[pivota] npm run build returned non-zero (continuing)"
+  fi
+  exec npm start
+else
+  exec node "$(node -e '"'"'console.log(require("./package.json").main || "index.js")'"'"')"
+fi'
 ATTEMPT=1
 DELAY=1
 while (( ATTEMPT <= 3 )); do
   echo "[pivota] attempt $ATTEMPT: $EXEC_CMD"
-  if bash -c "$(declare -f pivota_exec HAS_SCRIPT 2>/dev/null || true); pivota_exec"; then
+  if bash -c "$EXEC_CMD"; then
     echo "[pivota] inner command exited 0; propagating success"
     exit 0
   fi
