@@ -3,6 +3,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env';
 import { authRouter } from './routes/auth';
+import { programsRouter } from './routes/programs';
+import { opportunityTemplatesRouter } from './routes/opportunityTemplates';
 
 const app = express();
 
@@ -30,6 +32,10 @@ app.use(globalRateLimit);
 
 // Mount auth routes
 app.use('/api/v1/auth', authRouter);
+
+// Mount opportunity domain routes
+app.use('/api/v1/programs', programsRouter);
+app.use('/api/v1/opportunity-templates', opportunityTemplatesRouter);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
