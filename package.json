@@ -9,7 +9,7 @@
     "build": "tsc",
     "migrate": "tsx src/db/migrate.ts",
     "seed": "tsx src/db/seed.ts",
-    "test": "vitest run",
+    "test": "NODE_ENV=test vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
