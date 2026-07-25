@@ -4,6 +4,7 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { GrantorLayout } from './layouts/GrantorLayout';
 import { Dashboard } from './pages/grantor/Dashboard';
 import { OpportunitiesIndex } from './pages/grantor/OpportunitiesIndex';
+import { OpportunityBuilder } from './pages/grantor/opportunities/OpportunityBuilder';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +38,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="opportunities" element={<OpportunitiesIndex />} />
             <Route path="opportunities/new" element={<OpportunitiesIndex />} />
+            <Route path="opportunities/:id" element={<OpportunityBuilder />} />
             <Route path="intake-queue" element={<div><h1>Intake Queue</h1><p>Coming in Phase 6.</p></div>} />
             <Route path="qa-inbox" element={<div><h1>Q&A Inbox</h1><p>Coming in a future phase.</p></div>} />
             <Route path="settings" element={<div><h1>Settings</h1><p>Coming in a future phase.</p></div>} />
