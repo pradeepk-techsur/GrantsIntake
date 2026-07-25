@@ -123,3 +123,6 @@ AGENTS.md
 
 # Project-specific
 .env
+.nuxt/
+.vite/
+.turbo/
