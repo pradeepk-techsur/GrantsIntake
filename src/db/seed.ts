@@ -23,24 +23,23 @@ async function seed() {
     const adminUserId = userResult.rows[0].user_id;
     console.log(`Admin user upserted: admin@example.gov (id: ${adminUserId})`);
 
-    // Seed a test grantor organization
-    const orgResult = await pool.query(`
-      INSERT INTO grantor_organizations (org_name, org_type)
-      VALUES ($1, $2)
-      ON CONFLICT DO NOTHING
-      RETURNING org_id
-    `, ['Example Federal Agency', 'federal_agency']);
+    // Seed a test grantor organization (SELECT-then-INSERT — no UNIQUE constraint on org_name)
+    const existingOrg = await pool.query(
+      `SELECT org_id FROM grantor_organizations WHERE org_name = $1`,
+      ['Example Federal Agency'],
+    );
 
     let orgId: string;
-    if (orgResult.rows.length > 0) {
-      orgId = orgResult.rows[0].org_id;
+    if (existingOrg.rows.length > 0) {
+      orgId = existingOrg.rows[0].org_id;
     } else {
-      // Org already exists, fetch it
-      const existing = await pool.query(
-        `SELECT org_id FROM grantor_organizations WHERE org_name = $1`,
-        ['Example Federal Agency'],
+      const orgResult = await pool.query(
+        `INSERT INTO grantor_organizations (org_name, org_type)
+         VALUES ($1, $2)
+         RETURNING org_id`,
+        ['Example Federal Agency', 'federal_agency'],
       );
-      orgId = existing.rows[0].org_id;
+      orgId = orgResult.rows[0].org_id;
     }
     console.log(`Grantor organization upserted: Example Federal Agency (id: ${orgId})`);
 
@@ -54,6 +53,27 @@ async function seed() {
     `, [orgId, adminUserId, JSON.stringify(['grantor_admin'])]);
 
     console.log(`Grantor role assigned: admin@example.gov → grantor_admin`);
+
+    // Seed default program (idempotent — check before insert, no UNIQUE constraint on name)
+    const existingProgram = await pool.query(
+      `SELECT 1 FROM programs WHERE grantor_org_id = $1 AND program_name = $2`,
+      [orgId, 'General Grant Programs'],
+    );
+    if (existingProgram.rows.length === 0) {
+      await pool.query(
+        `INSERT INTO programs
+           (grantor_org_id, program_name, program_area, is_federal, program_description, created_by)
+         VALUES ($1, $2, $3, TRUE, $4, $5)`,
+        [
+          orgId,
+          'General Grant Programs',
+          'General',
+          'Default program for Example Federal Agency. Used for creating and managing funding opportunities.',
+          adminUserId,
+        ],
+      );
+    }
+    console.log('Seeded default program: General Grant Programs (idempotent)');
 
     // Seed 5 system opportunity templates (idempotent via ON CONFLICT DO NOTHING)
     const systemTemplates = [
