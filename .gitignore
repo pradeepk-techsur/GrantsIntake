@@ -1,4 +1,10 @@
 
+# Project-specific
+.env
+.nuxt/
+.vite/
+.turbo/
+
 # >>> pivota:gitignore-managed
 # Patterns auto-managed by Pivota — refreshed on every push so coverage
 # stays current as new ecosystems land. Edits inside this block are
@@ -120,9 +126,3 @@ opencode.json.bak
 AGENTS.md
 .opencode.session
 # <<< pivota:gitignore-managed
-
-# Project-specific
-.env
-.nuxt/
-.vite/
-.turbo/
