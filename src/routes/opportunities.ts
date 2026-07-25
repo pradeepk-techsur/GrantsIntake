@@ -5,6 +5,7 @@ import { requireRole } from '../middleware/requireRole';
 import { opportunityService } from '../services/opportunity/opportunityService';
 import { completenessService } from '../services/opportunity/completenessService';
 import { versioningService } from '../services/opportunity/versioningService';
+import { publicationService } from '../services/opportunity/publicationService';
 import { deadlineService, DeadlineConfig } from '../services/opportunity/deadlineService';
 import { getGrantorOrgIdForUser } from '../services/program/programService';
 import { pool } from '../db/client';
@@ -409,40 +410,11 @@ opportunitiesRouter.post(
         return;
       }
 
-      // Update status to published
-      const published = await pool.query<Opportunity>(
-        `UPDATE opportunities
-         SET status = 'published', published_at = now(), published_by = $1, updated_at = now()
-         WHERE opportunity_id = $2
-         RETURNING *`,
-        [req.user!.user_id, id],
-      );
-
-      const publishedOpp = published.rows[0];
-
-      // Create version 1 snapshot (Initial publication)
-      await versioningService.createSnapshot(
-        id,
-        req.user!.user_id,
-        'Initial publication',
-        current,
-        publishedOpp,
-      );
-
-      // Write OPPORTUNITY_PUBLISHED audit event (separate from OPPORTUNITY_UPDATED_PUBLISHED in versioningService)
-      await pool.query(
-        `INSERT INTO audit_events (event_type, actor_user_id, entity_type, entity_id, payload)
-         VALUES ('OPPORTUNITY_PUBLISHED', $1, 'opportunity', $2, $3::jsonb)`,
-        [
-          req.user!.user_id,
-          id,
-          JSON.stringify({ published_at: publishedOpp.published_at }),
-        ],
-      );
-
+      // Delegate to PublicationService: generates public_slug, writes snapshot, writes audit event
+      const publishedOpp = await publicationService.publish(id, req.user!.user_id);
       res.status(200).json(publishedOpp);
     } catch (err: unknown) {
-      const error = err as { code?: string; status?: number; message?: string };
+      const error = err as { code?: string; status?: number; message?: string; blockers?: unknown[] };
       if (error.code === 'NOT_FOUND') {
         res.status(404).json({ error: 'NOT_FOUND', message: 'Opportunity not found' });
         return;
@@ -453,6 +425,10 @@ opportunitiesRouter.post(
       }
       if (error.code === 'NO_GRANTOR_ORG') {
         res.status(403).json({ error: 'PERMISSION_DENIED', message: 'No grantor organization membership' });
+        return;
+      }
+      if (error.code === 'COMPLETENESS_BLOCKERS') {
+        res.status(422).json({ error: 'PUBLICATION_BLOCKED', blockers: error.blockers });
         return;
       }
       console.error('POST /opportunities/:id/publish error:', err);
