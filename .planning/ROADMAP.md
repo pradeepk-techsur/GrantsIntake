@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A grantor can configure intake windows, pre-application deadlines, LOI deadlines, and rolling review periods on an opportunity
   4. The system blocks publication of an opportunity with missing required metadata and shows a clear remediation checklist
   5. Every published opportunity modification creates a new immutable version snapshot with a modification reason and audit trail
-**Plans:** 5 plans
+**Plans:** 6 plans
 
 Plans:
 - [ ] 01-01-PLAN.md — Project scaffold, docker-compose (PostgreSQL 16 + Redis 7), auth schema (users, grantor_organizations, grantor_roles, audit_events), Auth Service with JWT (15min/7day), RBAC middleware (authenticate, requireRole), GRANTOR_LOGIN audit event
@@ -40,6 +40,7 @@ Plans:
 - [ ] 01-03-PLAN.md — Opportunities + guidance_prompts schema (full DDL), Opportunity Service (create/update with audit events), Opportunity Builder UI (template picker, all F1 metadata fields, collapsible guidance panels, readability indicator)
 - [ ] 01-04-PLAN.md — opportunity_versions schema (immutable), DeadlineService (F4 validation), CompletenessService (F5 publication blockers), VersioningService (F6 snapshots + delta), Deadline form + CompletenessChecklist + VersionHistory React UI
 - [ ] 01-05-PLAN.md — Gap closure: seed default program in programs table (unblocks Create Opportunity modal), upgrade no-programs warning alert with accessible heading and actionable guidance
+- [ ] 01-06-PLAN.md — Gap closure: make funding_amount_max optional in createOpportunitySchema, remove funding_amount_max: 0 from TemplateLibrary payload, surface create errors via USWDS alert (fixes silent "Create Opportunity" failure — unblocks UAT Tests 3–7)
 
 ### Phase 2: Eligibility & Intake Rules Configuration
 **Goal**: Grantors can define enforceable eligibility rules, configure pre-screening questionnaires, set attachment requirements and administrative screening criteria, and publish opportunities to an applicant-facing portal with search and discovery
