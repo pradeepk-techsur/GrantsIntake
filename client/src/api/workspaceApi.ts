@@ -10,6 +10,10 @@ import type {
   CreateCommentInput,
   ReadinessSummary,
 } from '../types/workspace';
+import type { FormFieldDefinition, FieldResponse, ValidationResult } from '../types/formField';
+
+// Re-export form field types for consumers
+export type { FormFieldDefinition, FieldResponse, ValidationResult };
 
 export const workspaceApi = {
   createWorkspace: (input: CreateWorkspaceInput) =>
@@ -38,4 +42,14 @@ export const workspaceApi = {
     apiClient.post<WorkspaceComment>(`/workspaces/${workspaceId}/comments`, input).then(r => r.data),
   getReadiness: (workspaceId: string) =>
     apiClient.get<ReadinessSummary>(`/workspaces/${workspaceId}/readiness`).then(r => r.data),
+
+  // ─── Form Field API (PRD-INTAKE-037/038) ──────────────────────────────────────
+  getFields: (workspaceId: string, sectionId: string) =>
+    apiClient.get<FormFieldDefinition[]>(`/workspaces/${workspaceId}/sections/${sectionId}/fields`).then(r => r.data),
+
+  saveField: (workspaceId: string, sectionId: string, fieldId: string, input: { response_value?: string; response_json?: unknown }) =>
+    apiClient.put<FieldResponse>(`/workspaces/${workspaceId}/sections/${sectionId}/fields/${fieldId}`, input).then(r => r.data),
+
+  validateSection: (workspaceId: string, sectionId: string) =>
+    apiClient.post<ValidationResult>(`/workspaces/${workspaceId}/sections/${sectionId}/validate`).then(r => r.data),
 };
