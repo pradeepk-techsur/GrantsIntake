@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-organization-profile-eligibility-pre-screening-03-02-PLAN.md
-last_updated: "2026-07-26T14:04:43.272Z"
-last_activity: "2026-07-26 — Plan 03-01 complete: organizations table, org_roles, org_attachments, credential-status API; 155 tests passing"
+stopped_at: Completed 03-organization-profile-eligibility-pre-screening-03-04-PLAN.md
+last_updated: "2026-07-26T17:22:03.354Z"
+last_activity: "2026-07-26 — Plan 03-02 complete: applicant portal UI shell + 3 org profile pages + Playwright e2e tests"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 16
-  completed_plans: 15
+  total_plans: 18
+  completed_plans: 17
   percent: 94
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 3 of 6 (Organization Profile & Eligibility Pre-Screening) — IN PROGRESS
-Plan: 2 of 3 in current phase — Plan 03-02 complete
-Status: Plan 03-02 Complete — ApplicantLayout + organizationsApi + OrgProfilePage + OrgRolesPage + OrgDocumentsPage + 9 e2e tests
-Last activity: 2026-07-26 — Plan 03-02 complete: applicant portal UI shell + 3 org profile pages + Playwright e2e tests
+Phase: 3 of 6 (Organization Profile & Eligibility Pre-Screening) — COMPLETE
+Plan: 4 of 4 in current phase — Plan 03-04 complete
+Status: Plan 03-04 Complete — UUID_REGEX client-side guard in OrgRolesPage.tsx preventing 422 on email input (PRD-INTAKE-022)
+Last activity: 2026-07-26 — Plan 03-04 complete: UUID format validation guard for OrgRolesPage assign flow
 
 Progress: [█████████░] 94%
 
@@ -68,6 +68,7 @@ Progress: [█████████░] 94%
 | Phase 02-eligibility-intake-rules-configuration P05 | 1 min | 1 tasks | 1 files |
 | Phase 03-organization-profile-eligibility-pre-screening P01 | 6 min | 2 tasks | 6 files |
 | Phase 03-organization-profile-eligibility-pre-screening P02 | 5 min | 2 tasks | 10 files |
+| Phase 03-organization-profile-eligibility-pre-screening P04 | 1 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,7 @@ Recent decisions affecting current work:
 - [Phase 03-organization-profile-eligibility-pre-screening]: Test afterAll disables audit_events_immutable trigger before deleting audit_events where actor_user_id matches test users — extends Phase 1 pattern
 - [Phase 03-organization-profile-eligibility-pre-screening]: org_id stored in localStorage key applicant_org_id — non-sensitive UUID, org data requires auth token (T-03-10 accepted risk)
 - [Phase 03-organization-profile-eligibility-pre-screening]: OrgDocumentsPage uses base64 JSON upload matching Plan 01 server contract (multer not in package.json)
+- [Phase 03-organization-profile-eligibility-pre-screening]: UUID_REGEX guard gates handleAssignSubmit before assignMutation.mutate — prevents 422 when email entered in User ID field (PRD-INTAKE-022)
 
 ### Pending Todos
 
@@ -117,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T14:04:43.271Z
-Stopped at: Completed 03-organization-profile-eligibility-pre-screening-03-02-PLAN.md
+Last session: 2026-07-26T17:22:03.353Z
+Stopped at: Completed 03-organization-profile-eligibility-pre-screening-03-04-PLAN.md
 Resume file: None
