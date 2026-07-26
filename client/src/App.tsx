@@ -7,6 +7,10 @@ import { OpportunitiesIndex } from './pages/grantor/OpportunitiesIndex';
 import { OpportunityBuilder } from './pages/grantor/opportunities/OpportunityBuilder';
 import { OpportunityListPage } from './pages/applicant/OpportunityListPage';
 import { OpportunityDetailPage } from './pages/applicant/OpportunityDetailPage';
+import { ApplicantLayout } from './layouts/ApplicantLayout';
+import { OrgProfilePage } from './pages/applicant/OrgProfilePage';
+import { OrgRolesPage } from './pages/applicant/OrgRolesPage';
+import { OrgDocumentsPage } from './pages/applicant/OrgDocumentsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +42,22 @@ function App() {
           {/* Applicant-facing opportunity portal — no auth required */}
           <Route path="/opportunities" element={<OpportunityListPage />} />
           <Route path="/opportunities/:slug" element={<OpportunityDetailPage />} />
+          {/* Authenticated applicant portal */}
+          <Route path="/applicant" element={<ApplicantLayout />}>
+            <Route index element={<Navigate to="/applicant/profile" replace />} />
+            <Route path="profile" element={<OrgProfilePage />} />
+            <Route path="profile/roles" element={<OrgRolesPage />} />
+            <Route path="profile/documents" element={<OrgDocumentsPage />} />
+            <Route
+              path="applications"
+              element={
+                <div className="usa-prose">
+                  <h1>My Applications</h1>
+                  <p>Coming in Phase 4.</p>
+                </div>
+              }
+            />
+          </Route>
           <Route path="/grantor" element={<GrantorLayout />}>
             <Route index element={<Navigate to="/grantor/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
