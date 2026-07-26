@@ -5,6 +5,10 @@ import { blockGrantorOnWorkspace } from '../middleware/blockGrantorOnWorkspace';
 import { workspaceService } from '../services/workspace/workspaceService';
 import { readinessService } from '../services/workspace/readinessService';
 import { formFieldService } from '../services/workspace/formFieldService';
+import { budgetService } from '../services/workspace/budgetService';
+import { attachmentService } from '../services/workspace/attachmentService';
+import { previewService } from '../services/workspace/previewService';
+import { UploadAttachmentInput, LinkLibraryAttachmentInput } from '../types/attachment';
 import { pool } from '../db/client';
 
 export const workspacesRouter = Router();
@@ -447,4 +451,186 @@ workspacesRouter.post('/workspaces/:id/sections/:sectionId/validate', authentica
 
   const result = await formFieldService.validateSection(id, sectionId);
   return res.status(200).json(result);
+});
+
+// ─── Budget routes ────────────────────────────────────────────────────────────
+
+// GET /workspaces/:id/budget — get or create budget
+workspacesRouter.get('/workspaces/:id/budget', async (req, res) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+  const budget = await budgetService.getOrCreateBudget(id, req.user!.user_id);
+  return res.status(200).json(budget);
+});
+
+const lineItemSchema = z.object({
+  budget_period: z.number().int().min(1).default(1),
+  category: z.enum(['personnel','fringe','travel','equipment','supplies','contractual','indirect','other_direct','match_cash','match_in_kind']),
+  description: z.string().min(1).max(500),
+  quantity: z.number().optional(),
+  unit_cost: z.number().optional(),
+  total_cost: z.number().min(0),
+  personnel_name: z.string().max(250).optional(),
+  fte: z.number().min(0.001).max(1.000).optional(),
+  annual_salary: z.number().min(0).optional(),
+  fringe_rate: z.number().min(0).max(100).optional(),
+  match_source: z.string().max(250).optional(),
+  match_type: z.string().max(10).optional(),
+  justification_text: z.string().optional(),
+});
+
+// POST /workspaces/:id/budget/line-items — add line item
+workspacesRouter.post('/workspaces/:id/budget/line-items', async (req, res) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+  const parsed = lineItemSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(422).json({ error: 'VALIDATION_ERROR', details: parsed.error.errors });
+  const budget = await budgetService.getOrCreateBudget(id, req.user!.user_id);
+  const lineItem = await budgetService.addLineItem(budget.budget_id, parsed.data, req.user!.user_id);
+  return res.status(201).json(lineItem);
+});
+
+// PUT /workspaces/:id/budget/line-items/:lineId — update line item
+workspacesRouter.put('/workspaces/:id/budget/line-items/:lineId', async (req, res) => {
+  const { id, lineId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(lineId)) return res.status(404).json({ error: 'NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+  const parsed = lineItemSchema.partial().safeParse(req.body);
+  if (!parsed.success) return res.status(422).json({ error: 'VALIDATION_ERROR', details: parsed.error.errors });
+  const updated = await budgetService.updateLineItem(lineId, parsed.data);
+  if (!updated) return res.status(404).json({ error: 'LINE_ITEM_NOT_FOUND' });
+  return res.status(200).json(updated);
+});
+
+// DELETE /workspaces/:id/budget/line-items/:lineId — remove line item
+workspacesRouter.delete('/workspaces/:id/budget/line-items/:lineId', async (req, res) => {
+  const { id, lineId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(lineId)) return res.status(404).json({ error: 'NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+  const deleted = await budgetService.deleteLineItem(lineId);
+  if (!deleted) return res.status(404).json({ error: 'LINE_ITEM_NOT_FOUND' });
+  return res.status(204).send();
+});
+
+// POST /workspaces/:id/budget/validate — validate budget
+workspacesRouter.post('/workspaces/:id/budget/validate', async (req, res) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+  const result = await budgetService.validateBudget(id);
+  return res.status(200).json(result);
+});
+
+// ─── Attachment routes ─────────────────────────────────────────────────────────
+
+const uploadAttachmentSchema = z.object({
+  source_type: z.literal('upload'),
+  requirement_id: z.string().uuid().optional(),
+  section_id: z.string().uuid().optional(),
+  file_name: z.string().min(1).max(500),
+  mime_type: z.string().min(1).max(100),
+  file_size_bytes: z.number().int().min(0),
+  content_base64: z.string().min(1),
+});
+
+const linkLibrarySchema = z.object({
+  source_type: z.literal('library'),
+  requirement_id: z.string().uuid().optional(),
+  section_id: z.string().uuid().optional(),
+  org_document_id: z.string().uuid(),
+});
+
+const attachmentInputSchema = z.union([uploadAttachmentSchema, linkLibrarySchema]);
+
+// GET /workspaces/:id/attachments
+workspacesRouter.get('/workspaces/:id/attachments', async (req, res) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+  const attachments = await attachmentService.listAttachments(id);
+  return res.status(200).json(attachments);
+});
+
+// POST /workspaces/:id/attachments — upload base64 OR link library doc
+workspacesRouter.post('/workspaces/:id/attachments', async (req, res) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+
+  const parsed = attachmentInputSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(422).json({ error: 'VALIDATION_ERROR', details: parsed.error.errors });
+
+  if (parsed.data.source_type === 'upload') {
+    const att = await attachmentService.uploadAttachment(id, parsed.data as UploadAttachmentInput, req.user!.user_id);
+    return res.status(201).json(att);
+  } else {
+    const att = await attachmentService.linkLibraryDoc(id, parsed.data as LinkLibraryAttachmentInput, req.user!.user_id);
+    return res.status(201).json(att);
+  }
+});
+
+// GET /workspaces/:id/attachments/:attachmentId/versions — list versions
+workspacesRouter.get('/workspaces/:id/attachments/:attachmentId/versions', async (req, res) => {
+  const { id, attachmentId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(attachmentId)) return res.status(404).json({ error: 'NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+  const versions = await attachmentService.listVersions(attachmentId);
+  return res.status(200).json(versions);
+});
+
+// DELETE /workspaces/:id/attachments/:attachmentId — soft delete
+workspacesRouter.delete('/workspaces/:id/attachments/:attachmentId', async (req, res) => {
+  const { id, attachmentId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(attachmentId)) return res.status(404).json({ error: 'NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+  const deleted = await attachmentService.deactivate(attachmentId);
+  if (!deleted) return res.status(404).json({ error: 'ATTACHMENT_NOT_FOUND' });
+  return res.status(204).send();
+});
+
+// ─── Preview route ────────────────────────────────────────────────────────────
+
+// GET /workspaces/:id/preview — on-demand submission package preview
+// CRITICAL: Does NOT submit. workspace_comments NEVER included. Label: 'DRAFT PREVIEW — NOT SUBMITTED'
+workspacesRouter.get('/workspaces/:id/preview', async (req, res) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+  const preview = await previewService.generatePreview(id);
+  return res.status(200).json(preview);
 });
