@@ -6,6 +6,8 @@ import type { OrgRole } from '../../api/organizationsApi';
 
 const LOCAL_STORAGE_KEY = 'applicant_org_id';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function getStoredOrgId(): string | null {
   try {
     return localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -92,6 +94,13 @@ export function OrgRolesPage() {
     setFormError(null);
     if (!newUserId.trim()) {
       setFormError('User ID is required.');
+      return;
+    }
+    if (!UUID_REGEX.test(newUserId.trim())) {
+      setFormError(
+        'User ID must be a valid UUID (e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx). ' +
+        'Ask your team member to share their account User ID from their profile settings.'
+      );
       return;
     }
     if (selectedRoles.length === 0) {
