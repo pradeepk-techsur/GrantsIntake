@@ -57,3 +57,5 @@ waves:
 |-----|-------------|--------|
 | GAP-1-3: OpportunitiesIndex never fetches opportunities | GET /api/v1/programs/:programId/opportunities | closed (re-driven: returns list with 1 opportunity) |
 | GAP-4: public_slug NULL after publish | POST /api/v1/opportunities/:id/publish → check public_slug in response | closed (re-driven: public_slug=gap-redrive-test-grant-42e5c6da) |
+| GAP-5 (02-05): Slug-based opportunity detail returns 500 | GET /api/v1/opportunities/gap-redrive-slug-test-grant-d1ef5bfe | closed (re-driven: HTTP 200, title='Gap Redrive Slug Test Grant', public_slug confirmed) |
+| GAP-5 regression check | GET /api/v1/opportunities/d1ef5bfe-c716-4de6-bb2c-2d715596bbd1 (UUID path) | pass — UUID-based lookup still returns HTTP 200 |
