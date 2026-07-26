@@ -209,8 +209,13 @@ export function OrgProfilePage() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    // Strip empty strings from optional fields so they are omitted (not sent as "")
+    // which would fail server-side Zod validation for regex/enum optional fields.
+    const stripped = Object.fromEntries(
+      Object.entries(form).filter(([, v]) => v !== '' && v !== undefined)
+    );
     const input = {
-      ...form,
+      ...stripped,
       uei: form.uei ? form.uei.toUpperCase() : undefined,
     } as CreateOrgInput;
 
