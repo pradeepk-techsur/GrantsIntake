@@ -15,6 +15,7 @@ import { PrescreenPage } from './pages/applicant/PrescreenPage';
 import { PrescreenResultPage } from './pages/applicant/PrescreenResultPage';
 import { WorkspacePage } from './pages/applicant/WorkspacePage';
 import { WorkspaceListPage } from './pages/applicant/WorkspaceListPage';
+import { WorkspacePreviewPage } from './pages/applicant/WorkspacePreviewPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,15 +55,7 @@ function App() {
             <Route path="profile/documents" element={<OrgDocumentsPage />} />
             <Route path="applications" element={<WorkspaceListPage />} />
             <Route path="workspaces/:workspaceId" element={<WorkspacePage />} />
-            <Route
-              path="workspaces/:workspaceId/preview"
-              element={
-                <div className="usa-prose">
-                  <h1>Preview</h1>
-                  <p>Coming in Phase 4 Plan 04.</p>
-                </div>
-              }
-            />
+            <Route path="workspaces/:workspaceId/preview" element={<WorkspacePreviewPage />} />
             <Route path="opportunities/:opportunityId/prescreen" element={<PrescreenPage />} />
             <Route path="opportunities/:opportunityId/prescreen/result" element={<PrescreenResultPage />} />
           </Route>

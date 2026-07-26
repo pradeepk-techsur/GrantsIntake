@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { workspaceApi } from '../../api/workspaceApi';
 import { SectionFormPanel } from './SectionFormPanel';
+import { BudgetBuilder } from './BudgetBuilder';
+import { AttachmentManager } from './AttachmentManager';
 import type { WorkspaceSection, WorkspaceTask, WorkspaceComment } from '../../types/workspace';
 
 interface WorkspaceSectionPanelProps {
@@ -73,8 +75,17 @@ export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSection
         </div>
       </div>
 
-      {/* Form fields — SectionFormPanel handles all 11 field types with validation */}
-      <SectionFormPanel section={section} workspaceId={workspaceId} />
+      {/* Section content — route by section_type */}
+      {section.section_type === 'budget' && (
+        <BudgetBuilder workspaceId={workspaceId} />
+      )}
+      {section.section_type === 'attachments' && (
+        <AttachmentManager workspaceId={workspaceId} />
+      )}
+      {/* For all other sections: SectionFormPanel handles field rendering (from Plan 04-03) */}
+      {section.section_type !== 'budget' && section.section_type !== 'attachments' && (
+        <SectionFormPanel section={section} workspaceId={workspaceId} />
+      )}
 
       {/* Task list */}
       <section aria-label="Section tasks" style={{ marginBottom: '1.5rem' }}>

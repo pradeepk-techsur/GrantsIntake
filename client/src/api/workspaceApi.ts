@@ -11,9 +11,16 @@ import type {
   ReadinessSummary,
 } from '../types/workspace';
 import type { FormFieldDefinition, FieldResponse, ValidationResult } from '../types/formField';
+import type { Budget, BudgetLineItem, CreateLineItemInput, BudgetValidationError } from '../types/budget';
+import type { WorkspaceAttachment, UploadAttachmentInput, LinkLibraryAttachmentInput } from '../types/attachment';
+import type { PreviewData } from '../types/preview';
 
 // Re-export form field types for consumers
 export type { FormFieldDefinition, FieldResponse, ValidationResult };
+// Re-export budget/attachment/preview types for consumers
+export type { Budget, BudgetLineItem, CreateLineItemInput, BudgetValidationError };
+export type { WorkspaceAttachment, UploadAttachmentInput, LinkLibraryAttachmentInput };
+export type { PreviewData };
 
 export const workspaceApi = {
   createWorkspace: (input: CreateWorkspaceInput) =>
@@ -52,4 +59,30 @@ export const workspaceApi = {
 
   validateSection: (workspaceId: string, sectionId: string) =>
     apiClient.post<ValidationResult>(`/workspaces/${workspaceId}/sections/${sectionId}/validate`).then(r => r.data),
+
+  // ─── Budget API (PRD-INTAKE-039/040) ──────────────────────────────────────────
+  getBudget: (workspaceId: string) =>
+    apiClient.get<Budget>(`/workspaces/${workspaceId}/budget`).then(r => r.data),
+  addLineItem: (workspaceId: string, input: CreateLineItemInput) =>
+    apiClient.post<BudgetLineItem>(`/workspaces/${workspaceId}/budget/line-items`, input).then(r => r.data),
+  updateLineItem: (workspaceId: string, lineId: string, updates: Partial<CreateLineItemInput>) =>
+    apiClient.put<BudgetLineItem>(`/workspaces/${workspaceId}/budget/line-items/${lineId}`, updates).then(r => r.data),
+  deleteLineItem: (workspaceId: string, lineId: string) =>
+    apiClient.delete(`/workspaces/${workspaceId}/budget/line-items/${lineId}`),
+  validateBudget: (workspaceId: string) =>
+    apiClient.post<{ valid: boolean; errors: BudgetValidationError[] }>(`/workspaces/${workspaceId}/budget/validate`).then(r => r.data),
+
+  // ─── Attachment API (PRD-INTAKE-041/042) ─────────────────────────────────────
+  listAttachments: (workspaceId: string) =>
+    apiClient.get<WorkspaceAttachment[]>(`/workspaces/${workspaceId}/attachments`).then(r => r.data),
+  uploadAttachment: (workspaceId: string, input: UploadAttachmentInput | LinkLibraryAttachmentInput) =>
+    apiClient.post<WorkspaceAttachment>(`/workspaces/${workspaceId}/attachments`, input).then(r => r.data),
+  getAttachmentVersions: (workspaceId: string, attachmentId: string) =>
+    apiClient.get<WorkspaceAttachment[]>(`/workspaces/${workspaceId}/attachments/${attachmentId}/versions`).then(r => r.data),
+  deleteAttachment: (workspaceId: string, attachmentId: string) =>
+    apiClient.delete(`/workspaces/${workspaceId}/attachments/${attachmentId}`),
+
+  // ─── Preview API (PRD-INTAKE-043) ─────────────────────────────────────────────
+  getPreview: (workspaceId: string) =>
+    apiClient.get<PreviewData>(`/workspaces/${workspaceId}/preview`).then(r => r.data),
 };
