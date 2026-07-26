@@ -279,7 +279,18 @@ async function seed() {
     }
     console.log('Seeded 5 guidance prompts (idempotent)');
 
-    console.log('Seed complete — admin@example.gov / TestPassword123!');
+    // Seed applicant test user for e2e tests (idempotent via ON CONFLICT)
+    const applicantHash = await bcrypt.hash('TestPass123!', 12);
+    await pool.query(`
+      INSERT INTO users (email, full_name, password_hash, is_active)
+      VALUES ($1, $2, $3, true)
+      ON CONFLICT (email) DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        is_active = EXCLUDED.is_active
+    `, ['applicant@example.com', 'Test Applicant', applicantHash]);
+    console.log('Applicant user upserted: applicant@example.com');
+
+    console.log('Seed complete — admin@example.gov / TestPassword123! | applicant@example.com / TestPass123!');
   } catch (err) {
     console.error('Seed failed:', err);
     throw err;
