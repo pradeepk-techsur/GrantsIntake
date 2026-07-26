@@ -117,7 +117,7 @@ export function OrgDocumentsPage() {
         custom_document_name: docType === 'other' ? customName : undefined,
         expiration_date: expirationDate || undefined,
         file_name: file.name,
-        mime_type: file.type,
+        mime_type: file.type || 'application/octet-stream', // fallback for browsers that return empty MIME for some types
         file_size_bytes: file.size,
         file_content_base64: base64,
       };
