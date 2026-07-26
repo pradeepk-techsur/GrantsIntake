@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-07-26T19:21:41.254Z"
-last_activity: "2026-07-26 — Plan 04-01 complete: application workspace foundation with 9-section auto-creation and grantor-blocking"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-07-26T19:31:03.961Z"
+last_activity: "2026-07-26 — Plan 04-02 complete: grantor privacy middleware + readiness dashboard"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 22
-  completed_plans: 20
-  percent: 86
+  completed_plans: 21
+  percent: 91
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 4 of 6 (Application Workspace & Form Capture) — IN PROGRESS
-Plan: 2 of 4 in current phase — Plan 04-02 complete
-Status: Plan 04-02 Complete — blockGrantorOnWorkspace middleware (blanket grantor block), readinessService, GET /readiness endpoint, ReadinessDashboard with 30s polling
-Last activity: 2026-07-26 — Plan 04-02 complete: grantor privacy middleware + readiness dashboard
+Plan: 3 of 4 in current phase — Plan 04-03 complete
+Status: Plan 04-03 Complete — migration 013 form fields + formFieldService + 3 field routes + FormFieldRenderer (11 types) + SectionFormPanel
+Last activity: 2026-07-26 — Plan 04-03 complete: form field capture layer with all 11 field types and onBlur validation
 
-Progress: [█████████░] 91%
+Progress: [██████████] 95%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [█████████░] 91%
 | Phase 03-organization-profile-eligibility-pre-screening P05 | 2min | 2 tasks | 4 files |
 | Phase 04-application-workspace-form-capture P01 | 9 min | 2 tasks | 15 files |
 | Phase 04-application-workspace-form-capture P02 | 7min | 2 tasks | 10 files |
+| Phase 04-application-workspace-form-capture P03 | 6 min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,9 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: blockGrantorOnWorkspace at workspacesRouter.use() level — blanket block on ALL workspace routes replaces per-route blockGrantors() on comments
 - [Phase 04-application-workspace-form-capture]: readinessService gracefully handles missing attachments table via 42P01 error code guard (table created in future phase)
 - [Phase 04-application-workspace-form-capture]: ReadinessDashboard uses refetchInterval: 30000 + staleTime: 20000 (React Query polling, no WebSocket — ws library not in package.json)
+- [Phase 04-application-workspace-form-capture]: ON CONFLICT DO UPDATE for idempotent field response upserts (UNIQUE workspace_id+field_id)
+- [Phase 04-application-workspace-form-capture]: FileReader base64 JSON for file_upload: { file_name, mime_type, file_size_bytes, content_base64 } — consistent with Phase 3 multer-free decision
+- [Phase 04-application-workspace-form-capture]: onBlur save + 500ms deferred server validate — field saved on blur, validation triggered 500ms later to avoid excessive server roundtrips
 
 ### Pending Todos
 
@@ -131,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T19:21:41.253Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-07-26T19:31:03.959Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
