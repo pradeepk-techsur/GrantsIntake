@@ -18,13 +18,18 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 // ─── Router-level middleware ───────────────────────────────────────────────────
 //
-// authenticate runs before every route in this router.
+// Scoped to '/workspaces' prefix so these middlewares only fire on workspace
+// routes (e.g. /api/v1/workspaces/*). Without the prefix, Express applies
+// router.use() to ALL requests that enter this router — including unrelated
+// /api/v1/* routes — which breaks auth/login, sectionConditions, contextBoot,
+// and any other route mounted after workspacesRouter in server.ts.
+//
 // blockGrantorOnWorkspace applies PRD-INTAKE-036 blanket grantor block at the
 // middleware layer — ALL workspace routes return 403 WORKSPACE_GRANTEE_PRIVATE
 // for any grantor role. This supersedes the per-route blockGrantors() check on
 // comments (which is now removed — blockGrantorOnWorkspace covers it uniformly).
-workspacesRouter.use(authenticate);
-workspacesRouter.use(blockGrantorOnWorkspace);
+workspacesRouter.use('/workspaces', authenticate);
+workspacesRouter.use('/workspaces', blockGrantorOnWorkspace);
 
 // ─── Validation schemas ────────────────────────────────────────────────────────
 
