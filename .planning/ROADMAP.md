@@ -64,7 +64,7 @@ Plans:
 - [ ] 02-05-PLAN.md — Gap closure: add UUID format guard to public opportunity detail route so slug-based URLs (e.g., /opportunities/my-grant-abc123) resolve correctly instead of returning 500 INTERNAL_ERROR
 
 ### Phase 3: Organization Profile & Eligibility Pre-Screening
-**Status**: executing
+**Status**: failed
 **Goal**: Applicants can create a reusable organization profile with credentials and team roles, and run an eligibility pre-screen to get a clear, explained determination before investing effort in an application
 **Depends on**: Phase 2
 **Requirements**: PRD-INTAKE-019, PRD-INTAKE-020, PRD-INTAKE-021, PRD-INTAKE-022, PRD-INTAKE-023, PRD-INTAKE-024, PRD-INTAKE-025, PRD-INTAKE-026, PRD-INTAKE-027, PRD-INTAKE-029
