@@ -11,6 +11,8 @@ import { ApplicantLayout } from './layouts/ApplicantLayout';
 import { OrgProfilePage } from './pages/applicant/OrgProfilePage';
 import { OrgRolesPage } from './pages/applicant/OrgRolesPage';
 import { OrgDocumentsPage } from './pages/applicant/OrgDocumentsPage';
+import { PrescreenPage } from './pages/applicant/PrescreenPage';
+import { PrescreenResultPage } from './pages/applicant/PrescreenResultPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +59,8 @@ function App() {
                 </div>
               }
             />
+            <Route path="opportunities/:opportunityId/prescreen" element={<PrescreenPage />} />
+            <Route path="opportunities/:opportunityId/prescreen/result" element={<PrescreenResultPage />} />
           </Route>
           <Route path="/grantor" element={<GrantorLayout />}>
             <Route index element={<Navigate to="/grantor/dashboard" replace />} />
