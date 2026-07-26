@@ -8,6 +8,13 @@ import { programsRouter } from './routes/programs';
 import { opportunityTemplatesRouter } from './routes/opportunityTemplates';
 import { opportunitiesRouter } from './routes/opportunities';
 import { guidanceRouter } from './routes/guidance';
+import { eligibilityRouter } from './routes/eligibility';
+import { prescreeningRouter } from './routes/prescreening';
+import { sectionConditionsRouter } from './routes/sectionConditions';
+import { attachmentRequirementsRouter } from './routes/attachmentRequirements';
+import { screeningCriteriaRouter } from './routes/screeningCriteria';
+import { publicOpportunitiesRouter } from './routes/publicOpportunities';
+import { addendaRouter } from './routes/addenda';
 
 const app = express();
 
@@ -40,10 +47,24 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/programs', programsRouter);
 app.use('/api/v1/opportunity-templates', opportunityTemplatesRouter);
 
+// Mount public opportunity portal routes (plan 02-03) — BEFORE grantor routes
+// so unauthenticated GET /opportunities and GET /opportunities/:id take priority
+app.use('/api/v1', publicOpportunitiesRouter);
+app.use('/api/v1', addendaRouter);
+
 // Mount opportunities and guidance routes (plan 01-03)
 // Note: opportunitiesRouter handles both /programs/:id/opportunities and /opportunities/:id patterns
 app.use('/api/v1', opportunitiesRouter);
 app.use('/api/v1/guidance-prompts', guidanceRouter);
+
+// Mount eligibility and prescreening routes (plan 02-01)
+app.use('/api/v1', eligibilityRouter);
+app.use('/api/v1', prescreeningRouter);
+
+// Mount intake configuration routes (plan 02-02)
+app.use('/api/v1', sectionConditionsRouter);
+app.use('/api/v1', attachmentRequirementsRouter);
+app.use('/api/v1', screeningCriteriaRouter);
 
 // Health check endpoint
 app.get('/health', (_req, res) => {

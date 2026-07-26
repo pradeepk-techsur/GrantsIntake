@@ -231,7 +231,7 @@ describe('Completeness & Publication API (F5 - Publication Validation)', () => {
       );
       expect(versionResult.rows.length).toBe(1);
       expect(versionResult.rows[0].version_number).toBe(1);
-      expect(versionResult.rows[0].modification_reason).toBe('Initial publication');
+      expect(versionResult.rows[0].modification_reason).toBe('OPPORTUNITY_PUBLISHED'); // Updated: plan 02-04 delegates to publicationService which uses 'OPPORTUNITY_PUBLISHED' as the snapshot reason
     });
 
     it('dry_run=true returns blockers without publishing', async () => {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { TemplateLibrary } from './opportunities/TemplateLibrary';
 import apiClient from '../../api/client';
@@ -24,10 +25,17 @@ function useFirstProgramId(): string | null {
   return programId;
 }
 
+interface OpportunityListItem {
+  opportunity_id: string;
+  title: string;
+  status: string;
+  announcement_type: string;
+  updated_at: string;
+}
+
 /**
  * Opportunities index page.
- * Shows "Create New Opportunity" button that opens the TemplateLibrary modal.
- * Phase 1: "No opportunities yet" message with CTA.
+ * Fetches and renders existing opportunities, with a "Create New Opportunity" CTA.
  */
 export function OpportunitiesIndex() {
   const { grantor_memberships } = useCurrentUser();
@@ -36,24 +44,71 @@ export function OpportunitiesIndex() {
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
   const programId = useFirstProgramId();
 
+  const [opportunities, setOpportunities] = useState<OpportunityListItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!programId) return;
+    setLoading(true);
+    apiClient
+      .get<OpportunityListItem[]>(`/programs/${programId}/opportunities`)
+      .then((res) => setOpportunities(res.data))
+      .catch(() => {/* ignore — show empty state */})
+      .finally(() => setLoading(false));
+  }, [programId]);
+
   return (
     <div>
       <div className="usa-prose">
         <h1>Opportunities</h1>
       </div>
 
-      <div
-        className="usa-alert usa-alert--info"
-        role="status"
-        aria-label="No opportunities available"
-      >
-        <div className="usa-alert__body">
-          <h4 className="usa-alert__heading">No opportunities yet</h4>
-          <p className="usa-alert__text">
-            No funding opportunities have been created for your organization.
-          </p>
+      {loading && (
+        <p aria-live="polite">Loading...</p>
+      )}
+
+      {!loading && opportunities.length === 0 && (
+        <div
+          className="usa-alert usa-alert--info"
+          role="status"
+          aria-label="No opportunities available"
+        >
+          <div className="usa-alert__body">
+            <h4 className="usa-alert__heading">No opportunities yet</h4>
+            <p className="usa-alert__text">
+              No funding opportunities have been created for your organization.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
+
+      {!loading && opportunities.length > 0 && (
+        <ul className="usa-card-group" style={{ listStyle: 'none', padding: 0 }}>
+          {opportunities.map((opp) => (
+            <li key={opp.opportunity_id} className="usa-card">
+              <div className="usa-card__container">
+                <div className="usa-card__header">
+                  <h2 className="usa-card__heading">
+                    <Link to={`/grantor/opportunities/${opp.opportunity_id}`}>
+                      {opp.title}
+                    </Link>
+                  </h2>
+                </div>
+                <div className="usa-card__body">
+                  <p>
+                    <span className="usa-tag">{opp.status}</span>
+                    {' '}
+                    <span>{opp.announcement_type}</span>
+                  </p>
+                  <p>
+                    <small>Updated: {new Date(opp.updated_at).toLocaleDateString()}</small>
+                  </p>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {canCreate && (
         <div style={{ marginTop: '1.5rem' }}>

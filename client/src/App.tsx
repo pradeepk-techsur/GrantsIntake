@@ -5,6 +5,8 @@ import { GrantorLayout } from './layouts/GrantorLayout';
 import { Dashboard } from './pages/grantor/Dashboard';
 import { OpportunitiesIndex } from './pages/grantor/OpportunitiesIndex';
 import { OpportunityBuilder } from './pages/grantor/opportunities/OpportunityBuilder';
+import { OpportunityListPage } from './pages/applicant/OpportunityListPage';
+import { OpportunityDetailPage } from './pages/applicant/OpportunityDetailPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +35,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
+          {/* Applicant-facing opportunity portal — no auth required */}
+          <Route path="/opportunities" element={<OpportunityListPage />} />
+          <Route path="/opportunities/:slug" element={<OpportunityDetailPage />} />
           <Route path="/grantor" element={<GrantorLayout />}>
             <Route index element={<Navigate to="/grantor/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />

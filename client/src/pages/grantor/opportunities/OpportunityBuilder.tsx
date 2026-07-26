@@ -5,8 +5,21 @@ import { MetadataForm } from './MetadataForm';
 import { DeadlineForm } from './DeadlineForm';
 import { CompletenessChecklist } from './CompletenessChecklist';
 import { VersionHistory } from './VersionHistory';
+import { EligibilityRuleBuilder } from './EligibilityRuleBuilder';
+import { PrescreeningBuilder } from './PrescreeningBuilder';
+import { ConditionalSectionConfig } from './ConditionalSectionConfig';
+import { AttachmentRequirementsConfig } from './AttachmentRequirementsConfig';
+import { ScreeningCriteriaConfig } from './ScreeningCriteriaConfig';
 
-type BuilderSection = 'metadata' | 'deadlines' | 'versions';
+type BuilderSection =
+  | 'metadata'
+  | 'deadlines'
+  | 'versions'
+  | 'eligibility-rules'
+  | 'prescreening'
+  | 'conditional-sections'
+  | 'attachments'
+  | 'screening';
 
 /**
  * Main Opportunity Builder page.
@@ -267,6 +280,61 @@ export function OpportunityBuilder() {
               Version History
             </button>
           </li>
+          <li>
+            <button
+              type="button"
+              className={`usa-button${activeSection === 'eligibility-rules' ? '' : ' usa-button--outline'}`}
+              onClick={() => setActiveSection('eligibility-rules')}
+              aria-current={activeSection === 'eligibility-rules' ? 'page' : undefined}
+              data-testid="tab-eligibility-rules"
+            >
+              Eligibility Rules
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              className={`usa-button${activeSection === 'prescreening' ? '' : ' usa-button--outline'}`}
+              onClick={() => setActiveSection('prescreening')}
+              aria-current={activeSection === 'prescreening' ? 'page' : undefined}
+              data-testid="tab-prescreening"
+            >
+              Pre-Screening
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              className={`usa-button${activeSection === 'conditional-sections' ? '' : ' usa-button--outline'}`}
+              onClick={() => setActiveSection('conditional-sections')}
+              aria-current={activeSection === 'conditional-sections' ? 'page' : undefined}
+              data-testid="tab-conditional-sections"
+            >
+              Conditional Sections
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              className={`usa-button${activeSection === 'attachments' ? '' : ' usa-button--outline'}`}
+              onClick={() => setActiveSection('attachments')}
+              aria-current={activeSection === 'attachments' ? 'page' : undefined}
+              data-testid="tab-attachments"
+            >
+              Attachments
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              className={`usa-button${activeSection === 'screening' ? '' : ' usa-button--outline'}`}
+              onClick={() => setActiveSection('screening')}
+              aria-current={activeSection === 'screening' ? 'page' : undefined}
+              data-testid="tab-screening"
+            >
+              Screening Criteria
+            </button>
+          </li>
         </ul>
       </nav>
 
@@ -287,6 +355,21 @@ export function OpportunityBuilder() {
               </h2>
               <VersionHistory opportunityId={opportunity.opportunity_id} />
             </section>
+          )}
+          {activeSection === 'eligibility-rules' && (
+            <EligibilityRuleBuilder opportunityId={opportunity.opportunity_id} />
+          )}
+          {activeSection === 'prescreening' && (
+            <PrescreeningBuilder opportunityId={opportunity.opportunity_id} />
+          )}
+          {activeSection === 'conditional-sections' && (
+            <ConditionalSectionConfig opportunityId={opportunity.opportunity_id} />
+          )}
+          {activeSection === 'attachments' && (
+            <AttachmentRequirementsConfig opportunityId={opportunity.opportunity_id} />
+          )}
+          {activeSection === 'screening' && (
+            <ScreeningCriteriaConfig opportunityId={opportunity.opportunity_id} />
           )}
         </div>
 

@@ -236,11 +236,11 @@ describe('Opportunities API', () => {
       expect(res.body.error).toBe('NOT_FOUND');
     });
 
-    it('returns 401 without authentication', async () => {
+    it('returns 404 without authentication for unpublished opportunity (plan 02-03: public route intercepts, T-02-13 prevents existence leak)', async () => {
       const res = await request(app)
         .get(`/api/v1/opportunities/${createdOpportunityId}`);
 
-      expect(res.status).toBe(401);
+      expect(res.status).toBe(404);
     });
   });
 
