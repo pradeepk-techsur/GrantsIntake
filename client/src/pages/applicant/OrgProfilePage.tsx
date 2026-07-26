@@ -183,6 +183,7 @@ export function OrgProfilePage() {
     onSuccess: (updatedOrg) => {
       setSuccessMessage('Organization profile saved successfully.');
       void queryClient.invalidateQueries({ queryKey: ['org', updatedOrg.org_id] });
+      void queryClient.invalidateQueries({ queryKey: ['credentialStatus', updatedOrg.org_id] });
     },
   });
 
