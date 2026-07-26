@@ -53,6 +53,19 @@ function computeDaysRemaining(expirationDate: string | null | undefined): number
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
+/**
+ * Postgres returns NUMERIC columns as strings. Parse numeric fields to JS numbers.
+ */
+function parseOrgRow(row: Record<string, unknown>): Organization {
+  return {
+    ...row,
+    profile_completeness_pct: parseFloat(String(row.profile_completeness_pct ?? 0)),
+    indirect_cost_rate: row.indirect_cost_rate != null
+      ? parseFloat(String(row.indirect_cost_rate))
+      : undefined,
+  } as Organization;
+}
+
 class OrganizationService {
   /**
    * Compute completeness percentage based on filled required fields.
@@ -143,7 +156,7 @@ class OrganizationService {
       );
 
       await client.query('COMMIT');
-      return org;
+      return parseOrgRow(org as unknown as Record<string, unknown>);
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;
@@ -156,11 +169,12 @@ class OrganizationService {
    * Get an organization by org_id. Returns null if not found.
    */
   async getOrg(orgId: string): Promise<Organization | null> {
-    const result = await pool.query<Organization>(
+    const result = await pool.query<Record<string, unknown>>(
       `SELECT * FROM organizations WHERE org_id = $1`,
       [orgId],
     );
-    return result.rows[0] ?? null;
+    if (!result.rows[0]) return null;
+    return parseOrgRow(result.rows[0]);
   }
 
   /**
@@ -289,14 +303,14 @@ class OrganizationService {
       values.push(orgId);
       const whereIdx = paramIdx;
 
-      const result = await client.query<Organization>(
+      const result = await client.query<Record<string, unknown>>(
         `UPDATE organizations SET ${setClauses.join(', ')}
          WHERE org_id = $${whereIdx}
          RETURNING *`,
         values,
       );
 
-      const updated = result.rows[0];
+      const updated = parseOrgRow(result.rows[0]);
 
       // Emit audit event
       await client.query(

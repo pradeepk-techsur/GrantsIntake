@@ -15,6 +15,7 @@ import { attachmentRequirementsRouter } from './routes/attachmentRequirements';
 import { screeningCriteriaRouter } from './routes/screeningCriteria';
 import { publicOpportunitiesRouter } from './routes/publicOpportunities';
 import { addendaRouter } from './routes/addenda';
+import { organizationsRouter } from './routes/organizations';
 
 const app = express();
 
@@ -60,6 +61,9 @@ app.use('/api/v1/guidance-prompts', guidanceRouter);
 // Mount eligibility and prescreening routes (plan 02-01)
 app.use('/api/v1', eligibilityRouter);
 app.use('/api/v1', prescreeningRouter);
+
+// Mount organization profile routes (plan 03-01)
+app.use('/api/v1', organizationsRouter);
 
 // Mount intake configuration routes (plan 02-02)
 app.use('/api/v1', sectionConditionsRouter);
