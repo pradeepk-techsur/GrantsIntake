@@ -99,3 +99,33 @@ export interface CreateCommentInput {
   section_id?: string;
   comment_text: string;
 }
+
+/**
+ * ReadinessSummary — returned by GET /workspaces/:id/readiness (PRD-INTAKE-035 / F34).
+ * Mirrors the server-side ReadinessSummary interface in readinessService.ts.
+ */
+export interface ReadinessSummary {
+  workspace_id: string;
+  overall_completion_pct: number;
+  is_ready_to_submit: boolean;
+  authorized_rep_assigned: boolean;
+  blocking_errors: Array<{
+    section_id: string;
+    section_name: string;
+    field_id?: string;
+    field_label?: string;
+    error_code: string;
+    message: string;
+    severity: 'blocking';
+    link: string;
+  }>;
+  warnings: Array<{ section_id: string; field_label?: string; message: string; severity: 'warning' }>;
+  informational: Array<{ message: string; severity: 'info' }>;
+  attachment_status: Array<{
+    requirement_id: string;
+    document_type: string;
+    is_required: boolean;
+    is_fulfilled: boolean;
+    document_name?: string;
+  }>;
+}

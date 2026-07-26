@@ -8,6 +8,7 @@ import type {
   AssignSectionInput,
   CreateTaskInput,
   CreateCommentInput,
+  ReadinessSummary,
 } from '../types/workspace';
 
 export const workspaceApi = {
@@ -35,4 +36,6 @@ export const workspaceApi = {
     apiClient.get<WorkspaceComment[]>(`/workspaces/${workspaceId}/comments`).then(r => r.data),
   postComment: (workspaceId: string, input: CreateCommentInput) =>
     apiClient.post<WorkspaceComment>(`/workspaces/${workspaceId}/comments`, input).then(r => r.data),
+  getReadiness: (workspaceId: string) =>
+    apiClient.get<ReadinessSummary>(`/workspaces/${workspaceId}/readiness`).then(r => r.data),
 };

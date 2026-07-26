@@ -5,6 +5,7 @@ import { workspaceApi } from '../../api/workspaceApi';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { WorkspaceSidebar } from '../../components/workspace/WorkspaceSidebar';
 import { WorkspaceSectionPanel } from '../../components/workspace/WorkspaceSectionPanel';
+import { ReadinessDashboard } from '../../components/workspace/ReadinessDashboard';
 
 export function WorkspacePage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -98,7 +99,7 @@ export function WorkspacePage() {
         )}
       </div>
 
-      {/* Two-column layout: sidebar + section panel */}
+      {/* Three-column layout: section sidebar (3) + section content (6) + readiness panel (3) */}
       <div className="grid-row grid-gap">
         <div className="grid-col-3" data-testid="workspace-section-sidebar">
           <WorkspaceSidebar
@@ -107,7 +108,7 @@ export function WorkspacePage() {
             onSectionSelect={setActiveSectionType}
           />
         </div>
-        <div className="grid-col-9" data-testid="workspace-section-content">
+        <div className="grid-col-6" data-testid="workspace-section-content">
           {activeSection ? (
             <WorkspaceSectionPanel section={activeSection} workspaceId={workspaceId!} />
           ) : (
@@ -115,6 +116,9 @@ export function WorkspacePage() {
               <p className="usa-hint">Select a section from the left sidebar to begin.</p>
             </div>
           )}
+        </div>
+        <div className="grid-col-3" data-testid="workspace-readiness-panel">
+          <ReadinessDashboard workspaceId={workspaceId!} />
         </div>
       </div>
     </div>
