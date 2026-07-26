@@ -4,6 +4,7 @@ import { authenticate } from '../middleware/authenticate';
 import { blockGrantorOnWorkspace } from '../middleware/blockGrantorOnWorkspace';
 import { workspaceService } from '../services/workspace/workspaceService';
 import { readinessService } from '../services/workspace/readinessService';
+import { formFieldService } from '../services/workspace/formFieldService';
 import { pool } from '../db/client';
 
 export const workspacesRouter = Router();
@@ -373,4 +374,77 @@ workspacesRouter.get('/workspaces/:id/readiness', async (req: Request, res: Resp
     console.error('GET /workspaces/:id/readiness error:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
+});
+
+// ─── GET /api/v1/workspaces/:id/sections/:sectionId/fields ───────────────────
+// Returns field definitions joined with current_response for this workspace.
+// T-04-12: Two-step IDOR guard (EXISTS → 404, then membership → 403).
+
+workspacesRouter.get('/workspaces/:id/sections/:sectionId/fields', authenticate, async (req, res) => {
+  const { id, sectionId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(sectionId)) {
+    return res.status(404).json({ error: 'NOT_FOUND' });
+  }
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+
+  const fields = await formFieldService.getFieldsForSection(sectionId, id);
+  return res.status(200).json(fields);
+});
+
+// ─── PUT /api/v1/workspaces/:id/sections/:sectionId/fields/:fieldId ──────────
+// Save field response (upsert via ON CONFLICT).
+// T-04-11: UUID_REGEX guard on fieldId; FK violation (23503) → 404 FIELD_NOT_FOUND.
+// T-04-13: Zod max(100_000) on response_value limits payload size.
+
+const saveFieldResponseSchema = z.object({
+  response_value: z.string().max(100_000).optional(),
+  response_json: z.unknown().optional(),
+});
+
+workspacesRouter.put('/workspaces/:id/sections/:sectionId/fields/:fieldId', authenticate, async (req, res) => {
+  const { id, sectionId, fieldId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(sectionId) || !UUID_REGEX.test(fieldId)) {
+    return res.status(404).json({ error: 'NOT_FOUND' });
+  }
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+
+  const parsed = saveFieldResponseSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(422).json({ error: 'VALIDATION_ERROR', details: parsed.error.errors });
+
+  try {
+    const response = await formFieldService.saveFieldResponse(id, sectionId, fieldId, parsed.data, req.user!.user_id);
+    return res.status(200).json(response);
+  } catch (err: unknown) {
+    const pgErr = err as { code?: string };
+    if (pgErr.code === '23503') {
+      // FK violation: fieldId doesn't exist in form_field_definitions
+      return res.status(404).json({ error: 'FIELD_NOT_FOUND' });
+    }
+    throw err;
+  }
+});
+
+// ─── POST /api/v1/workspaces/:id/sections/:sectionId/validate ────────────────
+// Trigger server-side section validation. Updates section.validation_errors and status.
+// T-04-15: verifyWorkspaceMember check before any DB write.
+
+workspacesRouter.post('/workspaces/:id/sections/:sectionId/validate', authenticate, async (req, res) => {
+  const { id, sectionId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(sectionId)) {
+    return res.status(404).json({ error: 'NOT_FOUND' });
+  }
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+
+  const result = await formFieldService.validateSection(id, sectionId);
+  return res.status(200).json(result);
 });
