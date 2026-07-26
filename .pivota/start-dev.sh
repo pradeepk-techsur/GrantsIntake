@@ -53,7 +53,11 @@ echo "[pivota] $(date -Iseconds) start-dev.sh begin (catalog: agent-synthesized)
 # === D-11.1 + D-11.2: per-stack env — Express + Vite ===
 # Express: server.listen already uses '0.0.0.0' (src/server.ts:112).
 # HOST is set for any tooling that reads it; PORT pins the backend port.
-export PORT="${PORT:-3000}"
+# PORT=5173 is the user-facing preview port (React/Vite frontend).
+# The platform's preview panel polls PORT to know which port link to surface.
+# The Express backend runs on BACKEND_PORT=3000 (internal — proxied by Vite).
+export PORT="${PORT:-5173}"
+export BACKEND_PORT="${BACKEND_PORT:-3000}"
 export HOST=0.0.0.0
 # Vite: host binding via --host 0.0.0.0 CLI flag in the frontend launch below
 # (vite.config.ts already sets server.host: '0.0.0.0' — belt-and-suspenders).
@@ -232,9 +236,10 @@ declare -a PIDS=()
 
 # Process 1: Express backend (tsx watch — no build needed, dev mode)
 # Binds 0.0.0.0:3000 (src/server.ts:112 hard-codes the bind address).
+# BACKEND_PORT=3000 is passed explicitly so server.ts reads PORT=3000.
 (
   cd '.' \
-    && export PORT="${PORT:-3000}" HOST=0.0.0.0 \
+    && export PORT="${BACKEND_PORT:-3000}" HOST=0.0.0.0 \
     && exec bash -c 'npx tsx watch src/server.ts'
 ) 2>&1 | sed 's/^/[backend] /' &
 PIDS+=($!)
