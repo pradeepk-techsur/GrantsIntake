@@ -151,7 +151,8 @@ export function OrgProfilePage() {
         ein: org.ein ?? '',
         uei: org.uei ?? '',
         sam_registered: org.sam_registered ?? false,
-        sam_expiration_date: org.sam_expiration_date ?? '',
+        // API returns ISO datetime (2026-07-24T00:00:00.000Z); date input needs YYYY-MM-DD
+        sam_expiration_date: org.sam_expiration_date ? org.sam_expiration_date.substring(0, 10) : '',
         tax_exempt_status: org.tax_exempt_status ?? '',
         congressional_district: org.congressional_district ?? '',
         primary_contact_name: org.primary_contact_name ?? '',
