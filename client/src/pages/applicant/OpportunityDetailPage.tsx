@@ -522,6 +522,20 @@ export function OpportunityDetailPage() {
                   {/* CTA Button */}
                   <div style={{ marginBottom: '1rem' }}>{renderCTA()}</div>
 
+                  {/* Check Eligibility link — shown when authenticated and opportunity is published */}
+                  {accessToken && opportunity?.opportunity_id && opportunity.status === 'published' && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <Link
+                        to={`/applicant/opportunities/${opportunity.opportunity_id}/prescreen`}
+                        className="usa-button usa-button--outline"
+                        style={{ width: '100%', textAlign: 'center', display: 'block' }}
+                        data-testid="check-eligibility-link"
+                      >
+                        Check Eligibility
+                      </Link>
+                    </div>
+                  )}
+
                   {/* Contact */}
                   <div
                     style={{
