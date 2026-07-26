@@ -74,12 +74,14 @@ Plans:
   3. An org admin can assign team members to roles (org admin, proposal lead, contributor, finance contributor, authorized representative) with role-based access enforced at section and submission levels
   4. An applicant completing an eligibility pre-screen sees one of four distinct USWDS-styled result states (Eligible, Likely Eligible, Needs Attention, Ineligible) with a plain-language explanation of which responses caused any blocker or warning
   5. All eligibility pre-screen responses are stored in the intake record and visible to intake administrators during administrative screening
-**Plans:** 3 plans
+**Plans:** 5 plans
 
 Plans:
 - [ ] 03-01-PLAN.md — Migration 010 (organizations, org_contacts, org_roles, org_attachments); organizationService (CRUD, getOrgIdForUser, verifyOrgMember/Admin, getCredentialStatus, listDocuments, uploadDocument, listDocumentVersions); 11 REST endpoints (org CRUD, credential-status, roles, documents); integration tests (PRD-INTAKE-019, F18; PRD-INTAKE-020, F19; PRD-INTAKE-021, F20; PRD-INTAKE-022, F21)
 - [ ] 03-02-PLAN.md — ApplicantLayout shell (USWDS header + sidebar auth guard); ApplicantSidebar (My Profile, Find Opportunities, My Applications); organizationsApi client; OrgProfilePage (create/edit form, completeness %, credential warning banners); OrgRolesPage (team assign/revoke); OrgDocumentsPage (standard library upload + expiration badges); /applicant/* routes in App.tsx; Playwright e2e tests (PRD-INTAKE-019, F18; PRD-INTAKE-021, F20; PRD-INTAKE-022, F21; PRD-INTAKE-023, F22; PRD-INTAKE-024, F23)
 - [ ] 03-03-PLAN.md — Migration 011 (eligibility_responses, uq_elig_response); prescreeningEvaluationService (evaluateResponses → EligibilityResult, 409 ALREADY_SUBMITTED, response storage); POST /prescreening/submit + GET /workspaces/:id/eligibility-responses routes; PrescreenPage (conditional question logic); PrescreenResultPage (four USWDS alert states, all blockers shown, advisory section); Check Eligibility link in OpportunityDetailPage; integration + Playwright tests (PRD-INTAKE-025, F24; PRD-INTAKE-026, F25; PRD-INTAKE-027, F26; PRD-INTAKE-029, F28)
+- [ ] 03-04-PLAN.md — Gap closure: add UUID regex guard to OrgRolesPage.handleAssignSubmit — clear inline error before API call when user enters non-UUID value (e.g. email address); fixes UAT Test 4 422 error (PRD-INTAKE-022)
+- [ ] 03-05-PLAN.md — Gap closure: add GET /prescreening/my-result endpoint + prescreeningApi.getMyResult(); update PrescreenResultPage to fetch stored result on mount when location.state is null; fix PrescreenPage 409 handler to navigate to result page instead of dead-end error; fixes UAT Test 9 (PRD-INTAKE-026, PRD-INTAKE-027)
 
 ### Phase 4: Application Workspace & Form Capture
 **Goal**: Applicants have a collaborative, structured workspace for building their application — with configurable forms, a structured budget builder, attachment management, and a readiness dashboard — all kept grantee-private until submission
