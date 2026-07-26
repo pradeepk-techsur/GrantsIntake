@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 02-eligibility-intake-rules-configuration
 source: 02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md
 started: 2026-07-26T00:55:00Z
@@ -114,7 +114,10 @@ per_test:
   severity: major
   test: 11
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "publicOpportunities.ts route handler tries WHERE opportunity_id = $1 (UUID column) with the slug string 'uat-test-grant-e0df0ba8' — Postgres throws 'invalid input syntax for type uuid' before the slug fallback query runs. The error is caught at the outer try/catch and returns INTERNAL_ERROR 500, which the frontend maps to 'Failed to load opportunity'. Fix: check if the param is a valid UUID format before the first query; if not, skip straight to the slug lookup."
+  artifacts:
+    - path: "src/routes/publicOpportunities.ts"
+      issue: "Lines ~77-90: WHERE opportunity_id = $1 with a non-UUID slug param causes Postgres UUID parse error; slug fallback is never reached"
+  missing:
+    - "Add UUID format check (regex or try/catch the first query) before attempting opportunity_id lookup; fall through to slug lookup when the param is not a valid UUID"
   debug_session: ""
