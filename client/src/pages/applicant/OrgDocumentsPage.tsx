@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { organizationsApi } from '../../api/organizationsApi';
-import type { OrgDocument, OrgDocumentType } from '../../api/organizationsApi';
+import type { OrgDocument } from '../../api/organizationsApi';
+import type { OrgDocumentType } from '../../types/organization';
 
 const LOCAL_STORAGE_KEY = 'applicant_org_id';
 

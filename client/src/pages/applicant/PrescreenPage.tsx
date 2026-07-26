@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { prescreeningApi, PrescreeningQuestionnaire, PrescreeningQuestion, SubmitResponseInput, EligibilityResult } from '../../api/prescreeningApi';
+import { prescreeningApi } from '../../api/prescreeningApi';
+import type { PrescreeningQuestionnaire, PrescreeningQuestion, SubmitResponseInput, EligibilityResult } from '../../api/prescreeningApi';
 
 /**
  * Determines whether a question should be visible based on the current responses.
