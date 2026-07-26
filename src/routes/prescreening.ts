@@ -3,8 +3,13 @@ import { z } from 'zod';
 import { authenticate } from '../middleware/authenticate';
 import { requireRole } from '../middleware/requireRole';
 import { prescreeningService } from '../services/eligibility/prescreeningService';
+import { prescreeningEvaluationService } from '../services/eligibility/prescreeningEvaluationService';
+import { organizationService } from '../services/organization/organizationService';
 import { pool } from '../db/client';
 import { getGrantorOrgIdForUser } from '../services/program/programService';
+
+// UUID regex for format guard (T-03-17)
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const prescreeningRouter = Router();
 
@@ -196,6 +201,158 @@ prescreeningRouter.post(
       }
       console.error('POST /opportunities/:id/prescreening/preview error:', err);
       res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to generate prescreening preview' });
+    }
+  },
+);
+
+// ─── Applicant-facing GET /api/v1/opportunities/:opportunity_id/prescreening/applicant ──
+// Returns the questionnaire for an opportunity (applicant view: no rule_outcome exposed).
+// Requires auth so org_id can be resolved later in submit.
+
+prescreeningRouter.get(
+  '/opportunities/:opportunity_id/prescreening/applicant',
+  authenticate,
+  async (req: Request, res: Response): Promise<void> => {
+    const { opportunity_id } = req.params;
+
+    if (!UUID_REGEX.test(opportunity_id)) {
+      res.status(404).json({ error: 'NOT_FOUND', message: 'Opportunity not found' });
+      return;
+    }
+
+    try {
+      // Verify opportunity exists (any authenticated user can view questionnaire)
+      const existsResult = await pool.query<{ count: string }>(
+        `SELECT COUNT(*) FROM opportunities WHERE opportunity_id = $1`,
+        [opportunity_id],
+      );
+      if (parseInt(existsResult.rows[0].count) === 0) {
+        res.status(404).json({ error: 'NOT_FOUND', message: 'Opportunity not found' });
+        return;
+      }
+
+      const preview = await prescreeningService.preview(opportunity_id);
+      if (!preview) {
+        res.status(200).json({ questionnaire_id: null, questions: [] });
+        return;
+      }
+      res.status(200).json(preview);
+    } catch (err: unknown) {
+      console.error('GET /opportunities/:id/prescreening/applicant error:', err);
+      res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to fetch prescreening questionnaire' });
+    }
+  },
+);
+
+// ─── Validate submit schema ────────────────────────────────────────────────────
+
+const submitSchema = z.object({
+  responses: z.array(
+    z.object({
+      question_id: z.string().uuid(),
+      selected_option_id: z.string().uuid().optional(),
+      response_text: z.string().max(5000).optional(),
+    }),
+  ).min(1),
+});
+
+// ─── POST /api/v1/opportunities/:opportunity_id/prescreening/submit ───────────
+// Applicant submits pre-screen responses. Returns EligibilityResult.
+
+prescreeningRouter.post(
+  '/opportunities/:opportunity_id/prescreening/submit',
+  authenticate,
+  async (req: Request, res: Response): Promise<void> => {
+    const { opportunity_id } = req.params;
+
+    if (!UUID_REGEX.test(opportunity_id)) {
+      res.status(404).json({ error: 'NOT_FOUND', message: 'Opportunity not found' });
+      return;
+    }
+
+    const parsed = submitSchema.safeParse(req.body);
+    if (!parsed.success) {
+      const firstError = parsed.error.errors[0];
+      res.status(422).json({
+        error: 'VALIDATION_ERROR',
+        message: firstError.message,
+        field: firstError.path.join('.'),
+      });
+      return;
+    }
+
+    try {
+      // Get org_id for this user (T-03-22: derived server-side, never from request body)
+      const orgId = await organizationService.getOrgIdForUser(req.user!.user_id);
+      if (!orgId) {
+        res.status(400).json({
+          error: 'NO_ORG_PROFILE',
+          message: 'Organization profile required before pre-screening.',
+        });
+        return;
+      }
+
+      const result = await prescreeningEvaluationService.evaluateResponses(
+        opportunity_id,
+        orgId,
+        parsed.data.responses,
+      );
+      res.status(200).json(result);
+    } catch (err: unknown) {
+      const error = err as { code?: string; status?: number; message?: string };
+      if (error.code === 'ALREADY_SUBMITTED') {
+        res.status(409).json({
+          error: 'ALREADY_SUBMITTED',
+          message: 'Eligibility pre-screen already completed for this opportunity.',
+        });
+        return;
+      }
+      console.error('POST /opportunities/:id/prescreening/submit error:', err);
+      res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to evaluate prescreening responses' });
+    }
+  },
+);
+
+// ─── GET /api/v1/workspaces/:workspace_id/eligibility-responses ────────────────
+// Admin endpoint — Phase 4 will add workspace membership check.
+// Stub for Phase 3: returns stored responses by workspace_id or org_id+opportunity_id.
+// T-03-17: UUID format guard gates the query.
+
+prescreeningRouter.get(
+  '/workspaces/:workspace_id/eligibility-responses',
+  authenticate,
+  async (req: Request, res: Response): Promise<void> => {
+    const { workspace_id } = req.params;
+
+    if (!UUID_REGEX.test(workspace_id)) {
+      res.status(404).json({ error: 'NOT_FOUND', message: 'Workspace not found' });
+      return;
+    }
+
+    try {
+      const { org_id, opportunity_id } = req.query as { org_id?: string; opportunity_id?: string };
+
+      let queryText: string;
+      let queryParams: string[];
+
+      if (org_id && opportunity_id && UUID_REGEX.test(org_id) && UUID_REGEX.test(opportunity_id)) {
+        // Fallback: query by org_id + opportunity_id (used when workspace_id not yet assigned)
+        queryText = `SELECT * FROM eligibility_responses
+                     WHERE org_id = $1 AND opportunity_id = $2
+                     ORDER BY submitted_at DESC`;
+        queryParams = [org_id, opportunity_id];
+      } else {
+        queryText = `SELECT * FROM eligibility_responses
+                     WHERE workspace_id = $1
+                     ORDER BY submitted_at DESC`;
+        queryParams = [workspace_id];
+      }
+
+      const result = await pool.query(queryText, queryParams);
+      res.status(200).json(result.rows);
+    } catch (err: unknown) {
+      console.error('GET /workspaces/:id/eligibility-responses error:', err);
+      res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to fetch eligibility responses' });
     }
   },
 );
