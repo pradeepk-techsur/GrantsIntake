@@ -72,22 +72,28 @@ publicOpportunitiesRouter.get('/opportunities/:opportunity_id', async (req: Requ
     }
   }
 
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const isUUID = UUID_REGEX.test(opportunity_id);
+
   try {
-    // Fetch the opportunity (try by opportunity_id first, then by public_slug)
-    const oppResult = await pool.query(
-      `SELECT o.*,
-              go.org_name AS funder_name,
-              p.program_name
-       FROM opportunities o
-       LEFT JOIN programs p ON o.program_id = p.program_id
-       LEFT JOIN grantor_organizations go ON p.grantor_org_id = go.org_id
-       WHERE o.opportunity_id = $1`,
-      [opportunity_id],
-    );
+    // Fetch the opportunity (try by opportunity_id if it looks like a UUID, then by public_slug)
+    let opp: Record<string, unknown> | null = null;
 
-    let opp = oppResult.rows[0] ?? null;
+    if (isUUID) {
+      const oppResult = await pool.query(
+        `SELECT o.*,
+                go.org_name AS funder_name,
+                p.program_name
+         FROM opportunities o
+         LEFT JOIN programs p ON o.program_id = p.program_id
+         LEFT JOIN grantor_organizations go ON p.grantor_org_id = go.org_id
+         WHERE o.opportunity_id = $1`,
+        [opportunity_id],
+      );
+      opp = oppResult.rows[0] ?? null;
+    }
 
-    // If not found by ID, try by public_slug
+    // If not found by UUID (or param was not a UUID), try by public_slug
     if (!opp) {
       const slugResult = await pool.query(
         `SELECT o.*,
