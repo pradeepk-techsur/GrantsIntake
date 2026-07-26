@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-organization-profile-eligibility-pre-screening-03-04-PLAN.md
-last_updated: "2026-07-26T17:22:03.354Z"
-last_activity: "2026-07-26 — Plan 03-02 complete: applicant portal UI shell + 3 org profile pages + Playwright e2e tests"
+stopped_at: Completed 03-organization-profile-eligibility-pre-screening-03-05-PLAN.md
+last_updated: "2026-07-26T17:23:28.517Z"
+last_activity: "2026-07-26 — Plan 03-04 complete: UUID format validation guard for OrgRolesPage assign flow"
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 94
 ---
 
@@ -69,6 +69,7 @@ Progress: [█████████░] 94%
 | Phase 03-organization-profile-eligibility-pre-screening P01 | 6 min | 2 tasks | 6 files |
 | Phase 03-organization-profile-eligibility-pre-screening P02 | 5 min | 2 tasks | 10 files |
 | Phase 03-organization-profile-eligibility-pre-screening P04 | 1 min | 1 tasks | 1 files |
+| Phase 03-organization-profile-eligibility-pre-screening P05 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase 03-organization-profile-eligibility-pre-screening]: org_id stored in localStorage key applicant_org_id — non-sensitive UUID, org data requires auth token (T-03-10 accepted risk)
 - [Phase 03-organization-profile-eligibility-pre-screening]: OrgDocumentsPage uses base64 JSON upload matching Plan 01 server contract (multer not in package.json)
 - [Phase 03-organization-profile-eligibility-pre-screening]: UUID_REGEX guard gates handleAssignSubmit before assignMutation.mutate — prevents 422 when email entered in User ID field (PRD-INTAKE-022)
+- [Phase 03-organization-profile-eligibility-pre-screening]: GET my-result derives org_id server-side via organizationService.getOrgIdForUser (T-03-22 pattern) — IDOR mitigation for applicant result fetch
+- [Phase 03-organization-profile-eligibility-pre-screening]: 409 ALREADY_SUBMITTED navigates to result page with state:null so PrescreenResultPage API fallback activates automatically
 
 ### Pending Todos
 
@@ -119,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T17:22:03.353Z
-Stopped at: Completed 03-organization-profile-eligibility-pre-screening-03-04-PLAN.md
+Last session: 2026-07-26T17:23:28.516Z
+Stopped at: Completed 03-organization-profile-eligibility-pre-screening-03-05-PLAN.md
 Resume file: None
