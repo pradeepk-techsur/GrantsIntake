@@ -1,5 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import type { EligibilityResult } from '../../api/prescreeningApi';
+import { prescreeningApi } from '../../api/prescreeningApi';
 
 /**
  * Alert configuration for each eligibility result state.
@@ -38,26 +40,58 @@ const alertConfig: Record<
  * - Advisory warnings in a separate section from hard blockers
  *
  * Accepts EligibilityResult via React Router location.state (populated by PrescreenPage).
- * Falls back gracefully if navigated to directly.
+ * Falls back to API fetch (getMyResult) when location.state is null — handles ALREADY_SUBMITTED
+ * (409) navigations and direct URL access.
  *
  * Route: /applicant/opportunities/:opportunityId/prescreen/result
  */
 export function PrescreenResultPage() {
   const location = useLocation();
-  const result = location.state as EligibilityResult | null;
+  const { opportunityId } = useParams<{ opportunityId: string }>();
+  const stateResult = location.state as EligibilityResult | null;
 
-  // Fallback: navigated directly with no state
-  if (!result || !result.overall_result) {
+  const [result, setResult] = useState<EligibilityResult | null>(stateResult);
+  const [fetching, setFetching] = useState(!stateResult);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (stateResult || !opportunityId) return;
+
+    setFetching(true);
+    prescreeningApi
+      .getMyResult(opportunityId)
+      .then((data) => {
+        setResult(data);
+        setFetching(false);
+      })
+      .catch(() => {
+        setFetchError('Your eligibility result could not be loaded. Please return to the opportunity and try again.');
+        setFetching(false);
+      });
+  }, [opportunityId, stateResult]);
+
+  if (fetching) {
     return (
       <main id="main-content" tabIndex={-1}>
         <div className="usa-section">
           <div className="grid-container">
-            <div className="usa-alert usa-alert--info" role="status">
+            <div aria-busy="true" aria-label="Loading result">Loading your eligibility result…</div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (fetchError || !result || !result.overall_result) {
+    return (
+      <main id="main-content" tabIndex={-1}>
+        <div className="usa-section">
+          <div className="grid-container">
+            <div className="usa-alert usa-alert--error" role="alert">
               <div className="usa-alert__body">
                 <h2 className="usa-alert__heading">Result not available</h2>
                 <p className="usa-alert__text">
-                  Your eligibility result could not be loaded. Please return to the opportunities
-                  list and try again.
+                  {fetchError ?? 'Your eligibility result could not be loaded. Please return to the opportunities list and try again.'}
                 </p>
               </div>
             </div>

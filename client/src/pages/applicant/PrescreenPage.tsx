@@ -119,9 +119,9 @@ export function PrescreenPage() {
     } catch (err: unknown) {
       const error = err as { response?: { status?: number; data?: { message?: string } }; message?: string };
       if (error.response?.status === 409) {
-        setError(
-          'You have already completed the eligibility pre-screen for this opportunity.',
-        );
+        // Result already stored — navigate to result page which will fetch via my-result API
+        navigate(`/applicant/opportunities/${opportunityId}/prescreen/result`, { state: null });
+        return;
       } else if (error.response?.data?.message) {
         setError(error.response.data.message);
       } else {
