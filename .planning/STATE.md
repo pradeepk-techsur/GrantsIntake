@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-07-26T19:31:03.961Z"
-last_activity: "2026-07-26 — Plan 04-02 complete: grantor privacy middleware + readiness dashboard"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-07-26T19:48:21.984Z"
+last_activity: "2026-07-26 — Plan 04-04 complete: budget + attachments + preview; Phase 4 COMPLETE"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 22
-  completed_plans: 21
-  percent: 91
+  completed_plans: 22
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 4 of 6 (Application Workspace & Form Capture) — IN PROGRESS
-Plan: 3 of 4 in current phase — Plan 04-03 complete
-Status: Plan 04-03 Complete — migration 013 form fields + formFieldService + 3 field routes + FormFieldRenderer (11 types) + SectionFormPanel
-Last activity: 2026-07-26 — Plan 04-03 complete: form field capture layer with all 11 field types and onBlur validation
+Phase: 4 of 6 (Application Workspace & Form Capture) — COMPLETE
+Plan: 4 of 4 in current phase — Plan 04-04 complete
+Status: Plan 04-04 Complete — budget/attachments schema + budgetService + attachmentService + previewService + BudgetBuilder + AttachmentManager + WorkspacePreviewPage
+Last activity: 2026-07-26 — Plan 04-04 complete: budget + attachments + preview subsystems; Phase 4 all 4 plans delivered
 
-Progress: [██████████] 95%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [██████████] 95%
 | Phase 04-application-workspace-form-capture P01 | 9 min | 2 tasks | 15 files |
 | Phase 04-application-workspace-form-capture P02 | 7min | 2 tasks | 10 files |
 | Phase 04-application-workspace-form-capture P03 | 6 min | 2 tasks | 11 files |
+| Phase 04-application-workspace-form-capture P04 | 12 min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,9 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: ON CONFLICT DO UPDATE for idempotent field response upserts (UNIQUE workspace_id+field_id)
 - [Phase 04-application-workspace-form-capture]: FileReader base64 JSON for file_upload: { file_name, mime_type, file_size_bytes, content_base64 } — consistent with Phase 3 multer-free decision
 - [Phase 04-application-workspace-form-capture]: onBlur save + 500ms deferred server validate — field saved on blur, validation triggered 500ms later to avoid excessive server roundtrips
+- [Phase 04-application-workspace-form-capture]: Migration 013_budget_attachments_schema.sql registered separately; alphabetical sort means budget schema applied before form_field (form_field was already in DB)
+- [Phase 04-application-workspace-form-capture]: match_requirement column not present in opportunities — validateBudget enforces only funding_amount_max ceiling; match validation deferred to future migration
+- [Phase 04-application-workspace-form-capture]: Attachment version history: deactivate prior (is_active=false) then INSERT new with version_number = MAX+1; preview excludes workspace_comments by structural omission from all previewService queries
 
 ### Pending Todos
 
@@ -135,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T19:31:03.959Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-07-26T19:48:21.983Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
