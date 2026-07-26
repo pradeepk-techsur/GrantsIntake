@@ -287,12 +287,13 @@ describe('Workspaces API', () => {
       expect(res.body.workspace_id).toBe(testWorkspaceId);
     });
 
-    it('returns 403 for non-member', async () => {
+    it('returns 403 WORKSPACE_GRANTEE_PRIVATE for grantor user (blanket middleware)', async () => {
       const res = await request(app)
         .get(`/api/v1/workspaces/${testWorkspaceId}`)
         .set('Authorization', `Bearer ${grantorToken}`);
 
       expect(res.status).toBe(403);
+      expect(res.body.error).toBe('WORKSPACE_GRANTEE_PRIVATE');
     });
   });
 
@@ -370,13 +371,13 @@ describe('Workspaces API', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
-    it('returns 403 GRANTOR_ACCESS_DENIED for grantor user', async () => {
+    it('returns 403 WORKSPACE_GRANTEE_PRIVATE for grantor user (blanket middleware)', async () => {
       const res = await request(app)
         .get(`/api/v1/workspaces/${testWorkspaceId}/comments`)
         .set('Authorization', `Bearer ${grantorToken}`);
 
       expect(res.status).toBe(403);
-      expect(res.body.error).toBe('GRANTOR_ACCESS_DENIED');
+      expect(res.body.error).toBe('WORKSPACE_GRANTEE_PRIVATE');
     });
   });
 
@@ -395,14 +396,14 @@ describe('Workspaces API', () => {
       expect(res.body.visibility).toBe('internal');
     });
 
-    it('returns 403 GRANTOR_ACCESS_DENIED for grantor user', async () => {
+    it('returns 403 WORKSPACE_GRANTEE_PRIVATE for grantor user (blanket middleware)', async () => {
       const res = await request(app)
         .post(`/api/v1/workspaces/${testWorkspaceId}/comments`)
         .set('Authorization', `Bearer ${grantorToken}`)
         .send({ comment_text: 'Grantor attempting to comment.' });
 
       expect(res.status).toBe(403);
-      expect(res.body.error).toBe('GRANTOR_ACCESS_DENIED');
+      expect(res.body.error).toBe('WORKSPACE_GRANTEE_PRIVATE');
     });
   });
 });

@@ -1,14 +1,25 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../middleware/authenticate';
+import { blockGrantorOnWorkspace } from '../middleware/blockGrantorOnWorkspace';
 import { workspaceService } from '../services/workspace/workspaceService';
-import { GRANTOR_ROLES } from '../types/roles';
+import { readinessService } from '../services/workspace/readinessService';
 import { pool } from '../db/client';
 
 export const workspacesRouter = Router();
 
 // UUID regex for format guard — prevents Postgres UUID parse errors on malformed params
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// ─── Router-level middleware ───────────────────────────────────────────────────
+//
+// authenticate runs before every route in this router.
+// blockGrantorOnWorkspace applies PRD-INTAKE-036 blanket grantor block at the
+// middleware layer — ALL workspace routes return 403 WORKSPACE_GRANTEE_PRIVATE
+// for any grantor role. This supersedes the per-route blockGrantors() check on
+// comments (which is now removed — blockGrantorOnWorkspace covers it uniformly).
+workspacesRouter.use(authenticate);
+workspacesRouter.use(blockGrantorOnWorkspace);
 
 // ─── Validation schemas ────────────────────────────────────────────────────────
 
@@ -49,23 +60,6 @@ function sendError(res: Response, status: number, error: string, message?: strin
 }
 
 /**
- * GRANTOR_BLOCK middleware — permanently blocks all grantor roles from accessing
- * workspace comment endpoints at the router layer (T-04-03).
- * This check is hardcoded and cannot be bypassed by middleware ordering.
- */
-function blockGrantors(req: Request, res: Response, next: () => void) {
-  const user = req.user;
-  if (!user) return sendError(res, 401, 'UNAUTHORIZED');
-
-  const userRoles = user.roles ?? [];
-  const isGrantor = GRANTOR_ROLES.some((r) => userRoles.includes(r));
-  if (isGrantor) {
-    return sendError(res, 403, 'GRANTOR_ACCESS_DENIED', 'Grantor roles cannot access workspace comments');
-  }
-  next();
-}
-
-/**
  * Two-step IDOR guard (T-04-02):
  * 1. Check workspace EXISTS → 404 if not (prevents information disclosure via 403)
  * 2. Check user is org member → 403 if not
@@ -94,7 +88,7 @@ async function workspaceIodGuard(
 
 // ─── POST /api/v1/workspaces — create workspace ───────────────────────────────
 
-workspacesRouter.post('/workspaces', authenticate, async (req: Request, res: Response) => {
+workspacesRouter.post('/workspaces', async (req: Request, res: Response) => {
   const parsed = createWorkspaceSchema.safeParse(req.body);
   if (!parsed.success) {
     return sendError(res, 400, 'VALIDATION_ERROR', parsed.error.message);
@@ -118,7 +112,7 @@ workspacesRouter.post('/workspaces', authenticate, async (req: Request, res: Res
 
 // ─── GET /api/v1/workspaces — list workspaces for current user's org ──────────
 
-workspacesRouter.get('/workspaces', authenticate, async (req: Request, res: Response) => {
+workspacesRouter.get('/workspaces', async (req: Request, res: Response) => {
   try {
     const workspaces = await workspaceService.listWorkspacesForOrg(req.user!.user_id);
     return res.json(workspaces);
@@ -130,7 +124,7 @@ workspacesRouter.get('/workspaces', authenticate, async (req: Request, res: Resp
 
 // ─── GET /api/v1/workspaces/:id — get workspace by ID ────────────────────────
 
-workspacesRouter.get('/workspaces/:id', authenticate, async (req: Request, res: Response) => {
+workspacesRouter.get('/workspaces/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
 
@@ -147,7 +141,7 @@ workspacesRouter.get('/workspaces/:id', authenticate, async (req: Request, res: 
 
 // ─── GET /api/v1/workspaces/:id/sections — list sections ─────────────────────
 
-workspacesRouter.get('/workspaces/:id/sections', authenticate, async (req: Request, res: Response) => {
+workspacesRouter.get('/workspaces/:id/sections', async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
 
@@ -166,7 +160,7 @@ workspacesRouter.get('/workspaces/:id/sections', authenticate, async (req: Reque
 
 // ─── GET /api/v1/workspaces/:id/sections/:sectionId — get section ─────────────
 
-workspacesRouter.get('/workspaces/:id/sections/:sectionId', authenticate, async (req: Request, res: Response) => {
+workspacesRouter.get('/workspaces/:id/sections/:sectionId', async (req: Request, res: Response) => {
   const { id, sectionId } = req.params;
   if (!UUID_REGEX.test(id) || !UUID_REGEX.test(sectionId)) return sendError(res, 404, 'NOT_FOUND');
 
@@ -186,7 +180,6 @@ workspacesRouter.get('/workspaces/:id/sections/:sectionId', authenticate, async 
 
 workspacesRouter.put(
   '/workspaces/:id/sections/:sectionId/assignment',
-  authenticate,
   async (req: Request, res: Response) => {
     const { id, sectionId } = req.params;
     if (!UUID_REGEX.test(id) || !UUID_REGEX.test(sectionId)) return sendError(res, 404, 'NOT_FOUND');
@@ -229,7 +222,7 @@ workspacesRouter.put(
 
 // ─── GET /api/v1/workspaces/:id/tasks — list tasks ───────────────────────────
 
-workspacesRouter.get('/workspaces/:id/tasks', authenticate, async (req: Request, res: Response) => {
+workspacesRouter.get('/workspaces/:id/tasks', async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
 
@@ -246,7 +239,7 @@ workspacesRouter.get('/workspaces/:id/tasks', authenticate, async (req: Request,
 
 // ─── POST /api/v1/workspaces/:id/tasks — create task ─────────────────────────
 
-workspacesRouter.post('/workspaces/:id/tasks', authenticate, async (req: Request, res: Response) => {
+workspacesRouter.post('/workspaces/:id/tasks', async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
 
@@ -268,7 +261,7 @@ workspacesRouter.post('/workspaces/:id/tasks', authenticate, async (req: Request
 
 // ─── PUT /api/v1/workspaces/:id/tasks/:taskId — update task ──────────────────
 
-workspacesRouter.put('/workspaces/:id/tasks/:taskId', authenticate, async (req: Request, res: Response) => {
+workspacesRouter.put('/workspaces/:id/tasks/:taskId', async (req: Request, res: Response) => {
   const { id, taskId } = req.params;
   if (!UUID_REGEX.test(id) || !UUID_REGEX.test(taskId)) return sendError(res, 404, 'NOT_FOUND');
 
@@ -291,7 +284,7 @@ workspacesRouter.put('/workspaces/:id/tasks/:taskId', authenticate, async (req: 
 
 // ─── DELETE /api/v1/workspaces/:id/tasks/:taskId — delete task ───────────────
 
-workspacesRouter.delete('/workspaces/:id/tasks/:taskId', authenticate, async (req: Request, res: Response) => {
+workspacesRouter.delete('/workspaces/:id/tasks/:taskId', async (req: Request, res: Response) => {
   const { id, taskId } = req.params;
   if (!UUID_REGEX.test(id) || !UUID_REGEX.test(taskId)) return sendError(res, 404, 'NOT_FOUND');
 
@@ -308,11 +301,12 @@ workspacesRouter.delete('/workspaces/:id/tasks/:taskId', authenticate, async (re
 });
 
 // ─── GET /api/v1/workspaces/:id/comments — list comments (applicant only) ─────
+//
+// Note: blockGrantorOnWorkspace at router level now handles the grantor block
+// for comments uniformly — the per-route blockGrantors() check is no longer needed.
 
 workspacesRouter.get(
   '/workspaces/:id/comments',
-  authenticate,
-  (req: Request, res: Response, next: () => void) => blockGrantors(req, res, next),
   async (req: Request, res: Response) => {
     const { id } = req.params;
     if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
@@ -330,11 +324,11 @@ workspacesRouter.get(
 );
 
 // ─── POST /api/v1/workspaces/:id/comments — add comment (applicant only) ──────
+//
+// Note: blockGrantorOnWorkspace at router level handles the grantor block uniformly.
 
 workspacesRouter.post(
   '/workspaces/:id/comments',
-  authenticate,
-  (req: Request, res: Response, next: () => void) => blockGrantors(req, res, next),
   async (req: Request, res: Response) => {
     const { id } = req.params;
     if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
@@ -355,3 +349,28 @@ workspacesRouter.post(
     }, id);
   },
 );
+
+// ─── GET /api/v1/workspaces/:id/readiness — readiness summary (F34) ──────────
+//
+// Returns ReadinessSummary: overall_completion_pct, is_ready_to_submit,
+// authorized_rep_assigned, blocking_errors[], warnings[], attachment_status[]
+// T-04-08: two-step IDOR guard (EXISTS → 404, then membership → 403).
+
+workspacesRouter.get('/workspaces/:id/readiness', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
+
+  try {
+    const readiness = await readinessService.computeReadiness(id);
+    return res.status(200).json(readiness);
+  } catch (err) {
+    console.error('GET /workspaces/:id/readiness error:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
