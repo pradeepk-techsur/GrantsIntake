@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { workspaceApi } from '../../api/workspaceApi';
+import { SectionFormPanel } from './SectionFormPanel';
 import type { WorkspaceSection, WorkspaceTask, WorkspaceComment } from '../../types/workspace';
 
 interface WorkspaceSectionPanelProps {
@@ -57,7 +58,7 @@ export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSection
   };
 
   return (
-    <div className="usa-prose">
+    <div className="usa-prose" data-testid="workspace-section-panel">
       {/* Section header */}
       <div style={{ marginBottom: '1.5rem' }}>
         <h2>{section.section_name}</h2>
@@ -72,14 +73,8 @@ export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSection
         </div>
       </div>
 
-      {/* Section content placeholder — Phase 4 Plans 03/04 will fill in form fields */}
-      <div className="usa-alert usa-alert--info usa-alert--slim" style={{ marginBottom: '1.5rem' }}>
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">
-            Form fields for <strong>{section.section_name}</strong> will be added in upcoming phases.
-          </p>
-        </div>
-      </div>
+      {/* Form fields — SectionFormPanel handles all 11 field types with validation */}
+      <SectionFormPanel section={section} workspaceId={workspaceId} />
 
       {/* Task list */}
       <section aria-label="Section tasks" style={{ marginBottom: '1.5rem' }}>
