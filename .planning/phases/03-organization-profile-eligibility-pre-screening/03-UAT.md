@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 03-organization-profile-eligibility-pre-screening
 source: [03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md]
 started: 2026-07-26T14:30:00Z
@@ -120,6 +120,24 @@ per_test:
       issue: "Line 24: navigate('/grantor/dashboard', {replace: true}) is hardcoded — no role check; applicant users land on the grantor portal"
   missing:
     - "Update LoginPage post-login redirect to check user.roles — if roles includes grantor_admin route to /grantor/dashboard, otherwise route to /applicant/profile"
+  debug_session: ""
+  fixed_in_commit: "39f45a9 — LoginPage now routes grantor_admin to /grantor/dashboard, others to /applicant/profile"
+
+- truth: "Org admin can assign a role to another user on the team roles page"
+  status: failed
+  reason: "User reported: Request failed with status code 422 when adding a new user"
+  severity: major
+  test: 4
+  source: user
+  root_cause: "assignRoleSchema at src/routes/organizations.ts:58 validates user_id with z.string().uuid(). OrgRolesPage.tsx handleAssignSubmit (lines 90-102) only checks for empty string — no client-side UUID format validation. User typed an email address, server returned 422 with no actionable message surfaced in the UI."
+  artifacts:
+    - path: "src/routes/organizations.ts"
+      issue: "Line 58: user_id: z.string().uuid() — rejects any non-UUID value with 422 VALIDATION_ERROR"
+    - path: "client/src/pages/applicant/OrgRolesPage.tsx"
+      issue: "Lines 90-102: handleAssignSubmit only checks for empty string — no client-side UUID regex validation before calling assignMutation.mutate"
+  missing:
+    - "Add client-side UUID regex validation in handleAssignSubmit (OrgRolesPage.tsx ~line 93) before API call — set formError with clear message if format is wrong"
+    - "Consider adding GET /api/v1/users/lookup?email=... and updating form to accept email with server-side UUID resolution"
   debug_session: ""
 
 - truth: "After submitting the pre-screen questionnaire, the user is taken to the result page showing one of four USWDS-styled result states (Eligible/Likely Eligible/Needs Attention/Ineligible)"
