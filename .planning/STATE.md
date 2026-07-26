@@ -2,10 +2,10 @@
 pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 02-eligibility-intake-rules-configuration-02-05-PLAN.md
-last_updated: "2026-07-26T01:55:49.013Z"
-last_activity: "2026-07-26 — Plan 02-05 complete: UUID format guard added to public opportunity detail route; slug-based URLs no longer return 500"
+status: completed
+stopped_at: Completed 02-eligibility-intake-rules-configuration-02-05-PLAN.md (gap closure)
+last_updated: "2026-07-26T02:05:00.000Z"
+last_activity: "2026-07-26 — Phase 2 complete (re-verification): gap closure plan 02-05 executed; GAP-5 slug lookup closed; VERIFICATION.md status=passed (5/5 must-haves); all 139 tests pass"
 progress:
   total_phases: 6
   completed_phases: 2
