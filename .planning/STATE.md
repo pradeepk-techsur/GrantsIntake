@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-eligibility-intake-rules-configuration-02-05-PLAN.md (gap closure)
-last_updated: "2026-07-26T02:05:00.000Z"
-last_activity: "2026-07-26 — Phase 2 complete (re-verification): gap closure plan 02-05 executed; GAP-5 slug lookup closed; VERIFICATION.md status=passed (5/5 must-haves); all 139 tests pass"
+stopped_at: Completed 03-organization-profile-eligibility-pre-screening-03-01-PLAN.md
+last_updated: "2026-07-26T13:54:47.810Z"
+last_activity: "2026-07-26 — Phase 3 Plan 01 complete: org profile schema (migration 010) + organizationService + 11 REST endpoints + 16 integration tests; 155 tests passing"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_plans: 16
+  completed_plans: 14
+  percent: 88
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 2 of 6 (Eligibility & Intake Rules Configuration) — COMPLETE
-Plan: 5 of 5 in current phase — All plans complete (including gap closure plans 02-04 and 02-05)
-Status: Phase 2 Complete — UUID_REGEX guard fixes slug-based URL 500 error (PRD-INTAKE-017)
-Last activity: 2026-07-26 — Plan 02-05 complete: UUID format guard eliminates 500 INTERNAL_ERROR for slug-based opportunity URLs
+Phase: 3 of 6 (Organization Profile & Eligibility Pre-Screening) — IN PROGRESS
+Plan: 1 of 3 in current phase — Plan 03-01 complete
+Status: Plan 03-01 Complete — org profile schema (migration 010) + organizationService + 11 REST endpoints + 16 integration tests
+Last activity: 2026-07-26 — Plan 03-01 complete: organizations table, org_roles, org_attachments, credential-status API; 155 tests passing
 
-Progress: [██████████] 100%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Progress: [██████████] 100%
 | Phase 02-eligibility-intake-rules-configuration P03 | 10 min | 2 tasks | 17 files |
 | Phase 02-eligibility-intake-rules-configuration P04 | 8min | 2 tasks | 2 files |
 | Phase 02-eligibility-intake-rules-configuration P05 | 1 min | 1 tasks | 1 files |
+| Phase 03-organization-profile-eligibility-pre-screening P01 | 6 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,9 @@ Recent decisions affecting current work:
 - [Phase 02-eligibility-intake-rules-configuration]: Migration numbered 009: slots 001-008 occupied; publicOpportunitiesRouter mounted before opportunitiesRouter for unauthenticated public access; GIN index uses executive_summary+eligibility_summary (not description); optional auth on detail route via dynamic verifyAccessToken import
 - [Phase 02-eligibility-intake-rules-configuration]: Publish route delegates entirely to publicationService.publish() — no inline SQL in route handler; versioningService import retained (used by PATCH and GET /versions)
 - [Phase 02-eligibility-intake-rules-configuration]: UUID_REGEX format guard gates WHERE opportunity_id = $1 query — slug-shaped params skip UUID lookup entirely, eliminating Postgres UUID parse error 500
+- [Phase 03-organization-profile-eligibility-pre-screening]: Base64 JSON document upload (not multipart) — multer not in package.json; documented in route file as v1 decision
+- [Phase 03-organization-profile-eligibility-pre-screening]: parseOrgRow() helper converts Postgres NUMERIC string to JS number — Postgres pg driver returns NUMERIC as string
+- [Phase 03-organization-profile-eligibility-pre-screening]: Test afterAll disables audit_events_immutable trigger before deleting audit_events where actor_user_id matches test users — extends Phase 1 pattern
 
 ### Pending Todos
 
@@ -110,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T01:55:49.012Z
-Stopped at: Completed 02-eligibility-intake-rules-configuration-02-05-PLAN.md
+Last session: 2026-07-26T13:54:47.808Z
+Stopped at: Completed 03-organization-profile-eligibility-pre-screening-03-01-PLAN.md
 Resume file: None
