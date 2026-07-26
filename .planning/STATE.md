@@ -2,16 +2,16 @@
 pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 02-eligibility-intake-rules-configuration-02-04-PLAN.md (gap closure)
-last_updated: "2026-07-25T23:28:00.000Z"
-last_activity: "2026-07-25 — Phase 2 complete: gap closure plan 02-04 executed; all 4 UAT gaps closed; VERIFICATION.md status=passed"
+status: verifying
+stopped_at: Completed 02-eligibility-intake-rules-configuration-02-05-PLAN.md
+last_updated: "2026-07-26T01:55:49.013Z"
+last_activity: "2026-07-26 — Plan 02-05 complete: UUID format guard added to public opportunity detail route; slug-based URLs no longer return 500"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 12
-  completed_plans: 12
-  percent: 85
+  total_plans: 13
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 2 of 6 (Eligibility & Intake Rules Configuration) — COMPLETE
-Plan: 4 of 4 in current phase — All plans complete (including gap closure plan 02-04)
-Status: Phase 2 Complete — verification passed (5/5 must-haves)
-Last activity: 2026-07-25 — Plan 02-04 complete: OpportunitiesIndex live fetch + publish route public_slug fix; all UAT gaps closed
+Plan: 5 of 5 in current phase — All plans complete (including gap closure plans 02-04 and 02-05)
+Status: Phase 2 Complete — UUID_REGEX guard fixes slug-based URL 500 error (PRD-INTAKE-017)
+Last activity: 2026-07-26 — Plan 02-05 complete: UUID format guard eliminates 500 INTERNAL_ERROR for slug-based opportunity URLs
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [████████░░] 83%
 | Phase 02-eligibility-intake-rules-configuration P02 | 9 min | 2 tasks | 17 files |
 | Phase 02-eligibility-intake-rules-configuration P03 | 10 min | 2 tasks | 17 files |
 | Phase 02-eligibility-intake-rules-configuration P04 | 8min | 2 tasks | 2 files |
+| Phase 02-eligibility-intake-rules-configuration P05 | 1 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,7 @@ Recent decisions affecting current work:
 - [Phase 02-eligibility-intake-rules-configuration]: Auto-criteria delete guard implemented at service layer (screeningCriteriaService.delete) — cannot be bypassed
 - [Phase 02-eligibility-intake-rules-configuration]: Migration numbered 009: slots 001-008 occupied; publicOpportunitiesRouter mounted before opportunitiesRouter for unauthenticated public access; GIN index uses executive_summary+eligibility_summary (not description); optional auth on detail route via dynamic verifyAccessToken import
 - [Phase 02-eligibility-intake-rules-configuration]: Publish route delegates entirely to publicationService.publish() — no inline SQL in route handler; versioningService import retained (used by PATCH and GET /versions)
+- [Phase 02-eligibility-intake-rules-configuration]: UUID_REGEX format guard gates WHERE opportunity_id = $1 query — slug-shaped params skip UUID lookup entirely, eliminating Postgres UUID parse error 500
 
 ### Pending Todos
 
@@ -108,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-25T23:16:51.579Z
-Stopped at: Completed 02-eligibility-intake-rules-configuration-02-04-PLAN.md
+Last session: 2026-07-26T01:55:49.012Z
+Stopped at: Completed 02-eligibility-intake-rules-configuration-02-05-PLAN.md
 Resume file: None
