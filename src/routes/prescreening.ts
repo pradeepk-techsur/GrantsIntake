@@ -313,6 +313,113 @@ prescreeningRouter.post(
   },
 );
 
+// ─── GET /api/v1/opportunities/:opportunity_id/prescreening/my-result ──────────
+// Returns the stored EligibilityResult for the authenticated user's org + opportunity.
+// Derives org_id server-side from user_id (T-03-22: never from request body).
+
+prescreeningRouter.get(
+  '/opportunities/:opportunity_id/prescreening/my-result',
+  authenticate,
+  async (req: Request, res: Response): Promise<void> => {
+    const { opportunity_id } = req.params;
+
+    if (!UUID_REGEX.test(opportunity_id)) {
+      res.status(404).json({ error: 'NOT_FOUND', message: 'Opportunity not found' });
+      return;
+    }
+
+    try {
+      // Derive org_id server-side — never trust request body (T-03-22)
+      const orgId = await organizationService.getOrgIdForUser(req.user!.user_id);
+      if (!orgId) {
+        res.status(404).json({ error: 'NOT_FOUND', message: 'No pre-screen result found' });
+        return;
+      }
+
+      // Load all responses for this org + opportunity, reconstruct EligibilityResult
+      const responsesResult = await pool.query<{
+        question_id: string;
+        selected_option_id: string | null;
+        response_text: string | null;
+        rule_evaluation_result: string;
+        overall_result: string;
+        submitted_at: string;
+      }>(
+        `SELECT question_id, selected_option_id, response_text,
+                rule_evaluation_result, overall_result, submitted_at
+         FROM eligibility_responses
+         WHERE opportunity_id = $1 AND org_id = $2
+         ORDER BY submitted_at ASC`,
+        [opportunity_id, orgId],
+      );
+
+      if (responsesResult.rows.length === 0) {
+        res.status(404).json({ error: 'NOT_FOUND', message: 'No pre-screen result found' });
+        return;
+      }
+
+      // overall_result is the same for all rows in the same submission
+      const overall_result = responsesResult.rows[0].overall_result as
+        'eligible' | 'likely_eligible' | 'needs_attention' | 'ineligible';
+
+      // Reconstruct triggered_rules: load eligibility_rules for question_ids that
+      // have rule_evaluation_result = 'violated' or 'advisory'
+      const triggeredOptionIds = responsesResult.rows
+        .filter((r) => r.selected_option_id && (r.rule_evaluation_result === 'violated' || r.rule_evaluation_result === 'advisory'))
+        .map((r) => r.selected_option_id as string);
+
+      let triggered_rules: Array<{
+        rule_id: string;
+        severity: 'hard_blocker' | 'advisory';
+        explanation_text: string;
+        opportunity_section_link?: string;
+      }> = [];
+
+      if (triggeredOptionIds.length > 0) {
+        // Use ANY($1) with cast to uuid[] for array parameter
+        const rulesResult = await pool.query<{
+          rule_id: string;
+          severity: string;
+          explanation_text: string;
+          opportunity_section_link: string | null;
+        }>(
+          `SELECT DISTINCT er.rule_id, er.severity, er.explanation_text, er.opportunity_section_link
+           FROM prescreening_options po
+           JOIN eligibility_rules er ON er.rule_id = po.mapped_rule_id
+           WHERE po.option_id = ANY($1::uuid[])
+             AND er.opportunity_id = $2
+           ORDER BY er.rule_id`,
+          [triggeredOptionIds, opportunity_id],
+        );
+
+        triggered_rules = rulesResult.rows.map((r) => ({
+          rule_id: r.rule_id,
+          severity: r.severity as 'hard_blocker' | 'advisory',
+          explanation_text: r.explanation_text,
+          ...(r.opportunity_section_link ? { opportunity_section_link: r.opportunity_section_link } : {}),
+        }));
+      }
+
+      const nextStepMap: Record<string, string> = {
+        eligible: 'You may proceed to create an application workspace.',
+        likely_eligible: 'You appear eligible but should review the advisory notes before proceeding.',
+        needs_attention: 'Please review the items below with your team before proceeding.',
+        ineligible: 'Based on your responses, your organization does not meet the eligibility requirements for this opportunity.',
+      };
+
+      res.status(200).json({
+        overall_result,
+        triggered_rules,
+        next_step: nextStepMap[overall_result] ?? '',
+        workspace_access_granted: overall_result !== 'ineligible',
+      });
+    } catch (err: unknown) {
+      console.error('GET /opportunities/:id/prescreening/my-result error:', err);
+      res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to fetch pre-screen result' });
+    }
+  },
+);
+
 // ─── GET /api/v1/workspaces/:workspace_id/eligibility-responses ────────────────
 // Admin endpoint — Phase 4 will add workspace membership check.
 // Stub for Phase 3: returns stored responses by workspace_id or org_id+opportunity_id.

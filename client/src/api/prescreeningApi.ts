@@ -56,4 +56,10 @@ export const prescreeningApi = {
     );
     return data;
   },
+  async getMyResult(opportunityId: string): Promise<EligibilityResult> {
+    const { data } = await apiClient.get(
+      `/opportunities/${opportunityId}/prescreening/my-result`,
+    );
+    return data;
+  },
 };
