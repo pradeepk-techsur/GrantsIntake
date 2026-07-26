@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-organization-profile-eligibility-pre-screening-03-01-PLAN.md
-last_updated: "2026-07-26T13:54:47.810Z"
-last_activity: "2026-07-26 — Phase 3 Plan 01 complete: org profile schema (migration 010) + organizationService + 11 REST endpoints + 16 integration tests; 155 tests passing"
+stopped_at: Completed 03-organization-profile-eligibility-pre-screening-03-02-PLAN.md
+last_updated: "2026-07-26T14:04:43.272Z"
+last_activity: "2026-07-26 — Plan 03-01 complete: organizations table, org_roles, org_attachments, credential-status API; 155 tests passing"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 16
-  completed_plans: 14
-  percent: 88
+  completed_plans: 15
+  percent: 94
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 3 of 6 (Organization Profile & Eligibility Pre-Screening) — IN PROGRESS
-Plan: 1 of 3 in current phase — Plan 03-01 complete
-Status: Plan 03-01 Complete — org profile schema (migration 010) + organizationService + 11 REST endpoints + 16 integration tests
-Last activity: 2026-07-26 — Plan 03-01 complete: organizations table, org_roles, org_attachments, credential-status API; 155 tests passing
+Plan: 2 of 3 in current phase — Plan 03-02 complete
+Status: Plan 03-02 Complete — ApplicantLayout + organizationsApi + OrgProfilePage + OrgRolesPage + OrgDocumentsPage + 9 e2e tests
+Last activity: 2026-07-26 — Plan 03-02 complete: applicant portal UI shell + 3 org profile pages + Playwright e2e tests
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Progress: [█████████░] 88%
 | Phase 02-eligibility-intake-rules-configuration P04 | 8min | 2 tasks | 2 files |
 | Phase 02-eligibility-intake-rules-configuration P05 | 1 min | 1 tasks | 1 files |
 | Phase 03-organization-profile-eligibility-pre-screening P01 | 6 min | 2 tasks | 6 files |
+| Phase 03-organization-profile-eligibility-pre-screening P02 | 5 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,8 @@ Recent decisions affecting current work:
 - [Phase 03-organization-profile-eligibility-pre-screening]: Base64 JSON document upload (not multipart) — multer not in package.json; documented in route file as v1 decision
 - [Phase 03-organization-profile-eligibility-pre-screening]: parseOrgRow() helper converts Postgres NUMERIC string to JS number — Postgres pg driver returns NUMERIC as string
 - [Phase 03-organization-profile-eligibility-pre-screening]: Test afterAll disables audit_events_immutable trigger before deleting audit_events where actor_user_id matches test users — extends Phase 1 pattern
+- [Phase 03-organization-profile-eligibility-pre-screening]: org_id stored in localStorage key applicant_org_id — non-sensitive UUID, org data requires auth token (T-03-10 accepted risk)
+- [Phase 03-organization-profile-eligibility-pre-screening]: OrgDocumentsPage uses base64 JSON upload matching Plan 01 server contract (multer not in package.json)
 
 ### Pending Todos
 
@@ -114,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T13:54:47.808Z
-Stopped at: Completed 03-organization-profile-eligibility-pre-screening-03-01-PLAN.md
+Last session: 2026-07-26T14:04:43.271Z
+Stopped at: Completed 03-organization-profile-eligibility-pre-screening-03-02-PLAN.md
 Resume file: None
