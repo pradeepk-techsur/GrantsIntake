@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 4 context gathered
-last_updated: "2026-07-26T18:33:28.428Z"
-last_activity: "2026-07-26 — Plan 03-04 complete: UUID format validation guard for OrgRolesPage assign flow"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-07-26T19:10:00.043Z"
+  last_activity: "2026-07-26 — Plan 04-01 complete: workspace schema, service, API, and React UI"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 22
+  completed_plans: 19
   percent: 94
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 3 of 6 (Organization Profile & Eligibility Pre-Screening) — COMPLETE
-Plan: 4 of 4 in current phase — Plan 03-04 complete
-Status: Plan 03-04 Complete — UUID_REGEX client-side guard in OrgRolesPage.tsx preventing 422 on email input (PRD-INTAKE-022)
-Last activity: 2026-07-26 — Plan 03-04 complete: UUID format validation guard for OrgRolesPage assign flow
+Phase: 4 of 6 (Application Workspace & Form Capture) — IN PROGRESS
+Plan: 1 of 4 in current phase — Plan 04-01 complete
+Status: Plan 04-01 Complete — Workspace schema (migration 012), WorkspaceService, REST API, React WorkspacePage/WorkspaceListPage
+Last activity: 2026-07-26 — Plan 04-01 complete: application workspace foundation with 9-section auto-creation and grantor-blocking
 
-Progress: [█████████░] 94%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Progress: [█████████░] 94%
 | Phase 03-organization-profile-eligibility-pre-screening P02 | 5 min | 2 tasks | 10 files |
 | Phase 03-organization-profile-eligibility-pre-screening P04 | 1 min | 1 tasks | 1 files |
 | Phase 03-organization-profile-eligibility-pre-screening P05 | 2min | 2 tasks | 4 files |
+| Phase 04-application-workspace-form-capture P01 | 9 min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,10 @@ Recent decisions affecting current work:
 - [Phase 03-organization-profile-eligibility-pre-screening]: UUID_REGEX guard gates handleAssignSubmit before assignMutation.mutate — prevents 422 when email entered in User ID field (PRD-INTAKE-022)
 - [Phase 03-organization-profile-eligibility-pre-screening]: GET my-result derives org_id server-side via organizationService.getOrgIdForUser (T-03-22 pattern) — IDOR mitigation for applicant result fetch
 - [Phase 03-organization-profile-eligibility-pre-screening]: 409 ALREADY_SUBMITTED navigates to result page with state:null so PrescreenResultPage API fallback activates automatically
+- [Phase 04-application-workspace-form-capture]: GRANTOR_BLOCK at router layer before IDOR guard — prevents grantor roles from discovering workspace existence via timing (T-04-03)
+- [Phase 04-application-workspace-form-capture]: Section assignment role check via DB query not JWT — org_roles not in JWT payload; mirrors T-03-22 pattern
+- [Phase 04-application-workspace-form-capture]: Zustand for activeSectionType UI state; React Query for server state — section switching is in-page, no URL change
+- [Phase 04-application-workspace-form-capture]: workspace + 9 sections created atomically in single DB transaction — atomicity guarantees sections always exist
 
 ### Pending Todos
 
@@ -122,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T18:33:28.426Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-application-workspace-form-capture/04-CONTEXT.md
+Last session: 2026-07-26T19:10:00.042Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
