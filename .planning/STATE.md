@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-07-26T19:10:00.043Z"
-  last_activity: "2026-07-26 — Plan 04-01 complete: workspace schema, service, API, and React UI"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-07-26T19:21:41.254Z"
+last_activity: "2026-07-26 — Plan 04-01 complete: application workspace foundation with 9-section auto-creation and grantor-blocking"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 22
-  completed_plans: 19
-  percent: 94
+  completed_plans: 20
+  percent: 86
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 4 of 6 (Application Workspace & Form Capture) — IN PROGRESS
-Plan: 1 of 4 in current phase — Plan 04-01 complete
-Status: Plan 04-01 Complete — Workspace schema (migration 012), WorkspaceService, REST API, React WorkspacePage/WorkspaceListPage
-Last activity: 2026-07-26 — Plan 04-01 complete: application workspace foundation with 9-section auto-creation and grantor-blocking
+Plan: 2 of 4 in current phase — Plan 04-02 complete
+Status: Plan 04-02 Complete — blockGrantorOnWorkspace middleware (blanket grantor block), readinessService, GET /readiness endpoint, ReadinessDashboard with 30s polling
+Last activity: 2026-07-26 — Plan 04-02 complete: grantor privacy middleware + readiness dashboard
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [█████████░] 86%
 | Phase 03-organization-profile-eligibility-pre-screening P04 | 1 min | 1 tasks | 1 files |
 | Phase 03-organization-profile-eligibility-pre-screening P05 | 2min | 2 tasks | 4 files |
 | Phase 04-application-workspace-form-capture P01 | 9 min | 2 tasks | 15 files |
+| Phase 04-application-workspace-form-capture P02 | 7min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: Section assignment role check via DB query not JWT — org_roles not in JWT payload; mirrors T-03-22 pattern
 - [Phase 04-application-workspace-form-capture]: Zustand for activeSectionType UI state; React Query for server state — section switching is in-page, no URL change
 - [Phase 04-application-workspace-form-capture]: workspace + 9 sections created atomically in single DB transaction — atomicity guarantees sections always exist
+- [Phase 04-application-workspace-form-capture]: blockGrantorOnWorkspace at workspacesRouter.use() level — blanket block on ALL workspace routes replaces per-route blockGrantors() on comments
+- [Phase 04-application-workspace-form-capture]: readinessService gracefully handles missing attachments table via 42P01 error code guard (table created in future phase)
+- [Phase 04-application-workspace-form-capture]: ReadinessDashboard uses refetchInterval: 30000 + staleTime: 20000 (React Query polling, no WebSocket — ws library not in package.json)
 
 ### Pending Todos
 
@@ -127,6 +131,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T19:10:00.042Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-07-26T19:21:41.253Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
