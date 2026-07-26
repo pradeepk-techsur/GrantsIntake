@@ -1,0 +1,357 @@
+import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import { authenticate } from '../middleware/authenticate';
+import { workspaceService } from '../services/workspace/workspaceService';
+import { GRANTOR_ROLES } from '../types/roles';
+import { pool } from '../db/client';
+
+export const workspacesRouter = Router();
+
+// UUID regex for format guard — prevents Postgres UUID parse errors on malformed params
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// ─── Validation schemas ────────────────────────────────────────────────────────
+
+const createWorkspaceSchema = z.object({
+  opportunity_id: z.string().uuid(),
+  track_id: z.string().uuid().optional(),
+});
+
+const assignSectionSchema = z.object({
+  owner_id: z.string().uuid().optional(),
+  internal_due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+
+const createTaskSchema = z.object({
+  section_id: z.string().uuid().optional(),
+  task_title: z.string().min(1).max(500),
+  assignee_id: z.string().uuid(),
+  task_due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  task_notes: z.string().optional(),
+});
+
+const updateTaskSchema = z.object({
+  task_title: z.string().min(1).max(500).optional(),
+  status: z.enum(['open', 'complete']).optional(),
+  task_due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  task_notes: z.string().optional(),
+});
+
+const createCommentSchema = z.object({
+  section_id: z.string().uuid().optional(),
+  comment_text: z.string().min(1).max(5000),
+});
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function sendError(res: Response, status: number, error: string, message?: string) {
+  res.status(status).json({ error, message });
+}
+
+/**
+ * GRANTOR_BLOCK middleware — permanently blocks all grantor roles from accessing
+ * workspace comment endpoints at the router layer (T-04-03).
+ * This check is hardcoded and cannot be bypassed by middleware ordering.
+ */
+function blockGrantors(req: Request, res: Response, next: () => void) {
+  const user = req.user;
+  if (!user) return sendError(res, 401, 'UNAUTHORIZED');
+
+  const userRoles = user.roles ?? [];
+  const isGrantor = GRANTOR_ROLES.some((r) => userRoles.includes(r));
+  if (isGrantor) {
+    return sendError(res, 403, 'GRANTOR_ACCESS_DENIED', 'Grantor roles cannot access workspace comments');
+  }
+  next();
+}
+
+/**
+ * Two-step IDOR guard (T-04-02):
+ * 1. Check workspace EXISTS → 404 if not (prevents information disclosure via 403)
+ * 2. Check user is org member → 403 if not
+ */
+async function workspaceIodGuard(
+  req: Request,
+  res: Response,
+  next: () => void,
+  workspaceId: string,
+) {
+  const workspace = await workspaceService.getWorkspace(workspaceId);
+  if (!workspace) {
+    sendError(res, 404, 'NOT_FOUND', 'Workspace not found');
+    return;
+  }
+
+  const userId = req.user!.user_id;
+  const isMember = await workspaceService.verifyWorkspaceMember(workspaceId, userId);
+  if (!isMember) {
+    sendError(res, 403, 'FORBIDDEN', 'You are not a member of this workspace\'s organization');
+    return;
+  }
+
+  next();
+}
+
+// ─── POST /api/v1/workspaces — create workspace ───────────────────────────────
+
+workspacesRouter.post('/workspaces', authenticate, async (req: Request, res: Response) => {
+  const parsed = createWorkspaceSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return sendError(res, 400, 'VALIDATION_ERROR', parsed.error.message);
+  }
+
+  try {
+    const result = await workspaceService.createWorkspace(req.user!.user_id, parsed.data);
+    return res.status(201).json(result);
+  } catch (err: unknown) {
+    const e = err as NodeJS.ErrnoException;
+    if (e.code === 'USER_HAS_NO_ORG') {
+      return sendError(res, 422, 'USER_HAS_NO_ORG', 'User does not belong to an organization');
+    }
+    if (e.code === 'DUPLICATE_WORKSPACE') {
+      return sendError(res, 409, 'DUPLICATE_WORKSPACE', 'A workspace already exists for this organization and opportunity');
+    }
+    console.error('POST /workspaces error:', err);
+    return sendError(res, 500, 'INTERNAL_ERROR');
+  }
+});
+
+// ─── GET /api/v1/workspaces — list workspaces for current user's org ──────────
+
+workspacesRouter.get('/workspaces', authenticate, async (req: Request, res: Response) => {
+  try {
+    const workspaces = await workspaceService.listWorkspacesForOrg(req.user!.user_id);
+    return res.json(workspaces);
+  } catch (err) {
+    console.error('GET /workspaces error:', err);
+    return sendError(res, 500, 'INTERNAL_ERROR');
+  }
+});
+
+// ─── GET /api/v1/workspaces/:id — get workspace by ID ────────────────────────
+
+workspacesRouter.get('/workspaces/:id', authenticate, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+  await workspaceIodGuard(req, res, async () => {
+    try {
+      const workspace = await workspaceService.getWorkspace(id);
+      return res.json(workspace);
+    } catch (err) {
+      console.error('GET /workspaces/:id error:', err);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }, id);
+});
+
+// ─── GET /api/v1/workspaces/:id/sections — list sections ─────────────────────
+
+workspacesRouter.get('/workspaces/:id/sections', authenticate, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+  await workspaceIodGuard(req, res, async () => {
+    try {
+      const sections = await workspaceService.listSections(id);
+      // Filter to visible sections
+      const visible = sections.filter((s) => s.is_visible);
+      return res.json(visible);
+    } catch (err) {
+      console.error('GET /workspaces/:id/sections error:', err);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }, id);
+});
+
+// ─── GET /api/v1/workspaces/:id/sections/:sectionId — get section ─────────────
+
+workspacesRouter.get('/workspaces/:id/sections/:sectionId', authenticate, async (req: Request, res: Response) => {
+  const { id, sectionId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(sectionId)) return sendError(res, 404, 'NOT_FOUND');
+
+  await workspaceIodGuard(req, res, async () => {
+    try {
+      const section = await workspaceService.getSection(id, sectionId);
+      if (!section) return sendError(res, 404, 'NOT_FOUND', 'Section not found');
+      return res.json(section);
+    } catch (err) {
+      console.error('GET /workspaces/:id/sections/:sectionId error:', err);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }, id);
+});
+
+// ─── PUT /api/v1/workspaces/:id/sections/:sectionId/assignment ───────────────
+
+workspacesRouter.put(
+  '/workspaces/:id/sections/:sectionId/assignment',
+  authenticate,
+  async (req: Request, res: Response) => {
+    const { id, sectionId } = req.params;
+    if (!UUID_REGEX.test(id) || !UUID_REGEX.test(sectionId)) return sendError(res, 404, 'NOT_FOUND');
+
+    await workspaceIodGuard(req, res, async () => {
+      // Require proposal_lead or org_admin role (T-04-04)
+      // Check via DB org_roles (org roles not in JWT) — mirrors T-03-22 pattern
+      const userId = req.user!.user_id;
+      const roleCheck = await pool.query<{ has_role: boolean }>(
+        `SELECT EXISTS(
+           SELECT 1 FROM org_roles orr
+           JOIN application_workspaces aw ON aw.org_id = orr.org_id
+           WHERE aw.workspace_id = $1
+             AND orr.user_id = $2
+             AND orr.revoked_at IS NULL
+             AND (orr.roles @> '["proposal_lead"]'::jsonb OR orr.roles @> '["org_admin"]'::jsonb)
+         ) AS has_role`,
+        [id, userId],
+      );
+      const canAssign = roleCheck.rows[0]?.has_role ?? false;
+      if (!canAssign) {
+        return sendError(res, 403, 'FORBIDDEN', 'Only proposal_lead or org_admin may assign sections');
+      }
+
+      const parsed = assignSectionSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return sendError(res, 400, 'VALIDATION_ERROR', parsed.error.message);
+      }
+
+      try {
+        const section = await workspaceService.assignSection(id, sectionId, parsed.data);
+        return res.json(section);
+      } catch (err) {
+        console.error('PUT /workspaces/:id/sections/:sectionId/assignment error:', err);
+        return sendError(res, 500, 'INTERNAL_ERROR');
+      }
+    }, id);
+  },
+);
+
+// ─── GET /api/v1/workspaces/:id/tasks — list tasks ───────────────────────────
+
+workspacesRouter.get('/workspaces/:id/tasks', authenticate, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+  await workspaceIodGuard(req, res, async () => {
+    try {
+      const tasks = await workspaceService.listTasks(id);
+      return res.json(tasks);
+    } catch (err) {
+      console.error('GET /workspaces/:id/tasks error:', err);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }, id);
+});
+
+// ─── POST /api/v1/workspaces/:id/tasks — create task ─────────────────────────
+
+workspacesRouter.post('/workspaces/:id/tasks', authenticate, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+  await workspaceIodGuard(req, res, async () => {
+    const parsed = createTaskSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return sendError(res, 400, 'VALIDATION_ERROR', parsed.error.message);
+    }
+
+    try {
+      const task = await workspaceService.createTask(id, parsed.data, req.user!.user_id);
+      return res.status(201).json(task);
+    } catch (err) {
+      console.error('POST /workspaces/:id/tasks error:', err);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }, id);
+});
+
+// ─── PUT /api/v1/workspaces/:id/tasks/:taskId — update task ──────────────────
+
+workspacesRouter.put('/workspaces/:id/tasks/:taskId', authenticate, async (req: Request, res: Response) => {
+  const { id, taskId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(taskId)) return sendError(res, 404, 'NOT_FOUND');
+
+  await workspaceIodGuard(req, res, async () => {
+    const parsed = updateTaskSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return sendError(res, 400, 'VALIDATION_ERROR', parsed.error.message);
+    }
+
+    try {
+      const task = await workspaceService.updateTask(taskId, parsed.data);
+      if (!task) return sendError(res, 404, 'NOT_FOUND', 'Task not found');
+      return res.json(task);
+    } catch (err) {
+      console.error('PUT /workspaces/:id/tasks/:taskId error:', err);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }, id);
+});
+
+// ─── DELETE /api/v1/workspaces/:id/tasks/:taskId — delete task ───────────────
+
+workspacesRouter.delete('/workspaces/:id/tasks/:taskId', authenticate, async (req: Request, res: Response) => {
+  const { id, taskId } = req.params;
+  if (!UUID_REGEX.test(id) || !UUID_REGEX.test(taskId)) return sendError(res, 404, 'NOT_FOUND');
+
+  await workspaceIodGuard(req, res, async () => {
+    try {
+      const deleted = await workspaceService.deleteTask(taskId);
+      if (!deleted) return sendError(res, 404, 'NOT_FOUND', 'Task not found');
+      return res.status(204).send();
+    } catch (err) {
+      console.error('DELETE /workspaces/:id/tasks/:taskId error:', err);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }, id);
+});
+
+// ─── GET /api/v1/workspaces/:id/comments — list comments (applicant only) ─────
+
+workspacesRouter.get(
+  '/workspaces/:id/comments',
+  authenticate,
+  (req: Request, res: Response, next: () => void) => blockGrantors(req, res, next),
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+    await workspaceIodGuard(req, res, async () => {
+      try {
+        const comments = await workspaceService.listComments(id);
+        return res.json(comments);
+      } catch (err) {
+        console.error('GET /workspaces/:id/comments error:', err);
+        return sendError(res, 500, 'INTERNAL_ERROR');
+      }
+    }, id);
+  },
+);
+
+// ─── POST /api/v1/workspaces/:id/comments — add comment (applicant only) ──────
+
+workspacesRouter.post(
+  '/workspaces/:id/comments',
+  authenticate,
+  (req: Request, res: Response, next: () => void) => blockGrantors(req, res, next),
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+    await workspaceIodGuard(req, res, async () => {
+      const parsed = createCommentSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return sendError(res, 400, 'VALIDATION_ERROR', parsed.error.message);
+      }
+
+      try {
+        const comment = await workspaceService.addComment(id, parsed.data, req.user!.user_id);
+        return res.status(201).json(comment);
+      } catch (err) {
+        console.error('POST /workspaces/:id/comments error:', err);
+        return sendError(res, 500, 'INTERNAL_ERROR');
+      }
+    }, id);
+  },
+);

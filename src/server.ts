@@ -16,6 +16,7 @@ import { screeningCriteriaRouter } from './routes/screeningCriteria';
 import { publicOpportunitiesRouter } from './routes/publicOpportunities';
 import { addendaRouter } from './routes/addenda';
 import { organizationsRouter } from './routes/organizations';
+import { workspacesRouter } from './routes/workspaces';
 
 const app = express();
 
@@ -64,6 +65,9 @@ app.use('/api/v1', prescreeningRouter);
 
 // Mount organization profile routes (plan 03-01)
 app.use('/api/v1', organizationsRouter);
+
+// Mount workspace routes (plan 04-01)
+app.use('/api/v1', workspacesRouter);
 
 // Mount intake configuration routes (plan 02-02)
 app.use('/api/v1', sectionConditionsRouter);
