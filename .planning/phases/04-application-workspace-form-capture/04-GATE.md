@@ -1,9 +1,9 @@
 ---
 phase: 4
-gate_status: passed_with_warnings
+gate_status: passed
 build_command: "npm run build"
 test_command: "npm test"
-last_updated: "2026-07-26T19:33:00.000Z"
+last_updated: "2026-07-27T16:58:30.000Z"
 waves:
   - wave: 1
     build: pass
@@ -13,6 +13,17 @@ waves:
     build: pass
     tests: pass_with_pre_existing
     fix_attempts: 0
+  - wave: gap_closure
+    build: pass
+    tests: pass
+    fix_attempts: 0
+    note: "Gap closure wave (plan 04-05): 217/217 tests pass — all prior pre-existing failures resolved after migrations applied"
+phase_gate:
+  build: pass
+  tests: pass
+  total_tests: 217
+  failed_tests: 0
+  note: "Final regression gate after gap closure — all 217 tests green"
 ---
 
 ## Wave 1
@@ -59,3 +70,22 @@ Classification: `pre_existing` — not counted against wave 2 gate.
 New plan tests passing:
 - `tests/integration/workspaceReadiness.test.ts` → 10/10 pass ✓
 - `tests/integration/formFields.test.ts` → 11/11 pass ✓
+
+## Gap Closure Wave (Plan 04-05)
+
+- Build: `npm run build` → pass (exit 0)
+- Tests: `npm test` → 217/217 pass (exit 0)
+- Fix attempts: 0/3
+
+New tests passing:
+- `tests/integration/workspaceBudget.test.ts` (match validation tests) → full suite 217/217 ✓
+
+### Note: Pre-existing failures resolved
+The "pre-existing failures" documented in Waves 1–2 were caused by the database not having migrations applied in that environment. In this environment, with migrations applied (including Migration 014), all 217 tests pass with zero failures.
+
+## Phase Gate (Final Regression)
+
+- Build: `npm run build` → pass (exit 0)
+- Tests: `npm test` → 217/217 pass (exit 0)
+- Coverage: All phases 1–4 integration tests green
+- Status: PASSED
