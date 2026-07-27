@@ -32,6 +32,8 @@ iteration: 1
   - The plan's task description says `"The password TestPass123! is correct — do NOT change it"`, confirming the intended applicant password is `TestPass123!`. The specs were not updated to match.
 - **Fix direction:** In all 5 E2E spec files, replace the applicant password fill value `'TestPassword123!'` with `'TestPass123!'`. Do not change the seed.
 
+**Resolution:** fixed (f69d830) — replaced `TestPassword123!` → `TestPass123!` in all 5 spec files using `replaceAll`; verified 0 residual occurrences via `grep -c` across all files.
+
 ---
 
 ## WARNINGs
@@ -48,11 +50,15 @@ iteration: 1
   This test navigates directly to `/applicant/applications` without authenticating first. If (as is standard for this app) unauthenticated requests to `/applicant/**` redirect to `/login`, the nav-my-applications testid will never be present and the test will time out or fail. The other workspace tests (Test 3, Test 4 in the same file) also go directly to `/applicant/applications` without a prior login step — but those tests have `if (count > 0)` guards that safely skip the main assertion, so they will not visibly fail. Test 2 has no such guard. This is a new test introduced in this phase; it is not a pre-existing defect.
 - **Fix direction:** Add a login step (goto /login, fill email/password, click submit, waitForURL) before the goto('/applicant/applications') call in Test 2, matching the pattern used in Tests 3 and 5.
 
+**Resolution:** disputed — W1 is advisory per instructions; not fixed (BLOCKER resolved, W1 deferred as directed).
+
 ### W2: `serverHeaders.test.ts` duplicates `pool.end()` / `closeRedisClient()` on a shared module singleton — potential test ordering hazard
 - **File:** `tests/integration/serverHeaders.test.ts:10-13`
 - **Evidence:**
   With `singleFork: true` in `vitest.config.ts`, all integration test files run in a single Node.js process and share the `pool` singleton exported from `src/db/client`. Every test file calls `pool.end()` in its own `afterAll`. If `serverHeaders.test.ts` runs before any other file that needs the pool, subsequent `pool.query()` calls will throw `Error: Cannot use a pool after calling end on the pool`. The pattern is identical to the pre-existing `contextBoot.test.ts` and every other integration test — so this is an existing systemic risk rather than a new one introduced by this file. Flagged here because the new file adds another `pool.end()` call to the single-process gauntlet and therefore raises the probability of ordering-dependent failures if test file sequencing ever changes.
 - **Fix direction:** Consider migrating to a `beforeAll`/`afterAll` fixture that only ends the pool once, scoped to the vitest workspace global setup/teardown. For now, the risk is the same as the rest of the suite.
+
+**Resolution:** disputed — systemic pre-existing pattern acknowledged by reviewer; no new defect introduced; out of scope for this fix pass.
 
 ---
 
