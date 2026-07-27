@@ -1,0 +1,22 @@
+{
+  "duration_secs": 8772.0,
+  "token_usage": {
+    "input": 0,
+    "output": 0,
+    "total": 0,
+    "cache_read": 0,
+    "cache_write": 0,
+    "cost": 0.0
+  },
+  "model": "claude-sonnet-4-6",
+  "files_changed": [
+    ".planning/phases/4-application-workspace-form-capture/logs/attempt-4/execution.md",
+    ".planning/phases/4-application-workspace-form-capture/logs/attempt-4/summary.json",
+    ".planning/phases/4-application-workspace-form-capture/logs/attempt-4/verification.md"
+  ],
+  "verification_status": "passed",
+  "error_message": null,
+  "attempt_number": 5,
+  "created_at": "2026-07-27T14:02:00.278076+00:00",
+  "completed_at": "2026-07-27T16:28:12.358646531+00:00"
+}
