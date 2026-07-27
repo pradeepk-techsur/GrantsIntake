@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-07-26T19:48:21.984Z"
-last_activity: "2026-07-26 — Plan 04-04 complete: budget + attachments + preview; Phase 4 COMPLETE"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-07-27T16:57:29.492Z"
+last_activity: "2026-07-27 — Plan 04-05 complete: match requirement validation (PRD-INTAKE-040) gap closed; Phase 4 all 5 plans delivered"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 23
+  completed_plans: 23
   percent: 100
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 4 of 6 (Application Workspace & Form Capture) — COMPLETE
-Plan: 4 of 4 in current phase — Plan 04-04 complete
-Status: Plan 04-04 Complete — budget/attachments schema + budgetService + attachmentService + previewService + BudgetBuilder + AttachmentManager + WorkspacePreviewPage
-Last activity: 2026-07-26 — Plan 04-04 complete: budget + attachments + preview subsystems; Phase 4 all 4 plans delivered
+Plan: 5 of 5 in current phase — Plan 04-05 complete
+Status: Plan 04-05 Complete — Migration 014 match_required/match_percentage + budgetService MATCH_REQUIREMENT_NOT_MET enforcement + integration tests (PRD-INTAKE-040 gap closure)
+Last activity: 2026-07-27 — Plan 04-05 complete: match requirement validation gap closed; Phase 4 all 5 plans delivered
 
 Progress: [██████████] 100%
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100%
 | Phase 04-application-workspace-form-capture P02 | 7min | 2 tasks | 10 files |
 | Phase 04-application-workspace-form-capture P03 | 6 min | 2 tasks | 11 files |
 | Phase 04-application-workspace-form-capture P04 | 12 min | 2 tasks | 17 files |
+| Phase 04-application-workspace-form-capture P05 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,7 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: Migration 013_budget_attachments_schema.sql registered separately; alphabetical sort means budget schema applied before form_field (form_field was already in DB)
 - [Phase 04-application-workspace-form-capture]: match_requirement column not present in opportunities — validateBudget enforces only funding_amount_max ceiling; match validation deferred to future migration
 - [Phase 04-application-workspace-form-capture]: Attachment version history: deactivate prior (is_active=false) then INSERT new with version_number = MAX+1; preview excludes workspace_comments by structural omission from all previewService queries
+- [Phase 04-application-workspace-form-capture]: match_required DEFAULT FALSE preserves backward compat; MATCH_REQUIREMENT_NOT_MET emitted when match_required=true AND match_percentage>0 AND total_match < required_amount (PRD-INTAKE-040)
 
 ### Pending Todos
 
@@ -139,6 +141,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T19:48:21.983Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-07-27T16:57:29.490Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
