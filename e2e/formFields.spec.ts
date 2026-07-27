@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('section form panel renders for active section', async ({ page }) => {
   await page.goto('/login');
-  await page.fill('[name="email"]', 'applicant@test.com');
+  await page.fill('[name="email"]', 'applicant@example.com');
   await page.fill('[name="password"]', 'TestPassword123!');
   await page.click('[type="submit"]');
   await page.waitForURL('**/applicant/**');
