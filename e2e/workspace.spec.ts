@@ -5,7 +5,7 @@ test('workspace list page renders', async ({ page }) => {
   // Login as applicant
   await page.goto('/login');
   await page.fill('[name="email"]', 'applicant@example.com');
-  await page.fill('[name="password"]', 'TestPassword123!');
+  await page.fill('[name="password"]', 'TestPass123!');
   await page.click('[type="submit"]');
   await page.waitForURL('**/applicant/**');
 
