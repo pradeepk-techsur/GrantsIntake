@@ -422,19 +422,16 @@ describe('Workspace Budget API (PRD-INTAKE-039/040)', () => {
         .post(`/api/v1/workspaces/${testWorkspaceId}/budget/validate`)
         .set('Authorization', `Bearer ${orgAdminToken}`);
 
-      // Only assert MATCH_REQUIREMENT_NOT_MET if federal total > 0 and match insufficient
-      // The test may also include EXCEEDS_FUNDING_CEILING — we care about match error being present
+      // State at this point: Test 7 left exactly one supplies line item ($1,000 federal, $0 match).
+      // With match_percentage=20, requiredMatchAmount = 20% × $1,000 = $200; totalMatch ($0) < $200.
+      // Therefore valid MUST be false and MATCH_REQUIREMENT_NOT_MET MUST be present — assert unconditionally.
       expect(res.status).toBe(200);
-      if (res.body.valid === false) {
-        const hasCeilingError = res.body.errors.some(
-          (e: { error_code: string }) => e.error_code === 'EXCEEDS_FUNDING_CEILING'
-        );
-        const hasMatchError = res.body.errors.some(
+      expect(res.body.valid).toBe(false);
+      expect(
+        res.body.errors.some(
           (e: { error_code: string }) => e.error_code === 'MATCH_REQUIREMENT_NOT_MET'
-        );
-        // At least one of the two errors must be present when invalid
-        expect(hasCeilingError || hasMatchError).toBe(true);
-      }
+        )
+      ).toBe(true);
     });
 
     it('returns valid when match_required=true and sufficient match is provided', async () => {
