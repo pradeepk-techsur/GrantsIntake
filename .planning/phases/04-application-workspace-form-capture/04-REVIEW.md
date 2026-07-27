@@ -33,6 +33,8 @@ iteration: 1
   The test's only substantive assertion lives inside `if (res.body.valid === false)`. If `validateBudget` were broken and returned `{ valid: true, errors: [] }` despite `match_required=true` and zero match contribution, the `if` branch is never entered and the test exits green having asserted nothing about `MATCH_REQUIREMENT_NOT_MET`. The test title says "returns MATCH_REQUIREMENT_NOT_MET when match_required=true and match is insufficient" — that claim is never unconditionally verified. The scenario is deterministic: after Test 7, exactly one `supplies` line item of $1,000 exists (`federalRequest=1000`, `totalMatch=0`); with `match_percentage=20`, the required amount is $200, and `totalMatch < requiredMatchAmount` is provably true. There is no need for conditional branching here. As written, this test is a regression-detection dead-end: a future refactor that accidentally skips match enforcement would not be caught by this test.
 - **Fix direction:** Remove the `if (res.body.valid === false)` guard. Assert unconditionally that `res.body.valid === false` and that `res.body.errors.some(e => e.error_code === 'MATCH_REQUIREMENT_NOT_MET')` is `true`. The inner `hasCeilingError || hasMatchError` disjunction is also too permissive; the test should require the match error specifically.
 
+**Resolution:** fixed (451b7a0) — removed `if (res.body.valid === false)` guard; replaced with unconditional `expect(res.body.valid).toBe(false)` and `expect(res.body.errors.some(e => e.error_code === 'MATCH_REQUIREMENT_NOT_MET')).toBe(true)`; all 12 tests pass.
+
 ---
 
 ## WARNINGs
