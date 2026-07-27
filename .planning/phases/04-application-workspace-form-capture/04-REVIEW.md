@@ -1,82 +1,73 @@
 ---
 phase: 4
+plan: 04-06
 status: issues_found
 blockers: 1
-warnings: 3
-files_reviewed: 3
+warnings: 2
+files_reviewed: 7
 files_reviewed_list:
-  - src/db/migrations/014_opportunity_match_columns.sql
-  - src/services/workspace/budgetService.ts
-  - tests/integration/workspaceBudget.test.ts
-reviewed_at: 2026-07-27T17:02:12Z
+  - src/db/seed.ts
+  - e2e/workspace.spec.ts
+  - e2e/formFields.spec.ts
+  - e2e/workspaceBudget.spec.ts
+  - e2e/workspaceReadiness.spec.ts
+  - e2e/workspacePreview.spec.ts
+  - tests/integration/serverHeaders.test.ts
+reviewed_at: 2026-07-27T00:00:00Z
 iteration: 1
 ---
 
-# Phase 4 Code Review (Gap Closure — Plan 04-05)
+# Phase 4 Code Review (Plan 04-06 — UAT Gap Closure)
 
 ## BLOCKERs
 
-### B1: Test 8 can pass vacuously when match validation is broken — MATCH_REQUIREMENT_NOT_MET is never positively asserted
-- **File:** `tests/integration/workspaceBudget.test.ts:428-437`
-- **Category:** bug
+### B1: Password mismatch — seed hashes `TestPass123!` but all 5 Playwright specs send `TestPassword123!`
+- **File:** `e2e/workspace.spec.ts:8`, `e2e/formFields.spec.ts:6`, `e2e/workspaceBudget.spec.ts:6`, `e2e/workspaceReadiness.spec.ts:21,56,95`, `e2e/workspacePreview.spec.ts:6`
+- **Category:** bug (integration — seed ↔ Playwright credential contract)
 - **Evidence:**
-  ```typescript
-  // Only assert MATCH_REQUIREMENT_NOT_MET if federal total > 0 and match insufficient
-  expect(res.status).toBe(200);
-  if (res.body.valid === false) {
-    const hasCeilingError = ...
-    const hasMatchError = ...
-    // At least one of the two errors must be present when invalid
-    expect(hasCeilingError || hasMatchError).toBe(true);
-  }
-  ```
-  The test's only substantive assertion lives inside `if (res.body.valid === false)`. If `validateBudget` were broken and returned `{ valid: true, errors: [] }` despite `match_required=true` and zero match contribution, the `if` branch is never entered and the test exits green having asserted nothing about `MATCH_REQUIREMENT_NOT_MET`. The test title says "returns MATCH_REQUIREMENT_NOT_MET when match_required=true and match is insufficient" — that claim is never unconditionally verified. The scenario is deterministic: after Test 7, exactly one `supplies` line item of $1,000 exists (`federalRequest=1000`, `totalMatch=0`); with `match_percentage=20`, the required amount is $200, and `totalMatch < requiredMatchAmount` is provably true. There is no need for conditional branching here. As written, this test is a regression-detection dead-end: a future refactor that accidentally skips match enforcement would not be caught by this test.
-- **Fix direction:** Remove the `if (res.body.valid === false)` guard. Assert unconditionally that `res.body.valid === false` and that `res.body.errors.some(e => e.error_code === 'MATCH_REQUIREMENT_NOT_MET')` is `true`. The inner `hasCeilingError || hasMatchError` disjunction is also too permissive; the test should require the match error specifically.
-
-**Resolution:** fixed (451b7a0) — removed `if (res.body.valid === false)` guard; replaced with unconditional `expect(res.body.valid).toBe(false)` and `expect(res.body.errors.some(e => e.error_code === 'MATCH_REQUIREMENT_NOT_MET')).toBe(true)`; all 12 tests pass.
+  - `src/db/seed.ts:283`: `const applicantHash = await bcrypt.hash('TestPass123!', 12);`
+  - `src/db/seed.ts:459`: `console.log('... applicant@example.com / TestPass123!')`
+  - Every E2E spec that logs in as the applicant sends: `await page.fill('[name="password"]', 'TestPassword123!');`
+  - `TestPassword123!` is the **admin** user's password (seed line 12). The applicant's password is `TestPass123!` (no `word`). These are distinct strings — bcrypt comparison will fail, login will return 401, `waitForURL('**/applicant/**')` will time out, and every test that relies on being authenticated will silently fall through to the `count === 0` branch or time out.
+  - The plan's task description says `"The password TestPass123! is correct — do NOT change it"`, confirming the intended applicant password is `TestPass123!`. The specs were not updated to match.
+- **Fix direction:** In all 5 E2E spec files, replace the applicant password fill value `'TestPassword123!'` with `'TestPass123!'`. Do not change the seed.
 
 ---
 
 ## WARNINGs
 
-### W1: No CHECK constraint on `match_percentage` range — values > 100 are silently accepted
-- **File:** `src/db/migrations/014_opportunity_match_columns.sql:7`
-- **Category:** bug
+### W1: `workspace.spec.ts` Test 2 navigates to an authenticated route without logging in — will silently fail
+- **File:** `e2e/workspace.spec.ts:17-20`
 - **Evidence:**
-  ```sql
-  ADD COLUMN IF NOT EXISTS match_percentage NUMERIC(5,2)  DEFAULT NULL;
+  ```ts
+  test('ApplicantSidebar has My Applications nav link', async ({ page }) => {
+    await page.goto('/applicant/applications');
+    await expect(page.locator('[data-testid="nav-my-applications"]')).toBeVisible();
+  });
   ```
-  `NUMERIC(5,2)` accepts values up to `999.99`. The column comment says "percent of total project cost (0-100)" but nothing in the schema enforces the range. A grantor admin who sets `match_percentage = 150` would produce a required match of 1.5× the total project cost — a value impossible to satisfy (you cannot provide more in match than the entire project costs). The service code has no guard: `parseFloat(opp.match_percentage)` with a value of `150` would push a `MATCH_REQUIREMENT_NOT_MET` error that can never be resolved, silently blocking all budget validation for that opportunity. A `CHECK (match_percentage IS NULL OR (match_percentage >= 0 AND match_percentage <= 100))` constraint would prevent this at the database level.
+  This test navigates directly to `/applicant/applications` without authenticating first. If (as is standard for this app) unauthenticated requests to `/applicant/**` redirect to `/login`, the nav-my-applications testid will never be present and the test will time out or fail. The other workspace tests (Test 3, Test 4 in the same file) also go directly to `/applicant/applications` without a prior login step — but those tests have `if (count > 0)` guards that safely skip the main assertion, so they will not visibly fail. Test 2 has no such guard. This is a new test introduced in this phase; it is not a pre-existing defect.
+- **Fix direction:** Add a login step (goto /login, fill email/password, click submit, waitForURL) before the goto('/applicant/applications') call in Test 2, matching the pattern used in Tests 3 and 5.
 
-### W2: Self-referential match formula produces counterintuitive required amounts
-- **File:** `src/services/workspace/budgetService.ts:158,176`
-- **Category:** bug (logic)
+### W2: `serverHeaders.test.ts` duplicates `pool.end()` / `closeRedisClient()` on a shared module singleton — potential test ordering hazard
+- **File:** `tests/integration/serverHeaders.test.ts:10-13`
 - **Evidence:**
-  ```typescript
-  const totalProjectCost = federalRequest + totalMatch;          // line 158
-  const requiredMatchAmount = (requiredMatchPct / 100) * totalProjectCost;  // line 176
-  ```
-  `totalProjectCost` includes `totalMatch` in its numerator, making `requiredMatchAmount` a function of the very value being compared. An applicant told "20% match required" on a $1,000 federal request reasonably expects to provide $200. But `required = 20% × ($1,000 + $200) = $240` — still short. The threshold converges only at $250 (`250 = 20% × 1250`). The formula is internally consistent with the plan specification (`required_match = match_percentage / 100 * total_project_cost`) and matches the column comment, so this is per-spec as written. **However**, the error message makes the confusion visible and actionable to users who will receive: *"Cost-share of $200.00 does not meet the required match of $240.00 (20% of total project cost $1200.00)"* — the displayed total already includes their $200 contribution, making the arithmetic opaque. This is flagged as a WARNING because it is spec-conformant but likely to create user-facing confusion and support load. Consider whether the spec intends match as a percentage of federal funds only (the more common federal grants convention), and if so, fix the formula to `requiredMatchAmount = (requiredMatchPct / 100) * federalRequest`.
-
-### W3: Zero-budget state silently satisfies match requirement when opportunity has `match_required=true`
-- **File:** `src/services/workspace/budgetService.ts:158,175-184`
-- **Category:** bug
-- **Evidence:**
-  ```typescript
-  const totalProjectCost = federalRequest + totalMatch;  // = 0 + 0 = 0
-  const requiredMatchAmount = (requiredMatchPct / 100) * totalProjectCost; // = 0
-  if (totalMatch < requiredMatchAmount) {                // 0 < 0 → false — no error pushed
-  ```
-  When all budget line items have been deleted (an intermediate state during drafting), `federalRequest=0` and `totalMatch=0`, so `requiredMatchAmount=0`. `totalMatch (0) < requiredMatchAmount (0)` is `false`, so no `MATCH_REQUIREMENT_NOT_MET` error is emitted and `validate` returns `{ valid: true }` despite the workspace having an active match requirement. The ceiling check has the same gap (it uses `opp?.funding_amount_max != null` — ceiling check is skipped when budget is empty, which is fine). The match scenario is more surprising: a workspace with `match_required=true` reports as `valid` while containing zero budget, which could allow an applicant to believe their (empty) budget is submission-ready. Mitigation: either emit a `MATCH_REQUIREMENT_NOT_MET` when `match_required=true AND totalProjectCost=0`, or emit a separate `EMPTY_BUDGET` blocking error when `totalProjectCost=0`. The existing `NO_BUDGET` error handles the case where no `budgets` row exists at all, but not the case where a budget row exists with $0 totals.
+  With `singleFork: true` in `vitest.config.ts`, all integration test files run in a single Node.js process and share the `pool` singleton exported from `src/db/client`. Every test file calls `pool.end()` in its own `afterAll`. If `serverHeaders.test.ts` runs before any other file that needs the pool, subsequent `pool.query()` calls will throw `Error: Cannot use a pool after calling end on the pool`. The pattern is identical to the pre-existing `contextBoot.test.ts` and every other integration test — so this is an existing systemic risk rather than a new one introduced by this file. Flagged here because the new file adds another `pool.end()` call to the single-process gauntlet and therefore raises the probability of ordering-dependent failures if test file sequencing ever changes.
+- **Fix direction:** Consider migrating to a `beforeAll`/`afterAll` fixture that only ends the pool once, scoped to the vitest workspace global setup/teardown. For now, the risk is the same as the rest of the suite.
 
 ---
 
 ## Cross-file seams checked
 
-- **Migration 014 → budgetService.ts SELECT**: `SELECT funding_amount_max, match_required, match_percentage` — column names exactly match `ADD COLUMN IF NOT EXISTS match_required` / `match_percentage`. **OK**
-- **budgetService.ts → workspaces.ts route**: `validateBudget(workspaceId)` signature unchanged; caller at `workspaces.ts:544` passes `id` (string). **OK**
-- **Test afterAll nesting**: Inner `describe('Match requirement validation')` `afterAll` resets `match_required=false` before the outer `afterAll` deletes the opportunity row. Vitest runs inner `afterAll` before outer, so teardown order is correct. **OK**
-- **Migration idempotency**: `ADD COLUMN IF NOT EXISTS` — safe for re-runs. **OK**
-- **Migration ordering**: Two `013_` prefixed files are pre-existing (introduced before this diff). The migration runner keys on full filename, not numeric prefix only, so no collision is introduced by `014_`. Pre-existing anomaly, out of scope. **OK**
-- **`BudgetValidationError` type**: `error_code`, `message`, `severity` fields used correctly in the new push. **OK**
-- **Test 9 (sufficient match)**: State is deterministic — fresh line items added after clearing, `totalMatch=999999` satisfies `1% × 1000999 ≈ 10010`. Assertion is sound. **OK**
+| Seam | Status |
+|---|---|
+| `seed.ts` DEFAULT_SECTIONS (9 rows) ↔ `workspaceService.ts` DEFAULT_SECTIONS | **OK** — exact match: section_type, section_name, display_order identical for all 9 entries |
+| `seed.ts` applicant password (`TestPass123!`) ↔ Playwright specs (`TestPassword123!`) | **BLOCKER B1** — mismatch |
+| `serverHeaders.test.ts` assertions (`toBeUndefined`) ↔ `server.ts` helmet config (`crossOriginOpenerPolicy: false`, `crossOriginResourcePolicy: false`, `crossOriginEmbedderPolicy: false`) | **OK** — helmet correctly suppresses all three headers; test correctly asserts undefined |
+| `serverHeaders.test.ts` import `{ app, finalizeApp }` ↔ `server.ts` exports | **OK** — both are named exports |
+| `serverHeaders.test.ts` import `{ closeRedisClient }` ↔ `tokenService.ts` export | **OK** — same import path as all other integration tests |
+| `serverHeaders.test.ts` `GET /health` route ↔ `server.ts` health handler | **OK** — route exists and returns 200 |
+| `seed.ts` idempotency guards (grantor org, program, opportunity, org, workspace, sections) | **OK** — all use SELECT-before-INSERT or `WHERE NOT EXISTS`; safe to run twice |
+| `seed.ts` `application_workspaces` INSERT omits `track_id` column | **OK** — `track_id` is nullable in migration 012; omission is valid |
+| `seed.ts` `org_roles` ON CONFLICT guard ↔ migration 010 `uq_org_user_role UNIQUE (org_id, user_id)` | **OK** — `ON CONFLICT (org_id, user_id) DO NOTHING` correctly references the constraint |
+| Old credential `applicant@test.com` remaining in any spec file | **OK** — zero instances of `applicant@test.com` in all 5 files |
+| `seed.ts` parameterized queries (no string interpolation) | **OK** — all SQL uses `$1, $2, ...` placeholders throughout UAT block |
