@@ -147,13 +147,15 @@ class BudgetService {
 
     const ws = wsResult.rows[0];
     const oppResult = await pool.query(
-      `SELECT funding_amount_max FROM opportunities WHERE opportunity_id = $1`,
+      `SELECT funding_amount_max, match_required, match_percentage FROM opportunities WHERE opportunity_id = $1`,
       [ws.opportunity_id],
     );
     const opp = oppResult.rows[0];
 
     const errors: BudgetValidationError[] = [];
     const federalRequest = parseFloat(ws.total_federal_request ?? '0');
+    const totalMatch = parseFloat(ws.total_match ?? '0');
+    const totalProjectCost = federalRequest + totalMatch;
 
     // Ceiling check: federal request must not exceed funding_amount_max
     if (opp?.funding_amount_max != null) {
@@ -167,8 +169,20 @@ class BudgetService {
       }
     }
 
-    // Match requirement check: skip if match_requirement column not present in schema
-    // (PRD-INTAKE-040 describes this validation; column may be added in a future migration)
+    // Match requirement check (PRD-INTAKE-040 / F39)
+    if (opp?.match_required === true && opp?.match_percentage != null) {
+      const requiredMatchPct = parseFloat(opp.match_percentage);
+      if (requiredMatchPct > 0) {
+        const requiredMatchAmount = (requiredMatchPct / 100) * totalProjectCost;
+        if (totalMatch < requiredMatchAmount) {
+          errors.push({
+            error_code: 'MATCH_REQUIREMENT_NOT_MET',
+            message: `Cost-share of $${totalMatch.toFixed(2)} does not meet the required match of $${requiredMatchAmount.toFixed(2)} (${requiredMatchPct}% of total project cost $${totalProjectCost.toFixed(2)}).`,
+            severity: 'blocking',
+          });
+        }
+      }
+    }
 
     const validationStatus = errors.length === 0 ? 'valid' : 'invalid';
 
