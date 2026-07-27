@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 04-application-workspace-form-capture
 source: 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, 04-04-SUMMARY.md, 04-05-SUMMARY.md
 started: 2026-07-27T17:59:00Z
@@ -123,7 +123,10 @@ per_test:
   severity: blocker
   test: 1
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "helmet() default config set cross-origin-opener-policy: same-origin and cross-origin-resource-policy: same-origin headers, which prevent cross-origin resource loading in the Pivota preview iframe. The fix: disable crossOriginOpenerPolicy, crossOriginResourcePolicy, and crossOriginEmbedderPolicy in helmet config (src/server.ts:25-29). FIX APPLIED in commit 1791cea."
+  artifacts:
+    - path: "src/server.ts"
+      issue: "helmet() missing crossOriginOpenerPolicy: false, crossOriginResourcePolicy: false, crossOriginEmbedderPolicy: false"
+  missing:
+    - "Disable CORP/COOP/COEP helmet options to allow cross-origin preview iframe (FIXED)"
   debug_session: ""
