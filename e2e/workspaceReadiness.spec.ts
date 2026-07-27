@@ -17,7 +17,7 @@ import { test, expect } from '@playwright/test';
 test('readiness dashboard renders in workspace page (3-column layout)', async ({ page }) => {
   // Login as applicant
   await page.goto('/login');
-  await page.fill('[name="email"]', 'applicant@test.com');
+  await page.fill('[name="email"]', 'applicant@example.com');
   await page.fill('[name="password"]', 'TestPassword123!');
   await page.click('[type="submit"]');
   await page.waitForURL('**/applicant/**');
@@ -52,7 +52,7 @@ test('readiness dashboard renders in workspace page (3-column layout)', async ({
 test('readiness dashboard shows 0% completion for fresh workspace', async ({ page }) => {
   // Login as applicant
   await page.goto('/login');
-  await page.fill('[name="email"]', 'applicant@test.com');
+  await page.fill('[name="email"]', 'applicant@example.com');
   await page.fill('[name="password"]', 'TestPassword123!');
   await page.click('[type="submit"]');
   await page.waitForURL('**/applicant/**');
@@ -91,7 +91,7 @@ test('grantor cannot access workspace page (blocked at API level)', async ({ pag
 
 test('readiness panel is visible alongside section content', async ({ page }) => {
   await page.goto('/login');
-  await page.fill('[name="email"]', 'applicant@test.com');
+  await page.fill('[name="email"]', 'applicant@example.com');
   await page.fill('[name="password"]', 'TestPassword123!');
   await page.click('[type="submit"]');
   await page.waitForURL('**/applicant/**');
