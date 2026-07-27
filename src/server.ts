@@ -25,6 +25,9 @@ app.use(
   helmet({
     frameguard: false, // Allow iframe embedding for Pivota preview
     contentSecurityPolicy: false, // Disable CSP that would block iframe
+    crossOriginOpenerPolicy: false, // Allow preview iframe cross-origin access
+    crossOriginResourcePolicy: false, // Allow cross-origin resource loading in preview iframe
+    crossOriginEmbedderPolicy: false, // Allow embedding in cross-origin iframe
   }),
 );
 
