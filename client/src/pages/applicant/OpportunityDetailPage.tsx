@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
+import { workspaceApi } from '../../api/workspaceApi';
 import { AddendaTimeline } from './components/AddendaTimeline';
 
 type StatusBadge = 'open' | 'closing_soon' | 'closed' | 'not_yet_open';
@@ -106,12 +108,30 @@ function groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {
 export function OpportunityDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const navigate = useNavigate();
 
   const [opportunity, setOpportunity] = useState<OpportunityDetail | null>(null);
   const [workspaceStatus, setWorkspaceStatus] = useState<WorkspaceStatus>('sign_in');
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const createWorkspaceMutation = useMutation({
+    mutationFn: () =>
+      workspaceApi.createWorkspace({
+        opportunity_id: opportunity!.opportunity_id,
+      }),
+    onSuccess: (data) => {
+      navigate(`/applicant/workspaces/${data.workspace.workspace_id}`);
+    },
+    onError: (err: unknown) => {
+      // 409 DUPLICATE_WORKSPACE: the workspace already exists; navigate to it if id provided
+      const anyErr = err as { response?: { data?: { error_code?: string; workspace_id?: string } } };
+      if (anyErr?.response?.data?.error_code === 'DUPLICATE_WORKSPACE' && anyErr?.response?.data?.workspace_id) {
+        navigate(`/applicant/workspaces/${anyErr.response.data.workspace_id}`);
+      }
+    },
+  });
 
   useEffect(() => {
     if (!slug) return;
@@ -232,7 +252,7 @@ export function OpportunityDetailPage() {
     if (workspaceStatus === 'continue' && workspaceId) {
       return (
         <a
-          href={`/workspaces/${workspaceId}`}
+          href={`/applicant/workspaces/${workspaceId}`}
           className="usa-button usa-button--big"
           style={{ width: '100%', textAlign: 'center' }}
         >
@@ -243,13 +263,16 @@ export function OpportunityDetailPage() {
 
     // 'start' or default
     return (
-      <a
-        href={`/apply/${opportunity.opportunity_id}`}
+      <button
+        type="button"
         className="usa-button usa-button--big"
-        style={{ width: '100%', textAlign: 'center' }}
+        style={{ width: '100%' }}
+        onClick={() => createWorkspaceMutation.mutate()}
+        disabled={createWorkspaceMutation.isPending}
+        data-testid="start-application-btn"
       >
-        Start Application
-      </a>
+        {createWorkspaceMutation.isPending ? 'Starting…' : 'Start Application'}
+      </button>
     );
   };
 
