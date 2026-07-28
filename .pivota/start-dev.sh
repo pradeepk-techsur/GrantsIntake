@@ -21,10 +21,18 @@
 #   - run_install has an npm ERESOLVE fallback (--legacy-peer-deps) + a FATAL
 #     marker (D-12.1) — a scaffold with a lagging peer range must not silently
 #     leave node_modules empty and hang the preview on "Waiting to bind".
-#   - Agent-synthesized: multi-match (compose + node-express). This project runs
-#     db/redis via docker compose, the Express backend natively via tsx, and the
-#     Vite frontend natively in client/. Multi-process block (trap+wait -n) used
-#     per RESEARCH.md Pattern 3 (no concurrently/pm2/supervisord).
+#   - Agent-synthesized: multi-match (compose + node-express). This project has
+#     an Express backend (root, port 3000) + Vite React frontend (client/, port
+#     5173) + PostgreSQL + Redis via docker compose (infra only; native runners
+#     used for backend and frontend to enable hot-reload via tsx watch).
+#   - DB/Redis launched via `docker compose up -d db redis` (detached infra only);
+#     the app service in compose uses `npm run start` (compiled dist/), which is
+#     wrong for dev — we run the backend natively via `npm run dev` (tsx watch).
+#   - Multi-process block (trap+wait -n) per RESEARCH.md Pattern 3 (no
+#     concurrently/pm2/supervisord — bash is zero-dep and uniform across stacks).
+#   - DB migrate runs AFTER npm ci (node_modules must exist for tsx/knex to work).
+#     Uses the project's own `npm run migrate` script (never psql/mysql —
+#     absent from sandbox image; runtime-environment.md §3/§5).
 
 set -euo pipefail
 
@@ -56,11 +64,13 @@ exec > >(tee -a /tmp/pivota-dev.log) 2>&1
 echo "[pivota] $(date -Iseconds) start-dev.sh begin (catalog: agent-synthesized)"
 
 # === D-11.1 + D-11.2: per-stack 0.0.0.0 binding + host allowlist relaxation ===
-# Express backend already binds 0.0.0.0 in server.ts (app.listen(port, '0.0.0.0')).
+# Express backend already binds 0.0.0.0 in src/server.ts (app.listen(port, '0.0.0.0')).
 # HOST=0.0.0.0 is set defensively for any downstream tooling reading $HOST.
 # Vite frontend: --host 0.0.0.0 is passed via CLI in the exec command.
-# Note: NODE_ENV must NOT be set to 'production' here — it strips devDependencies
-# (tsx, typescript) and breaks the dev runner (runtime-environment.md §4).
+# NOTE: Vite does NOT honor HOST/VITE_HOST env vars (RESEARCH.md Pitfall 1);
+# binding is forced via --host CLI flag and allowedHosts via vite.config.pivota.ts.
+# DO NOT set NODE_ENV=production — it strips devDependencies (tsx, typescript)
+# and breaks the dev runner (runtime-environment.md §4).
 export HOST=0.0.0.0
 export PORT="${PORT:-3000}"
 
@@ -85,11 +95,21 @@ if [[ ! -f .env && -f .env.example ]]; then
       printf '# [pivota] %s omitted — provided by platform environment\n' "$key"
       continue
     fi
-    # D-11.5: sanitize the copied assignment. Strip unquoted inline # comments.
+    # D-11.5: sanitize the copied assignment. Documented .env.example files
+    # column-align inline `# comments` after values, and docker compose's .env
+    # parser passes those through as part of the value (motivating bug:
+    # `LDAP_URL=   # LDAP server URL, e.g. ldap://…` made a Spring app treat
+    # LDAP as enabled and crash-loop on boot, so the compose frontend behind a
+    # `service_healthy` dependency never started). Strip them from unquoted
+    # values only — a `#` inside quotes is part of the value.
     if [[ "$line" != *\"* && "$line" != *\'* ]]; then
       line="$(printf '%s' "$line" | sed -E 's/[[:space:]]+#.*$//')"
     fi
-    # Replace CHANGE_ME placeholder secrets with generated values.
+    # Replace CHANGE_ME placeholder secrets with generated values. Placeholders
+    # are landmines at runtime, not just cosmetics: jjwt hard-rejects HMAC keys
+    # under 256 bits, so `JWT_SECRET=CHANGE_ME_BASE64_256BIT_SECRET` (240 bits)
+    # 500s every login. Same generated value is seen by every compose service
+    # reading this .env, so cross-service credentials stay consistent.
     value="${line#*=}"
     value_lc="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')"
     if [[ "$value_lc" == change_me* || "$value_lc" == changeme* ]]; then
@@ -103,119 +123,158 @@ if [[ ! -f .env && -f .env.example ]]; then
 fi
 
 # === Pre-exec: Start DB and Redis via docker compose (infra services only) ===
-# Spin up db and redis in detached mode. The app is launched natively (not via
-# compose app service) to enable hot-reload with tsx watch. The compose db/redis
-# services have healthchecks; we wait for them to be healthy before proceeding.
-# runtime-environment.md §3: DB-backed apps self-provide via compose; the wrapper
-# starts infrastructure, then runs migrate natively.
-echo "[pivota] starting infrastructure services (db, redis) via docker compose"
-docker compose up -d db redis
+# Spin up db and redis in detached mode. The app service is intentionally NOT
+# started via compose: the compose app service runs `npm run start` (compiled
+# dist/) which requires a build step — wrong for dev hot-reload. We launch the
+# backend natively via `npm run dev` (tsx watch src/server.ts) below.
+# The compose DB and Redis services have healthchecks; we wait for db healthy
+# before running migrate. runtime-environment.md §3: the compose file IS how a
+# DB-backed app provides its DB; the wrapper starts infra, then runs migrate natively.
+if docker info >/dev/null 2>&1; then
+  echo "[pivota] starting infrastructure services (db, redis) via docker compose"
+  docker compose up -d db redis
 
-# Wait for db to be healthy (up to 60s, polling every 3s).
-# The compose healthcheck is pg_isready — we rely on docker's own status.
-echo "[pivota] waiting for db to become healthy..."
-DB_HEALTHY=0
-for i in $(seq 1 20); do
-  STATUS=$(docker compose ps --format json db 2>/dev/null | python3 -c "import sys,json; d=[json.loads(l) for l in sys.stdin if l.strip()]; print(d[0].get('Health','') if d else '')" 2>/dev/null || true)
-  if [[ "$STATUS" == "healthy" ]]; then
-    DB_HEALTHY=1
-    echo "[pivota] db is healthy"
-    break
+  # Wait for db to be healthy (up to 60s, polling every 3s).
+  echo "[pivota] waiting for db to become healthy..."
+  DB_HEALTHY=0
+  for _i in $(seq 1 20); do
+    DB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$(docker compose ps -q db 2>/dev/null)" 2>/dev/null || echo "")
+    if [[ "$DB_STATUS" == "healthy" ]]; then
+      DB_HEALTHY=1
+      echo "[pivota] db is healthy"
+      break
+    fi
+    sleep 3
+  done
+  if [[ "$DB_HEALTHY" == "0" ]]; then
+    echo "[pivota] WARNING: db did not report healthy within 60s — proceeding anyway (migrate may fail)"
   fi
-  sleep 3
-done
-if [[ "$DB_HEALTHY" == "0" ]]; then
-  echo "[pivota] WARNING: db did not report healthy within 60s — proceeding anyway (migrate may fail)"
+else
+  echo "[pivota] WARNING: docker is not available in this sandbox — cannot start db/redis infra; DATABASE_URL must be injected by platform"
 fi
 
 # === D-12: idempotent install via lockfile hash + presence check ===
-# Root package (Express backend): sentinel keyed on package-lock.json
-SENTINEL="/tmp/pivota-setup-sentinel"
-LOCK_FILE_PATH="package-lock.json"
-INSTALL_PRESENCE_CHECK="node_modules"
-INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'
+# Helper: runs install for a given directory, lockfile, and command.
+# Sentinel files are keyed per subdirectory to avoid collisions.
+SENTINEL_BASE="/tmp/pivota-setup-sentinel"
 
-run_install() {
-  local dir="$1" lock_file="$2" sentinel_key="$3" install_cmd="$4" presence_check="$5"
-  local sentinel_file="${SENTINEL}-${sentinel_key}"
+run_install_dir() {
+  local label="$1" dir="$2" lock_file="$3" install_cmd="$4" presence_check="$5"
+  local sentinel_file="${SENTINEL_BASE}-${label}"
   local prev_dir
   prev_dir="$(pwd)"
   cd "$dir"
 
   if [[ -n "$lock_file" && -f "$lock_file" ]]; then
-    CURRENT_HASH=$(sha256sum "$lock_file" | cut -d' ' -f1)
-    PREVIOUS_HASH=$(cat "$sentinel_file" 2>/dev/null || echo "")
-    PRESENCE_OK=1
+    local current_hash
+    current_hash=$(sha256sum "$lock_file" | cut -d' ' -f1)
+    local previous_hash
+    previous_hash=$(cat "$sentinel_file" 2>/dev/null || echo "")
+    local presence_ok=1
     if [[ -n "$presence_check" && ! -e "$presence_check" ]]; then
-      PRESENCE_OK=0
+      presence_ok=0
     fi
-    if [[ "$CURRENT_HASH" == "$PREVIOUS_HASH" && "$PRESENCE_OK" == "1" ]]; then
-      echo "[pivota] [$sentinel_key] lockfile unchanged AND install output present; skipping install"
+    if [[ "$current_hash" == "$previous_hash" && "$presence_ok" == "1" ]]; then
+      echo "[pivota] [$label] lockfile unchanged AND install output present; skipping install"
       cd "$prev_dir"
       return 0
     fi
-    if [[ "$PRESENCE_OK" == "0" ]]; then
-      echo "[pivota] [$sentinel_key] install output ($presence_check) missing; install required"
+    if [[ "$presence_ok" == "0" ]]; then
+      echo "[pivota] [$label] install output ($presence_check) missing; install required"
     else
-      echo "[pivota] [$sentinel_key] lockfile changed (or first boot); install required"
+      echo "[pivota] [$label] lockfile changed (or first boot); install required"
     fi
-  elif [[ -f "$sentinel_file" ]]; then
-    echo "[pivota] [$sentinel_key] no lockfile but sentinel exists; skipping install"
-    cd "$prev_dir"
-    return 0
-  fi
-
-  echo "[pivota] [$sentinel_key] running install: $install_cmd"
-  local rc=0
-  bash -c "$install_cmd" || rc=$?
-  if (( rc == 0 )); then
-    [[ -n "$CURRENT_HASH" ]] && echo "$CURRENT_HASH" > "$sentinel_file" || touch "$sentinel_file"
-    cd "$prev_dir"
-    return 0
-  fi
-  # D-12.1: npm ERESOLVE fallback
-  if [[ "$install_cmd" == *"npm "* ]]; then
-    echo "[pivota] WARN [$sentinel_key] install failed (exit=$rc) — retrying with --legacy-peer-deps"
-    local rc2=0
-    npm install --legacy-peer-deps || rc2=$?
-    if (( rc2 == 0 )); then
-      echo "[pivota] WARN [$sentinel_key] install succeeded via --legacy-peer-deps fallback — fix package.json (real bug)"
-      [[ -n "$CURRENT_HASH" ]] && echo "$CURRENT_HASH" > "$sentinel_file" || touch "$sentinel_file"
+    echo "[pivota] [$label] running install: $install_cmd"
+    local rc=0
+    bash -c "$install_cmd" || rc=$?
+    if (( rc == 0 )); then
+      echo "$current_hash" > "$sentinel_file"
       cd "$prev_dir"
       return 0
     fi
-    rc=$rc2
+    # D-12.1: npm ERESOLVE fallback + loud failure
+    if [[ "$install_cmd" == *"npm "* ]]; then
+      echo "[pivota] WARN [$label] install failed (exit=$rc) — retrying with --legacy-peer-deps (peer conflict force-resolved; runtime incompatibility possible)"
+      local rc2=0
+      npm install --legacy-peer-deps || rc2=$?
+      if (( rc2 == 0 )); then
+        echo "[pivota] WARN [$label] install succeeded via --legacy-peer-deps fallback — a dependency's peer range is unsatisfied; fix package.json (this is a real bug, not just a warning)"
+        echo "$current_hash" > "$sentinel_file"
+        cd "$prev_dir"
+        return 0
+      fi
+      rc=$rc2
+    fi
+    echo "[pivota] FATAL [$label] install failed (exit=$rc) — dev server cannot start; resolve the dependency conflict in the manifest" >&2
+    cd "$prev_dir"
+    return "$rc"
+  elif [[ -n "$install_cmd" ]]; then
+    if [[ ! -f "$sentinel_file" ]]; then
+      echo "[pivota] [$label] no lockfile; running install (first boot)"
+      local rc=0
+      bash -c "$install_cmd" || rc=$?
+      if (( rc != 0 )); then
+        echo "[pivota] FATAL [$label] install failed (exit=$rc)" >&2
+        cd "$prev_dir"
+        return "$rc"
+      fi
+      touch "$sentinel_file"
+    else
+      echo "[pivota] [$label] no lockfile but sentinel exists; skipping install"
+    fi
   fi
-  echo "[pivota] FATAL [$sentinel_key] install failed (exit=$rc) — dev server cannot start; resolve the dependency conflict" >&2
   cd "$prev_dir"
-  return "$rc"
 }
 
-# Install root (backend) dependencies
-run_install "." "package-lock.json" "backend" \
+# Install root (Express backend) dependencies — includes dev deps (tsx, typescript)
+run_install_dir "backend" "." "package-lock.json" \
   "npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev" \
   "node_modules"
 
-# Install client (frontend) dependencies
-run_install "client" "package-lock.json" "frontend" \
+# Install client (Vite React frontend) dependencies
+run_install_dir "frontend" "client" "package-lock.json" \
   "npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev" \
   "node_modules"
 
-# === Post-install: run DB migration and seed ===
+# === Post-install: Vite allowedHosts overlay for sandbox preview embedding ===
+# Write vite.config.pivota.ts in client/ ONLY IF it doesn't already exist.
+# This sidecar extends vite.config.ts at runtime to set server.allowedHosts=true,
+# enabling the preview iframe. The overlay approach leaves the user's config untouched.
+# Vite does NOT honor HOST/VITE_ALLOWED_HOSTS env vars (RESEARCH.md Pitfall 1).
+if [[ ! -f client/vite.config.pivota.ts ]]; then
+  if [[ -f client/vite.config.ts ]] && ! grep -q "allowedHosts" client/vite.config.ts 2>/dev/null; then
+    cat > client/vite.config.pivota.ts <<'VITE_EOF'
+// Auto-generated by pivota init-dev-server. Extends user's vite.config.ts at runtime
+// to set server.allowedHosts = true (sandbox preview embedding).
+// Remove this file if you set allowedHosts yourself in vite.config.ts.
+import { defineConfig, mergeConfig } from 'vite';
+import userConfig from './vite.config';
+export default defineConfig((env) => mergeConfig(
+  typeof userConfig === 'function' ? userConfig(env) : userConfig,
+  { server: { allowedHosts: true } }
+));
+VITE_EOF
+    echo "[pivota] wrote client/vite.config.pivota.ts (allowedHosts overlay)"
+  fi
+fi
+
+# === Post-install: DB migration ===
 # Migrate runs AFTER install so node_modules (tsx, knex) exist.
-# Never uses psql/mysql CLIs (absent from sandbox image — runtime-environment.md §3/§5).
+# Never uses psql/mysql CLIs — absent from sandbox image (runtime-environment.md §3/§5).
 # Non-fatal: a transient hiccup must not strand boot; errors are logged loudly.
 if [[ -n "${DATABASE_URL:-}" ]]; then
   echo "[pivota] running database migration (npm run migrate)"
-  npm run migrate || echo "[pivota] WARNING: npm run migrate returned non-zero (continuing)"
+  npm run migrate || echo "[pivota] WARNING: npm run migrate returned non-zero (continuing — app may serve on empty schema)"
   echo "[pivota] running database seed (npm run seed)"
   npm run seed || echo "[pivota] WARNING: npm run seed returned non-zero (continuing)"
 else
-  echo "[pivota] WARNING: DATABASE_URL not set — skipping migrate/seed"
+  echo "[pivota] WARNING: DATABASE_URL not set — skipping migrate/seed (app may serve on empty schema)"
 fi
 
-# === Multi-process: backend + frontend via trap + wait -n (RESEARCH.md Pattern 3) ===
+# === Multi-process supervision (RESEARCH.md Pattern 3) ===
+# backend (port 3000) + frontend (port 5173) run in parallel.
 # DO NOT use concurrently/pm2/supervisord — bash trap+wait -n is zero-dep and uniform.
+
 # Defense-in-depth bash version guard (multi-process-template.md prerequisite check).
 if (( BASH_VERSINFO[0] < 4 )) || { (( BASH_VERSINFO[0] == 4 )) && (( BASH_VERSINFO[1] < 3 )); }; then
   echo "[pivota] multi-process block requires bash 4.3+ for wait -n; found ${BASH_VERSION}" >&2
@@ -236,7 +295,7 @@ trap shutdown SIGTERM SIGINT EXIT
 
 # Process 1: Express backend (tsx watch — hot-reload, no build needed)
 # tsx watch reads src/server.ts directly; no dist/ needed (runtime-environment.md §7).
-# Server already binds 0.0.0.0 in code; PORT defaults to 3000.
+# Server binds 0.0.0.0 in code; PORT defaults to 3000 from preamble above.
 (
   cd . \
     && export PORT="${PORT:-3000}" HOST=0.0.0.0 \
@@ -244,14 +303,14 @@ trap shutdown SIGTERM SIGINT EXIT
 ) 2>&1 | sed 's/^/[backend] /' &
 PIDS+=($!)
 
-# Process 2: Vite frontend (client/ subdirectory)
-# vite.config.ts already sets host: '0.0.0.0' and port: 5173.
-# vite.config.pivota.ts overlay (already present) sets allowedHosts: true for sandbox preview.
-# --host 0.0.0.0 is passed explicitly as belt-and-suspenders (Vite ignores env vars for binding).
+# Process 2: Vite React frontend (client/ subdirectory)
+# Attempts overlay config (allowedHosts) first; falls back to raw --host flag.
+# --host 0.0.0.0 forces binding on all interfaces for preview reachability.
+# vite.config.ts already has host: '0.0.0.0' and port: 5173 in the proxy config.
 (
   cd client \
     && : \
-    && exec bash -c 'npm run dev -- --config vite.config.pivota.ts --host 0.0.0.0 --strictPort 2>/dev/null || npm run dev -- --host 0.0.0.0'
+    && exec bash -c 'npm run dev -- --config vite.config.pivota.ts --host 0.0.0.0 --strictPort 2>/dev/null || npm run dev -- --host 0.0.0.0 --strictPort'
 ) 2>&1 | sed 's/^/[frontend] /' &
 PIDS+=($!)
 
