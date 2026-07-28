@@ -110,3 +110,41 @@ The "pre-existing failures" documented in Waves 1–2 were caused by the databas
 - Build: `npm run build` → pass (exit 0)
 - Tests: `npm test` → 220/220 pass (exit 0)
 - Status: passed
+
+## Gap Closure Wave — Plans 04-07, 04-08, 04-09
+
+- Build: `npm run build` → pass (exit 0, tsc clean)
+- Tests: `npm test` → 220/220 pass (exit 0)
+- Fix attempts: 0/3
+- Status: PASSED
+
+Plans executed:
+- 04-07: Start Application CTA fix + Continue Application href fix + Preview Application link
+- 04-08: WorkspacePage grid fix (2+5+2=9) + BudgetBuilder add-button visibility + seed form_field_definitions
+- 04-09: AttachmentManager USWDS conformance fixes (4 changes)
+
+## Phase Gate (Final — Post Gap Closure 04-07/08/09 + Code Review Fixes)
+
+- Build: `npm run build` → pass (exit 0)
+- Tests: `npm test` → 220/220 pass (exit 0)
+- Code review: clean after 2 iterations (B1: workspace-status column fix, B2: 409 workspace_id in response)
+- Warnings: 3 advisory (W1: e2e skip, W2: grid width usage, W3: BudgetBuilder accordion edge case) — no gaps
+- Status: passed
+
+gate_status: passed
+review_status: clean
+review_iterations: 2
+
+## Gap Redrive Results (04-07/08/09)
+
+| Gap | ID | Redrive Result | Evidence |
+|-----|----|---------------|---------|
+| workspace-status returns "continue" | Test 2 (B1) | ✓ closed | GET /opportunities/:id/workspace-status → {"status":"continue","workspace_id":"8b562..."} |
+| 409 includes workspace_id | Test 2 (B2) | ✓ closed | POST /workspaces 409 → {"error":"DUPLICATE_WORKSPACE","workspace_id":"8b562..."} |
+| WorkspacePage grid 2+5+2=9 | Test 5 | ✓ closed | grep grid-col-2/5 → lines 116,123,132 |
+| Narrative form fields in API | Test 6 | ✓ closed | GET /sections/:id/fields → 3 fields (Project Narrative, Goals and Objectives, Number of Beneficiaries) |
+| BudgetBuilder add-button outside accordion | Test 7 | ✓ closed | add-line-item-btn at line 263, isExpanded at line 276 |
+| AttachmentManager USWDS fixes | Test 9 | ✓ closed | usa-button-group line 113, usa-table--borderless line 155, usa-button--secondary line 195, no display:none |
+| Preview Application link | Test 10 | ✓ closed | preview-application-link in WorkspacePage:106, readiness-preview-link in ReadinessDashboard:184 |
+
+boot_smoke: pass
