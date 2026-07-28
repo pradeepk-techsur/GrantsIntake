@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-09-PLAN.md
-last_updated: "2026-07-28T03:11:25.371Z"
-last_activity: "2026-07-27 — Plan 04-05 complete: match requirement validation gap closed; Phase 4 all 5 plans delivered"
+stopped_at: Completed 04-07-PLAN.md
+last_updated: "2026-07-28T03:12:26.028Z"
+last_activity: "2026-07-28 — Plan 04-09 complete: AttachmentManager USWDS cosmetic gap (UAT Test 9) closed"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 27
-  completed_plans: 25
-  percent: 100
+  completed_plans: 26
+  percent: 93
 ---
 
 # Project State
@@ -77,6 +77,7 @@ Progress: [█████████░] 93%
 | Phase 04-application-workspace-form-capture P05 | 2min | 2 tasks | 3 files |
 | Phase 04-application-workspace-form-capture P06 | 4min | 2 tasks | 7 files |
 | Phase 04-application-workspace-form-capture P09 | 1 min | 1 tasks | 1 files |
+| Phase 04-application-workspace-form-capture P07 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,8 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: match_required DEFAULT FALSE preserves backward compat; MATCH_REQUIREMENT_NOT_MET emitted when match_required=true AND match_percentage>0 AND total_match < required_amount (PRD-INTAKE-040)
 - [Phase 04-application-workspace-form-capture]: ON CONFLICT DO NOTHING for org_roles upsert (UNIQUE constraint on org_id+user_id); explicit ::type casts in INSERT SELECT WHERE NOT EXISTS for application_sections to avoid PostgreSQL 42P08 type inference error
 - [Phase 04-application-workspace-form-capture]: CSS clip positioning for file input in AttachmentManager instead of display:none — USWDS class applies while element stays non-interactive via tabIndex=-1
+- [Phase 04-application-workspace-form-capture]: useMutation wraps workspaceApi.createWorkspace; on 409 DUPLICATE_WORKSPACE navigates to existing workspace id if provided in error body
+- [Phase 04-application-workspace-form-capture]: Preview Application Link placed in WorkspacePage page header (after opportunity hint) and ReadinessDashboard usa-card__footer
 
 ### Pending Todos
 
@@ -145,6 +148,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-28T03:11:25.370Z
-Stopped at: Completed 04-09-PLAN.md
+Last session: 2026-07-28T03:12:26.027Z
+Stopped at: Completed 04-07-PLAN.md
 Resume file: None
