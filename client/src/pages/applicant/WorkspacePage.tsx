@@ -111,16 +111,16 @@ export function WorkspacePage() {
         )}
       </div>
 
-      {/* Three-column layout: section sidebar (2) + section content (5) + readiness panel (2) = 9 inside desktop:grid-col-9 parent */}
+      {/* Three-column layout: section sidebar (3) + section content (6) + readiness panel (3) = 12 */}
       <div className="grid-row grid-gap">
-        <div className="grid-col-2" data-testid="workspace-section-sidebar">
+        <div className="grid-col-3" data-testid="workspace-section-sidebar">
           <WorkspaceSidebar
             sections={visibleSections}
             activeSectionType={activeSectionType}
             onSectionSelect={setActiveSectionType}
           />
         </div>
-        <div className="grid-col-5" data-testid="workspace-section-content">
+        <div className="grid-col-6" data-testid="workspace-section-content">
           {activeSection ? (
             <WorkspaceSectionPanel section={activeSection} workspaceId={workspaceId!} />
           ) : (
@@ -129,7 +129,7 @@ export function WorkspacePage() {
             </div>
           )}
         </div>
-        <div className="grid-col-2" data-testid="workspace-readiness-panel">
+        <div className="grid-col-3" data-testid="workspace-readiness-panel">
           <ReadinessDashboard workspaceId={workspaceId!} />
         </div>
       </div>

@@ -23,7 +23,7 @@ export function LoginPage() {
       const result = await login({ email, password });
       // Route based on role: grantor admins → grantor dashboard, applicants → applicant portal
       const isGrantorAdmin = result.user?.roles?.includes('grantor_admin');
-      navigate(isGrantorAdmin ? '/grantor/dashboard' : '/applicant/profile', { replace: true });
+      navigate(isGrantorAdmin ? '/grantor/dashboard' : '/applicant/applications', { replace: true });
     } catch {
       setError('Invalid email or password. Please try again.');
     } finally {
