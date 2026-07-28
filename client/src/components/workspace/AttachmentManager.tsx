@@ -109,45 +109,50 @@ export function AttachmentManager({ workspaceId, requirementId }: AttachmentMana
         </div>
       )}
 
-      {/* Action buttons */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
-        <button
-          type="button"
-          className="usa-button"
-          data-testid="upload-attachment-btn"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadMutation.isPending}
-        >
-          Upload New File
-        </button>
-        <button
-          type="button"
-          className="usa-button usa-button--outline"
-          data-testid="link-library-btn"
-          onClick={() => {
-            // Library link feature — opens a note for future implementation
-            alert('Org document library linking: Select a document from your organization library to attach.');
-          }}
-        >
-          Link from Library
-        </button>
-      </div>
+      {/* Action buttons — USWDS usa-button-group */}
+      <ul className="usa-button-group" style={{ marginBottom: '1rem' }}>
+        <li className="usa-button-group__item">
+          <button
+            type="button"
+            className="usa-button"
+            data-testid="upload-attachment-btn"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadMutation.isPending}
+          >
+            Upload New File
+          </button>
+        </li>
+        <li className="usa-button-group__item">
+          <button
+            type="button"
+            className="usa-button usa-button--outline"
+            data-testid="link-library-btn"
+            onClick={() => {
+              // Library link feature — opens a note for future implementation
+              alert('Org document library linking: Select a document from your organization library to attach.');
+            }}
+          >
+            Link from Library
+          </button>
+        </li>
+      </ul>
 
-      {/* Hidden file input */}
+      {/* USWDS file input — visually hidden via positioning, accessible via Upload button trigger */}
       <input
         ref={fileInputRef}
         type="file"
         className="usa-file-input"
-        style={{ display: 'none' }}
+        style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}
         onChange={handleFileUpload}
-        aria-label="Upload attachment"
+        aria-label="Upload attachment file"
+        tabIndex={-1}
       />
 
       {/* Attachments table */}
       {displayAttachments.length === 0 ? (
         <p className="usa-hint">No attachments yet. Upload a file or link from your document library.</p>
       ) : (
-        <table className="usa-table usa-table--striped" style={{ width: '100%' }} data-testid="attachment-list">
+        <table className="usa-table usa-table--borderless" style={{ width: '100%' }} data-testid="attachment-list">
           <thead>
             <tr>
               <th>File Name</th>
@@ -187,9 +192,10 @@ export function AttachmentManager({ workspaceId, requirementId }: AttachmentMana
                     </button>
                     <button
                       type="button"
-                      className="usa-button usa-button--unstyled"
+                      className="usa-button usa-button--unstyled usa-button--secondary"
                       onClick={() => setConfirmDelete(att.attachment_id)}
-                      style={{ color: '#b50909', fontSize: '0.875rem' }}
+                      style={{ fontSize: '0.875rem' }}
+                      data-testid={`delete-attachment-btn-${att.attachment_id}`}
                     >
                       Delete
                     </button>
