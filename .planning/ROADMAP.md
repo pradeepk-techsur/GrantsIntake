@@ -107,6 +107,8 @@ Plans:
 - [ ] 04-07-PLAN.md — Gap closure (UAT Tests 2+10): Fix Start Application CTA (POST /workspaces mutation + navigate to /applicant/workspaces/:id), fix Continue Application href (/applicant prefix), add Preview Application link to WorkspacePage header and ReadinessDashboard footer
 - [ ] 04-08-PLAN.md — Gap closure (UAT Tests 5+7+6): Fix WorkspacePage 3-column grid (2+5+2=9 inside desktop:grid-col-9), move BudgetBuilder Add Line Item button outside accordion, seed form_field_definitions for UAT narrative section
 - [ ] 04-09-PLAN.md — Gap closure (UAT Test 9 cosmetic): AttachmentManager USWDS fixes — usa-button-group, clip-positioned file input, usa-table--borderless, usa-button--secondary delete button
+- [ ] 04-10-PLAN.md — Gap closure (UAT Tests 3+5+6+7+9): Fix login redirect to /applicant/applications, restore 3+6+3=12 grid columns in WorkspacePage, remove double usa-prose nesting from ApplicantLayout <main> and WorkspaceSectionPanel root div
+- [ ] 04-11-PLAN.md — Gap closure (UAT Test 6): Add Saving…/Saved ✓ visual feedback to SectionFormPanel for auto-save on blur (PRD-INTAKE-038)
 
 ### Phase 5: Q&A, Submission & Validation
 **Goal**: Grantors can manage public Q&A and addenda with an auditable history; applicants experience continuous validation during drafting and can submit a fully certified, immutable application that is locked post-submission
