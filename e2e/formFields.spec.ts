@@ -63,3 +63,48 @@ test('required field shows error message when left blank', async ({ page }) => {
     await expect(formPanel).toBeVisible();
   }
 });
+
+test('blurring a text field shows Saving… indicator', async ({ page }) => {
+  await page.goto('/login');
+  await page.fill('[name="email"]', 'applicant@example.com');
+  await page.fill('[name="password"]', 'TestPass123!');
+  await page.click('[type="submit"]');
+  await page.waitForURL('**/applicant/**');
+
+  await page.goto('/applicant/applications');
+  const cards = page.locator('[data-testid="workspace-card"]');
+  const count = await cards.count();
+
+  if (count === 0) {
+    test.skip(true, 'No workspaces seeded — skipping auto-save indicator check');
+    return;
+  }
+
+  await cards.first().locator('a, button').first().click();
+  await page.waitForSelector('[data-testid="section-form-panel"]');
+
+  // Find any text or textarea input in the section form panel
+  const input = page
+    .locator('[data-testid="section-form-panel"]')
+    .locator('input[type="text"], textarea')
+    .first();
+
+  const inputCount = await input.count();
+  if (inputCount === 0) {
+    test.skip(true, 'No text inputs in active section — navigate to Narrative section first');
+    return;
+  }
+
+  // Type a value then blur to trigger auto-save
+  await input.click();
+  await input.fill('UAT auto-save test value');
+  await input.blur();
+
+  // Saving… indicator should appear while mutation is in flight
+  const savingIndicator = page.locator('[data-testid="save-status-saving"]');
+  await expect(savingIndicator).toBeVisible({ timeout: 3000 });
+
+  // After save completes, Saved ✓ indicator should appear
+  const savedIndicator = page.locator('[data-testid="save-status-saved"]');
+  await expect(savedIndicator).toBeVisible({ timeout: 5000 });
+});

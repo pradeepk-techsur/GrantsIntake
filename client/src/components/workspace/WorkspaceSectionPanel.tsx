@@ -60,7 +60,7 @@ export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSection
   };
 
   return (
-    <div className="usa-prose" data-testid="workspace-section-panel">
+    <div data-testid="workspace-section-panel">
       {/* Section header */}
       <div style={{ marginBottom: '1.5rem' }}>
         <h2>{section.section_name}</h2>
