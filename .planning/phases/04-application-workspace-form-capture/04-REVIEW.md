@@ -52,6 +52,8 @@ iteration: 1
   LIMIT 1
   ```
 
+**Resolution:** fixed (804c348) — replaced `applicant_user_id = $2` with a `JOIN org_roles` on `org_id` and `user_id` filter, exactly matching the reviewer's suggested query. `tsc --noEmit` clean; all 220 tests pass.
+
 ---
 
 ### B2: 409 `DUPLICATE_WORKSPACE` response body omits `workspace_id` — silent no-op instead of navigation to existing workspace
@@ -80,6 +82,8 @@ iteration: 1
   Consequence: `anyErr?.response?.data?.workspace_id` is always `undefined`, the `if` condition is false, and the `onError` callback exits without navigating. The user clicks "Start Application", gets a silent no-op (no feedback, no navigation), and cannot reach their existing workspace. This condition is compounded by B1 (workspace-status never returns `'continue'`), so B2 is the second line of defense that also fails.
 
 - **Fix direction:** (1) In `workspaceService.createWorkspace`, when catching the `23505` unique violation, look up the existing workspace ID via a SELECT and attach it to the error object. (2) In the route handler, include `workspace_id` in the 409 JSON response: `res.status(409).json({ error: 'DUPLICATE_WORKSPACE', workspace_id: e.workspace_id })`. Alternatively, the `onError` handler could call the `workspace-status` endpoint to discover the existing ID, but fixing the backend response is cleaner.
+
+**Resolution:** fixed (34bab0a) — three coordinated changes: (1) `workspaceService.createWorkspace` on `23505` now SELECT via `pool` (not the aborted-transaction `client`) to retrieve the existing `workspace_id` and attaches it to the thrown error; (2) `workspaces.ts` route sends `{ error, message, workspace_id }` in the 409 body; (3) `OpportunityDetailPage.tsx` `onError` corrected `error_code` → `error` to match the backend field name. `tsc --noEmit` clean on server and client; all 220 tests pass (previously 1 test was failing 500 on duplicate — now 409 as required).
 
 ---
 
