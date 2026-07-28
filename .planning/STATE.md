@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-07-28T03:12:26.028Z"
+stopped_at: Completed 04-08-PLAN.md
+last_updated: "2026-07-28T03:18:15.113Z"
 last_activity: "2026-07-28 — Plan 04-09 complete: AttachmentManager USWDS cosmetic gap (UAT Test 9) closed"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 27
-  completed_plans: 26
+  completed_plans: 27
   percent: 93
 ---
 
@@ -78,6 +78,7 @@ Progress: [█████████░] 93%
 | Phase 04-application-workspace-form-capture P06 | 4min | 2 tasks | 7 files |
 | Phase 04-application-workspace-form-capture P09 | 1 min | 1 tasks | 1 files |
 | Phase 04-application-workspace-form-capture P07 | 2min | 2 tasks | 4 files |
+| Phase 04-application-workspace-form-capture P08 | 3 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,8 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: CSS clip positioning for file input in AttachmentManager instead of display:none — USWDS class applies while element stays non-interactive via tabIndex=-1
 - [Phase 04-application-workspace-form-capture]: useMutation wraps workspaceApi.createWorkspace; on 409 DUPLICATE_WORKSPACE navigates to existing workspace id if provided in error body
 - [Phase 04-application-workspace-form-capture]: Preview Application Link placed in WorkspacePage page header (after opportunity hint) and ReadinessDashboard usa-card__footer
+- [Phase 04-application-workspace-form-capture]: Grid columns corrected 3+6+3=12 to 2+5+2=9 to fit desktop:grid-col-9 ApplicantLayout parent (UAT Test 5)
+- [Phase 04-application-workspace-form-capture]: BudgetBuilder Add Line Item button moved outside accordion gate to always-visible header; auto-expands accordion on click (UAT Test 7)
 
 ### Pending Todos
 
@@ -148,6 +151,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-28T03:12:26.027Z
-Stopped at: Completed 04-07-PLAN.md
+Last session: 2026-07-28T03:18:15.112Z
+Stopped at: Completed 04-08-PLAN.md
 Resume file: None
