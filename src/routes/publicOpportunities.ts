@@ -207,11 +207,14 @@ publicOpportunitiesRouter.get(
       }
 
       // Check for existing workspace (application workspace table — Phase 3+)
-      // For now, check if an application_workspaces table exists; if not, always return 'start'
+      // Join org_roles to find the user's org, then match on org_id (no applicant_user_id column exists).
       try {
         const workspaceResult = await pool.query<{ workspace_id: string }>(
-          `SELECT workspace_id FROM application_workspaces
-           WHERE opportunity_id = $1 AND applicant_user_id = $2
+          `SELECT aw.workspace_id FROM application_workspaces aw
+           JOIN org_roles orr ON orr.org_id = aw.org_id
+           WHERE aw.opportunity_id = $1
+             AND orr.user_id = $2
+             AND orr.revoked_at IS NULL
            LIMIT 1`,
           [opportunity_id, userId],
         );
