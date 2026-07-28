@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-07-27T19:18:49.520Z"
+stopped_at: Completed 04-09-PLAN.md
+last_updated: "2026-07-28T03:11:25.371Z"
 last_activity: "2026-07-27 — Plan 04-05 complete: match requirement validation gap closed; Phase 4 all 5 plans delivered"
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 24
-  completed_plans: 24
+  completed_phases: 3
+  total_plans: 27
+  completed_plans: 25
   percent: 100
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 4 of 6 (Application Workspace & Form Capture) — COMPLETE
-Plan: 5 of 5 in current phase — Plan 04-05 complete
-Status: Plan 04-05 Complete — Migration 014 match_required/match_percentage + budgetService MATCH_REQUIREMENT_NOT_MET enforcement + integration tests (PRD-INTAKE-040 gap closure)
-Last activity: 2026-07-27 — Plan 04-05 complete: match requirement validation gap closed; Phase 4 all 5 plans delivered
+Phase: 4 of 6 (Application Workspace & Form Capture) — gap closure plans in progress
+Plan: 9 of 9 in current phase — Plan 04-09 complete
+Status: Plan 04-09 Complete — AttachmentManager four USWDS conformance fixes (usa-button-group, clip file input, borderless table, secondary delete btn)
+Last activity: 2026-07-28 — Plan 04-09 complete: AttachmentManager USWDS cosmetic gap (UAT Test 9) closed
 
-Progress: [██████████] 100%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -76,6 +76,7 @@ Progress: [██████████] 100%
 | Phase 04-application-workspace-form-capture P04 | 12 min | 2 tasks | 17 files |
 | Phase 04-application-workspace-form-capture P05 | 2min | 2 tasks | 3 files |
 | Phase 04-application-workspace-form-capture P06 | 4min | 2 tasks | 7 files |
+| Phase 04-application-workspace-form-capture P09 | 1 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -132,6 +133,7 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: Attachment version history: deactivate prior (is_active=false) then INSERT new with version_number = MAX+1; preview excludes workspace_comments by structural omission from all previewService queries
 - [Phase 04-application-workspace-form-capture]: match_required DEFAULT FALSE preserves backward compat; MATCH_REQUIREMENT_NOT_MET emitted when match_required=true AND match_percentage>0 AND total_match < required_amount (PRD-INTAKE-040)
 - [Phase 04-application-workspace-form-capture]: ON CONFLICT DO NOTHING for org_roles upsert (UNIQUE constraint on org_id+user_id); explicit ::type casts in INSERT SELECT WHERE NOT EXISTS for application_sections to avoid PostgreSQL 42P08 type inference error
+- [Phase 04-application-workspace-form-capture]: CSS clip positioning for file input in AttachmentManager instead of display:none — USWDS class applies while element stays non-interactive via tabIndex=-1
 
 ### Pending Todos
 
@@ -143,6 +145,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-27T19:18:49.519Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-07-28T03:11:25.370Z
+Stopped at: Completed 04-09-PLAN.md
 Resume file: None
