@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { workspaceApi } from '../../api/workspaceApi';
 import { useWorkspaceStore } from '../../store/workspaceStore';
@@ -96,6 +96,18 @@ export function WorkspacePage() {
         </h1>
         {workspace && (
           <p className="usa-hint">Opportunity: {workspace.opportunity_id}</p>
+        )}
+        {/* Preview Application link */}
+        {workspaceId && (
+          <div style={{ marginBottom: '0.5rem' }}>
+            <Link
+              to={`/applicant/workspaces/${workspaceId}/preview`}
+              className="usa-button usa-button--outline usa-button--small"
+              data-testid="preview-application-link"
+            >
+              Preview Application
+            </Link>
+          </div>
         )}
       </div>
 

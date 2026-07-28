@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { workspaceApi } from '../../api/workspaceApi';
 
 interface ReadinessDashboardProps {
@@ -174,6 +175,16 @@ export function ReadinessDashboard({ workspaceId }: ReadinessDashboardProps) {
           </div>
         )}
 
+      </div>
+      {/* Preview / submit CTA */}
+      <div className="usa-card__footer">
+        <Link
+          to={`/applicant/workspaces/${workspaceId}/preview`}
+          className="usa-button usa-button--outline usa-button--small"
+          data-testid="readiness-preview-link"
+        >
+          Preview Application
+        </Link>
       </div>
     </aside>
   );
