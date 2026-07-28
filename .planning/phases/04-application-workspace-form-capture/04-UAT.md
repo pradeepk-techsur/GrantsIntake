@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 04-application-workspace-form-capture
 source: 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, 04-04-SUMMARY.md, 04-05-SUMMARY.md, 04-07-SUMMARY.md, 04-08-SUMMARY.md, 04-09-SUMMARY.md
 started: 2026-07-28T13:58:21Z
@@ -135,10 +135,13 @@ per_test:
   severity: major
   test: 3
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "WorkspacePage.tsx grid-col-2+5+2=9 only fills 75% of parent width. Plan 04-08 incorrectly changed 3+6+3=12 (correct) to 2+5+2=9 based on false premise that inner columns should match parent column count. USWDS grid-col-N is always out of 12."
+  artifacts:
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "Lines 116/123/132: grid-col-2+grid-col-5+grid-col-2=9 (75% of page) — should be 3+6+3=12"
+  missing:
+    - "Restore grid-col-3 + grid-col-6 + grid-col-3 in WorkspacePage.tsx (sum to 12)"
+  debug_session: ".planning/debug/workspace-layout-broken.md"
 
 - truth: "Workspace page 3-column layout is non-overlapping; applicant login lands on My Applications (not profile page)"
   status: failed
@@ -146,10 +149,19 @@ per_test:
   severity: major
   test: 5
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "TWO bugs: (1) LoginPage.tsx:26 navigates to '/applicant/profile' for all non-grantor users instead of '/applicant/applications'. App.tsx:52 index route also redirects to profile. (2) Same WorkspacePage grid-col-2+5+2=9 issue as test 3."
+  artifacts:
+    - path: "client/src/pages/auth/LoginPage.tsx"
+      issue: "Line 26: navigate destination is '/applicant/profile' — should be '/applicant/applications'"
+    - path: "client/src/App.tsx"
+      issue: "Line 52: <Navigate to='/applicant/profile'> on /applicant index — should be '/applicant/applications'"
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "Lines 116/123/132: grid-col sum is 9 not 12"
+  missing:
+    - "LoginPage.tsx:26 — change '/applicant/profile' to '/applicant/applications'"
+    - "App.tsx:52 — change Navigate to='/applicant/profile' to '/applicant/applications'"
+    - "WorkspacePage.tsx — restore 3+6+3=12 column layout"
+  debug_session: ".planning/debug/login-redirect-and-layout.md"
 
 - truth: "Form field blur triggers auto-save with visible feedback; workspace layout is clean and usable"
   status: failed
@@ -157,10 +169,19 @@ per_test:
   severity: major
   test: 6
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "TWO bugs: (1) SectionFormPanel.tsx — saveMutation.isPending and .isSuccess never rendered in JSX; save fires silently on blur with zero visual feedback. (2) ApplicantLayout.tsx:85 has 'usa-prose' on <main>; WorkspaceSectionPanel.tsx:63 adds a second 'usa-prose' wrapper — double-nesting cascades max-width/typography constraints into the grid, causing layout collision."
+  artifacts:
+    - path: "client/src/components/workspace/SectionFormPanel.tsx"
+      issue: "saveMutation.isPending and .isSuccess unused in JSX — no save feedback rendered"
+    - path: "client/src/layouts/ApplicantLayout.tsx"
+      issue: "Line 85: <main> has usa-prose class — conflicts with inner grid-row in WorkspacePage"
+    - path: "client/src/components/workspace/WorkspaceSectionPanel.tsx"
+      issue: "Line 63: <div className='usa-prose'> creates double-nested usa-prose inside the layout"
+  missing:
+    - "SectionFormPanel.tsx: add {saveMutation.isPending && <span className='usa-hint'>Saving…</span>} and {saveMutation.isSuccess && <span>Saved ✓</span>}"
+    - "ApplicantLayout.tsx:85: remove usa-prose from <main> className"
+    - "WorkspaceSectionPanel.tsx:63: remove usa-prose from root div"
+  debug_session: ".planning/debug/form-field-autosave.md"
 
 - truth: "Budget Builder page has clean USWDS styling with properly sized columns and readable layout"
   status: failed
@@ -168,10 +189,17 @@ per_test:
   severity: minor
   test: 7
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "WorkspacePage grid-col-5 gives Budget content only 31% of page width (5/12 × 9/12). Budget multi-column tables (6 cols) crammed into 31% are unreadable. Double usa-prose nesting (ApplicantLayout + WorkspaceSectionPanel) further compounds it. Missing desktop: prefix on inner grid-col classes means narrow widths apply at all viewports."
+  artifacts:
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "Lines 115-135: grid-col-5 for content = 31% of page; inner cols lack desktop: prefix"
+    - path: "client/src/components/workspace/WorkspaceSectionPanel.tsx"
+      issue: "Line 63: usa-prose double-nesting"
+  missing:
+    - "Widen content column in WorkspacePage (e.g. desktop:grid-col-7 or desktop:grid-col-8)"
+    - "Add desktop: prefix to inner grid columns"
+    - "Remove usa-prose from WorkspaceSectionPanel root div"
+  debug_session: ".planning/debug/workspace-css-styling.md"
 
 - truth: "Attachments section has clean USWDS styling consistent with the rest of the workspace"
   status: failed
@@ -179,8 +207,14 @@ per_test:
   severity: cosmetic
   test: 9
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Same root causes as test 7: width starvation (31% available for AttachmentManager's 5-column table) and double usa-prose nesting. AttachmentManager 5-column table with nested version history panels is unreadable at 31% page width."
+  artifacts:
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "grid-col-5 content column only 31% of page width"
+    - path: "client/src/components/workspace/WorkspaceSectionPanel.tsx"
+      issue: "Line 63: usa-prose double-nesting"
+  missing:
+    - "Widen content column (fixes both Budget and Attachments sections)"
+    - "Remove usa-prose double-nesting"
+  debug_session: ".planning/debug/workspace-css-styling.md"
 
