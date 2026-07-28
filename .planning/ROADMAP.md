@@ -95,7 +95,7 @@ Plans:
   3. A readiness dashboard shows overall completion percentage, all blocking errors with links, missing required attachments, and authorized submitter role readiness — updated in real time
   4. Applicants can enter structured form data (text, number, currency, date, picklist, file upload, calculated fields, repeating tables) with character/page limits enforced and a structured budget with category-level validation against funding ceilings and match requirements
   5. Applicants can manage attachments with version history and generate a submission package preview showing exactly what the grantor will receive — without initiating submission
-**Plans:** 9 plans
+**Plans:** 11 plans
 
 Plans:
 - [x] 04-01-PLAN.md — Migration 012 (application_workspaces, application_sections, workspace_tasks, workspace_comments); WorkspaceService (createWorkspace with 9-section auto-create, uniqueness enforcement, IDOR guards); workspacesRouter (all workspace, section, task, comment endpoints; grantor 403 on comments at router layer); WorkspaceListPage + WorkspacePage (left-sidebar section nav, section-panel swap, no URL change); App.tsx + ApplicantSidebar wiring; integration + Playwright tests (PRD-INTAKE-030 F29, PRD-INTAKE-031 F30, PRD-INTAKE-032 F31, PRD-INTAKE-033 F32)
