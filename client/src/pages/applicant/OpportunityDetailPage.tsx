@@ -126,8 +126,8 @@ export function OpportunityDetailPage() {
     },
     onError: (err: unknown) => {
       // 409 DUPLICATE_WORKSPACE: the workspace already exists; navigate to it if id provided
-      const anyErr = err as { response?: { data?: { error_code?: string; workspace_id?: string } } };
-      if (anyErr?.response?.data?.error_code === 'DUPLICATE_WORKSPACE' && anyErr?.response?.data?.workspace_id) {
+      const anyErr = err as { response?: { data?: { error?: string; workspace_id?: string } } };
+      if (anyErr?.response?.data?.error === 'DUPLICATE_WORKSPACE' && anyErr?.response?.data?.workspace_id) {
         navigate(`/applicant/workspaces/${anyErr.response.data.workspace_id}`);
       }
     },
