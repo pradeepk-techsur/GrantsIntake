@@ -93,6 +93,21 @@ export function SectionFormPanel({ section, workspaceId }: SectionFormPanelProps
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div data-testid="section-form-panel">
+      {/* Auto-save status indicator */}
+      {saveMutation.isPending && (
+        <span className="usa-hint" data-testid="save-status-saving" style={{ display: 'block', marginBottom: '0.5rem' }}>
+          Saving…
+        </span>
+      )}
+      {saveMutation.isSuccess && !saveMutation.isPending && (
+        <span
+          className="usa-hint"
+          data-testid="save-status-saved"
+          style={{ display: 'block', marginBottom: '0.5rem', color: '#2e8540' }}
+        >
+          Saved ✓
+        </span>
+      )}
       {fields && fields.length > 0 ? (
         <>
           {fields.map((field) => (
