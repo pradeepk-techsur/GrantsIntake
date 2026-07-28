@@ -113,7 +113,12 @@ workspacesRouter.post('/workspaces', async (req: Request, res: Response) => {
       return sendError(res, 422, 'USER_HAS_NO_ORG', 'User does not belong to an organization');
     }
     if (e.code === 'DUPLICATE_WORKSPACE') {
-      return sendError(res, 409, 'DUPLICATE_WORKSPACE', 'A workspace already exists for this organization and opportunity');
+      const dupErr = e as NodeJS.ErrnoException & { workspace_id?: string };
+      return res.status(409).json({
+        error: 'DUPLICATE_WORKSPACE',
+        message: 'A workspace already exists for this organization and opportunity',
+        workspace_id: dupErr.workspace_id,
+      });
     }
     console.error('POST /workspaces error:', err);
     return sendError(res, 500, 'INTERNAL_ERROR');

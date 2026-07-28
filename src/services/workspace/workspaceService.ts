@@ -63,9 +63,24 @@ class WorkspaceService {
       } catch (err: unknown) {
         const pgErr = err as { code?: string };
         if (pgErr.code === '23505') {
-          // UNIQUE VIOLATION — duplicate workspace for this org+opportunity
-          const dupErr = new Error('DUPLICATE_WORKSPACE');
-          (dupErr as NodeJS.ErrnoException).code = 'DUPLICATE_WORKSPACE';
+          // UNIQUE VIOLATION — duplicate workspace for this org+opportunity.
+          // The transaction is now aborted; use pool (not client) to look up the
+          // existing workspace_id so callers can include it in responses.
+          let existingWorkspaceId: string | undefined;
+          try {
+            const existing = await pool.query<{ workspace_id: string }>(
+              `SELECT workspace_id FROM application_workspaces
+               WHERE opportunity_id = $1 AND org_id = $2
+               LIMIT 1`,
+              [input.opportunity_id, orgId],
+            );
+            existingWorkspaceId = existing.rows[0]?.workspace_id;
+          } catch {
+            // Ignore — workspace_id will be undefined; route still returns 409
+          }
+          const dupErr = new Error('DUPLICATE_WORKSPACE') as NodeJS.ErrnoException & { workspace_id?: string };
+          dupErr.code = 'DUPLICATE_WORKSPACE';
+          dupErr.workspace_id = existingWorkspaceId;
           throw dupErr;
         }
         throw err;
