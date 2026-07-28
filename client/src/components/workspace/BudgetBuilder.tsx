@@ -254,6 +254,25 @@ export function BudgetBuilder({ workspaceId }: BudgetBuilderProps) {
               </button>
             </h4>
 
+            {/* Always-visible add button — outside accordion content */}
+            {!isAdding && (
+              <div style={{ padding: '0.5rem 1rem' }}>
+                <button
+                  type="button"
+                  className="usa-button usa-button--outline usa-button--small"
+                  data-testid={`add-line-item-btn-${category}`}
+                  onClick={() => {
+                    setAddingCategory(category);
+                    setFormState(emptyForm);
+                    setExpandedCategories(prev => new Set(prev).add(category));
+                  }}
+                >
+                  + Add {CATEGORY_LABELS[category]} Line Item
+                </button>
+              </div>
+            )}
+
+            {/* Accordion content: line items table + add form (only when expanded) */}
             {isExpanded && (
               <div className="usa-accordion__content" style={{ padding: '1rem' }}>
                 {/* Line items table */}
@@ -311,8 +330,8 @@ export function BudgetBuilder({ workspaceId }: BudgetBuilderProps) {
                   </table>
                 )}
 
-                {/* Add line item inline form */}
-                {isAdding ? (
+                {/* Add line item inline form (shown when isAdding for this category) */}
+                {isAdding && (
                   <div style={{ background: '#f0f0f0', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
                     <h5 style={{ marginTop: 0 }}>Add {CATEGORY_LABELS[category]} Line Item</h5>
 
@@ -479,20 +498,6 @@ export function BudgetBuilder({ workspaceId }: BudgetBuilderProps) {
                       <p className="usa-error-message">Failed to add line item. Please try again.</p>
                     )}
                   </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="usa-button usa-button--outline usa-button--small"
-                    data-testid={`add-line-item-btn-${category}`}
-                    onClick={() => {
-                      setAddingCategory(category);
-                      setFormState(emptyForm);
-                      // Also expand the category if not already
-                      setExpandedCategories(prev => new Set(prev).add(category));
-                    }}
-                  >
-                    + Add {CATEGORY_LABELS[category]} Line Item
-                  </button>
                 )}
               </div>
             )}
