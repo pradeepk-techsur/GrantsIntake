@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 04-application-workspace-form-capture
 source: 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, 04-04-SUMMARY.md, 04-05-SUMMARY.md
 started: 2026-07-27T20:55:00Z
@@ -135,9 +135,15 @@ per_test:
   severity: major
   test: 2
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "OpportunityDetailPage.tsx:247 — 'Start Application' CTA uses <a href={`/apply/${opportunity.opportunity_id}`}> pointing to a non-existent route. The flow requires a POST /api/v1/workspaces then navigate to /applicant/workspaces/:id. The 'Continue Application' branch (line 235) also uses /workspaces/:id missing /applicant prefix."
+  artifacts:
+    - path: "client/src/pages/applicant/OpportunityDetailPage.tsx"
+      issue: "Line 247: href=/apply/:id links to non-existent route. Line 235: href=/workspaces/:id missing /applicant prefix."
+    - path: "client/src/App.tsx"
+      issue: "No /apply/* route defined. Workspace route is /applicant/workspaces/:workspaceId."
+  missing:
+    - "Replace bare <a> with a button that calls POST /api/v1/workspaces and navigates to /applicant/workspaces/:newWorkspaceId via useNavigate()"
+    - "Fix 'Continue Application' href from /workspaces/:id to /applicant/workspaces/:id"
   debug_session: ""
 
 - truth: "Workspace page shows 3-column layout: section sidebar (left), section content (center), Readiness Dashboard (right)"
@@ -146,9 +152,14 @@ per_test:
   severity: minor
   test: 5
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "WorkspacePage.tsx:103-123 uses grid-col-3 + grid-col-6 + grid-col-3 = 12 columns inside ApplicantLayout's main area which is already constrained to desktop:grid-col-9. The 12 columns overflow a 9-column container, causing overlap and stacking."
+  artifacts:
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "Lines 103-123: grid-col-3 + grid-col-6 + grid-col-3 = 12 cols inside a 9-col parent"
+    - path: "client/src/layouts/ApplicantLayout.tsx"
+      issue: "Line 85: <main> is desktop:grid-col-9, leaving only 9 of 12 grid units for WorkspacePage"
+  missing:
+    - "Reduce WorkspacePage column widths to fit 9 columns (e.g., grid-col-2 + grid-col-5 + grid-col-2) or move WorkspacePage outside ApplicantLayout's sidebar constraint"
   debug_session: ""
 
 - truth: "Narrative section shows form fields (e.g. Project Description text area) that are editable with auto-save on blur"
@@ -157,9 +168,12 @@ per_test:
   severity: major
   test: 6
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "src/db/seed.ts:431-454 creates 9 workspace sections for the UAT opportunity but inserts zero rows into form_field_definitions. formFieldService.getFieldsForSection() returns empty; SectionFormPanel shows 'No form fields configured' message. Schema and service are correct — seed data is missing."
+  artifacts:
+    - path: "src/db/seed.ts"
+      issue: "Lines 431-454: Inserts workspace sections but no INSERT INTO form_field_definitions statements"
+  missing:
+    - "Extend UAT seed to INSERT form_field_definitions rows for narrative section (e.g. textarea for 'Project Narrative', 'Goals and Objectives'; number for 'Number of Beneficiaries') linked to UAT opportunity and section IDs"
   debug_session: ""
 
 - truth: "BudgetBuilder shows 10 categories; clicking a category expands it to reveal Add Line Item form; entering description + amount adds a line item and updates totals"
@@ -168,9 +182,12 @@ per_test:
   severity: minor
   test: 7
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "BudgetBuilder.tsx:482-495 — the '+ Add Line Item' button is hidden INSIDE the accordion content (gated on isExpanded). Users must first click the category header to expand, then find the add button inside — a non-obvious two-step interaction. The button is invisible until the accordion is expanded."
+  artifacts:
+    - path: "client/src/components/workspace/BudgetBuilder.tsx"
+      issue: "Lines 482-495: '+ Add Line Item' button only visible after accordion expanded (inside isExpanded gate). Users don't know to click category header first."
+  missing:
+    - "Move '+ Add Line Item' button outside the accordion content div so it is visible without expanding — render it in the category header row alongside the subtotal amount"
   debug_session: ""
 
 - truth: "Attachment section has consistent USWDS styling — upload form, file list, and version history are visually coherent"
@@ -179,9 +196,15 @@ per_test:
   severity: cosmetic
   test: 9
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "AttachmentManager.tsx has multiple USWDS deviations: (1) buttons not in usa-button-group, (2) hidden usa-file-input with display:none bypasses USWDS styling, (3) usa-table--striped instead of usa-table--borderless used elsewhere, (4) inline color style on delete button instead of usa-button--secondary."
+  artifacts:
+    - path: "client/src/components/workspace/AttachmentManager.tsx"
+      issue: "Button container lacks usa-button-group; file input hidden with display:none; usa-table--striped inconsistent; delete button uses inline color instead of usa-button--secondary"
+  missing:
+    - "Wrap buttons in usa-button-group list markup"
+    - "Use visible USWDS file input pattern instead of display:none"
+    - "Change usa-table--striped to usa-table--borderless"
+    - "Use usa-button--secondary for delete action instead of inline color"
   debug_session: ""
 
 - truth: "WorkspacePage has a Preview button or link that navigates to /applicant/workspaces/:id/preview"
@@ -190,7 +213,13 @@ per_test:
   severity: major
   test: 10
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "WorkspacePage.tsx header (lines 86-100) has no 'Preview Application' link. ReadinessDashboard.tsx (lines 53-179) also has no preview/submit CTA. The WorkspacePreviewPage route exists at App.tsx:58 but is unreachable from the workspace UI."
+  artifacts:
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "Lines 86-100: No 'Preview Application' button or link in page header"
+    - path: "client/src/components/workspace/ReadinessDashboard.tsx"
+      issue: "Lines 53-179: No preview/submit CTA despite being the logical place for it"
+  missing:
+    - "Add <Link to={`/applicant/workspaces/${workspaceId}/preview`}> as usa-button usa-button--outline in WorkspacePage header"
+    - "Optionally surface same preview link in ReadinessDashboard card"
   debug_session: ""
