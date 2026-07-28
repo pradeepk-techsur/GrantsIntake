@@ -49,7 +49,7 @@ function App() {
           <Route path="/opportunities/:slug" element={<OpportunityDetailPage />} />
           {/* Authenticated applicant portal */}
           <Route path="/applicant" element={<ApplicantLayout />}>
-            <Route index element={<Navigate to="/applicant/profile" replace />} />
+            <Route index element={<Navigate to="/applicant/applications" replace />} />
             <Route path="profile" element={<OrgProfilePage />} />
             <Route path="profile/roles" element={<OrgRolesPage />} />
             <Route path="profile/documents" element={<OrgDocumentsPage />} />
