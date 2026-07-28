@@ -453,6 +453,74 @@ async function seed() {
       }
     }
 
+    // 8. Form field definitions for narrative section (idempotent — use WHERE NOT EXISTS on label+section_id)
+    if (uatWorkspaceId) {
+      const narrativeSectionResult = await pool.query(
+        `SELECT section_id FROM application_sections WHERE workspace_id = $1 AND section_type = 'narrative' LIMIT 1`,
+        [uatWorkspaceId],
+      );
+      const narrativeSectionId = narrativeSectionResult.rows[0]?.section_id;
+
+      if (narrativeSectionId && uatOpportunityId && applicantUserId) {
+        const narrativeFields = [
+          {
+            field_type: 'textarea',
+            label: 'Project Narrative',
+            placeholder: 'Describe your project in detail…',
+            help_text: 'Provide a comprehensive description of the project, its goals, and expected outcomes. Maximum 5,000 characters.',
+            is_required: true,
+            display_order: 1,
+            validation_config: { max_length: 5000 },
+          },
+          {
+            field_type: 'textarea',
+            label: 'Goals and Objectives',
+            placeholder: 'List your specific, measurable goals…',
+            help_text: 'Describe at least 3 measurable goals aligned with the opportunity priorities.',
+            is_required: true,
+            display_order: 2,
+            validation_config: { max_length: 2000 },
+          },
+          {
+            field_type: 'number',
+            label: 'Number of Beneficiaries',
+            placeholder: '0',
+            help_text: 'Estimated number of individuals who will directly benefit from this project.',
+            is_required: false,
+            display_order: 3,
+            validation_config: { min: 0, max: 1000000 },
+          },
+        ];
+
+        for (const field of narrativeFields) {
+          await pool.query(
+            `INSERT INTO form_field_definitions
+               (opportunity_id, section_id, field_type, label, placeholder, help_text,
+                is_required, display_order, validation_config, created_by)
+             SELECT $1::uuid, $2::uuid, $3::varchar, $4::varchar, $5::varchar, $6::varchar,
+                    $7::boolean, $8::int, $9::jsonb, $10::uuid
+             WHERE NOT EXISTS (
+               SELECT 1 FROM form_field_definitions
+               WHERE section_id = $2::uuid AND label = $4::varchar
+             )`,
+            [
+              uatOpportunityId,
+              narrativeSectionId,
+              field.field_type,
+              field.label,
+              field.placeholder,
+              field.help_text,
+              field.is_required,
+              field.display_order,
+              JSON.stringify(field.validation_config),
+              applicantUserId,
+            ],
+          );
+        }
+        console.log('Seeded 3 form_field_definitions for UAT narrative section (idempotent)');
+      }
+    }
+
     console.log('Seeded UAT scenario: UAT-OPP-001 + UAT Test Nonprofit + workspace (idempotent)');
     // ── End UAT Scenario Seed ────────────────────────────────────────────────
 
