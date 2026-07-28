@@ -3,36 +3,44 @@
 # Catalog entry: agent-synthesized
 # Generator version: init-dev-server@1
 #
-# Stack: Node.js/Express backend (root, port 3000) +
-#        React/Vite frontend (client/, port 5173) +
-#        Docker Compose datastores (postgres:16, redis:7)
-#
 # Edits ABOVE the END PIVOTA PREAMBLE marker are reset on regen.
 # Edits BELOW the marker are preserved on regen.
 #
 # Why these choices (decision-trace; do not delete):
 #   - `set -euo pipefail` not just `-e` — RESEARCH.md Pitfall 4 (silent pipe failures).
-#   - `sha256sum` for lockfile hashing — universal coreutils, no extra dep.
+#   - `sha256sum` for lockfile hashing — RESEARCH.md "Don't hand-roll" (universal
+#     coreutils, no extra dep vs blake3 / git hash-object / md5sum).
 #   - Backoff 1s / 2s / 4s — Claude's Discretion per CONTEXT.md (small base, predictable).
-#   - Log destination `/tmp/pivota-dev.log` — D-11.4 (always writable in Daytona sandboxes).
-#   - Multi-process: bash trap + background PIDs + wait -n — RESEARCH.md Pattern 3.
-#   - docker compose up -d db redis (infra only) — backend/client run natively for
-#     hot-reload; the app service in compose uses a compiled entry (dist/) and is
-#     skipped here to avoid NODE_ENV=production / no devDependencies issues.
-#   - Migrate runs AFTER npm ci (so tsx/knex are in node_modules) and BEFORE backend
-#     starts — runtime-environment.md §3 ordering.
-#   - CLIENT install separately in client/ — separate package.json/lockfile.
-#   - vite.config.ts already sets host: '0.0.0.0' and port: 5173 — no overlay needed.
+#   - Log destination `/tmp/pivota-dev.log` — Open Question #4 resolved (always
+#     writable inside Daytona sandboxes; matches existing convention).
+#   - Lockfile-sentinel skip combined with INSTALL_PRESENCE_CHECK — RESEARCH.md
+#     Pitfall 6 (sentinel survives reboots but install output dirs may not on
+#     fresh tmpfs; never skip on a clean directory).
+#   - Retry exits with INNER command's last exit code (not a fixed 1) so callers
+#     can disambiguate failures from the wrapper.
+#   - run_install has an npm ERESOLVE fallback (--legacy-peer-deps) + a FATAL
+#     marker (D-12.1) — a scaffold with a lagging peer range must not silently
+#     leave node_modules empty and hang the preview on "Waiting to bind".
+#   - Agent-synthesized: multi-match (compose + node-express). This project runs
+#     db/redis via docker compose, the Express backend natively via tsx, and the
+#     Vite frontend natively in client/. Multi-process block (trap+wait -n) used
+#     per RESEARCH.md Pattern 3 (no concurrently/pm2/supervisord).
 
 set -euo pipefail
 
 # === Bash version guard (RESEARCH.md Pitfall 8) ===
+# `wait -n` (used by the multi-process variant) requires bash >= 4.3.
+# Fail fast with a clear message; do not silently degrade.
 if (( BASH_VERSINFO[0] < 4 )) || { (( BASH_VERSINFO[0] == 4 )) && (( BASH_VERSINFO[1] < 3 )); }; then
   echo "[pivota] bash 4.3+ required for 'wait -n'; found ${BASH_VERSION}" >&2
   exit 127
 fi
 
 # === Single-instance guard ===
+# Multiple platform paths can invoke the wrapper concurrently (sandbox setup,
+# preview open, verify pre-flight) — observed as two `docker compose up --build`
+# trees racing in one sandbox. Second invocation exits 0 quietly: the first
+# boot is authoritative and callers poll the port, not this process.
 exec 200>/tmp/pivota-dev.lock
 if ! flock -n 200; then
   echo "[pivota] start-dev.sh already running (lock held) — exiting; poll the ready port instead" >&2
@@ -40,36 +48,48 @@ if ! flock -n 200; then
 fi
 
 # === D-11.4: tee stdout/stderr to /tmp/pivota-dev.log AND pass through ===
+# Researcher resolved log destination: /tmp/pivota-dev.log (always writable,
+# matches existing convention). SSE chat panel sees output live AND a file
+# exists for scrollback / replay.
 mkdir -p /tmp
 exec > >(tee -a /tmp/pivota-dev.log) 2>&1
 echo "[pivota] $(date -Iseconds) start-dev.sh begin (catalog: agent-synthesized)"
 
 # === D-11.1 + D-11.2: per-stack 0.0.0.0 binding + host allowlist relaxation ===
-export PORT="${PORT:-3000}"
+# Express backend already binds 0.0.0.0 in server.ts (app.listen(port, '0.0.0.0')).
+# HOST=0.0.0.0 is set defensively for any downstream tooling reading $HOST.
+# Vite frontend: --host 0.0.0.0 is passed via CLI in the exec command.
+# Note: NODE_ENV must NOT be set to 'production' here — it strips devDependencies
+# (tsx, typescript) and breaks the dev runner (runtime-environment.md §4).
 export HOST=0.0.0.0
-# Express: Node's server.listen(port) without host arg binds 0.0.0.0 / all interfaces.
-# HOST=0.0.0.0 covers apps that explicitly read process.env.HOST.
-# Vite frontend: vite.config.ts already declares server.host='0.0.0.0', port=5173.
-# DO NOT set NODE_ENV=production — strips devDependencies (tsx, tsc, vite)
-# and breaks both the backend dev runner and the frontend build toolchain
-# (runtime-environment.md §4).
+export PORT="${PORT:-3000}"
 
 # === D-11.3: .env.example -> .env seed (platform-injection-safe) ===
+# Seed .env from .env.example for first boot, but NEVER let an .env.example
+# placeholder shadow a variable the platform already injected into the sandbox
+# environment. The motivating bug: .env.example shipped a dead
+# `DATABASE_URL=postgresql://user:pass@localhost/...` that overrode the injected
+# sidecar DATABASE_URL, so Prisma `db push`/`$connect()` failed. Any KEY already
+# set in the environment (DATABASE_URL, POSTGRES_*/MYSQL_*, REDIS_URL, PIVOTA_*,
+# plus PORT/NODE_ENV from the preamble above) is dropped from the copy so the
+# injected value wins. See references/runtime-environment.md §3.
 if [[ ! -f .env && -f .env.example ]]; then
   echo "[pivota] seeding .env from .env.example (preserving platform-injected vars)"
   while IFS= read -r line || [[ -n "$line" ]]; do
-    trimmed="${line#"${line%%[![:space:]]*}"}"
+    trimmed="${line#"${line%%[![:space:]]*}"}"   # left-trim for the test only
     if [[ "$trimmed" == \#* || -z "$trimmed" || "$trimmed" != *"="* ]]; then
-      printf '%s\n' "$line"; continue
+      printf '%s\n' "$line"; continue            # keep comments / blanks / non-assignments
     fi
     key="${trimmed#export }"; key="${key%%=*}"; key="${key//[[:space:]]/}"
     if [[ -n "${!key+x}" ]]; then
       printf '# [pivota] %s omitted — provided by platform environment\n' "$key"
       continue
     fi
+    # D-11.5: sanitize the copied assignment. Strip unquoted inline # comments.
     if [[ "$line" != *\"* && "$line" != *\'* ]]; then
       line="$(printf '%s' "$line" | sed -E 's/[[:space:]]+#.*$//')"
     fi
+    # Replace CHANGE_ME placeholder secrets with generated values.
     value="${line#*=}"
     value_lc="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')"
     if [[ "$value_lc" == change_me* || "$value_lc" == changeme* ]]; then
@@ -82,158 +102,127 @@ if [[ ! -f .env && -f .env.example ]]; then
   done < .env.example > .env
 fi
 
-# === Start Docker Compose datastores (db + redis only, not the app service) ===
-# The compose app service runs the compiled entry (dist/) and uses
-# NODE_ENV=production — unsuitable for dev. We start only the datastores and
-# run the backend natively for hot-reload (tsx watch).
-echo "[pivota] starting compose datastores (db, redis)..."
-docker compose up -d db redis 2>&1 || {
-  echo "[pivota] FATAL: docker compose up -d db redis failed — cannot provision datastores" >&2
-  exit 1
-}
+# === Pre-exec: Start DB and Redis via docker compose (infra services only) ===
+# Spin up db and redis in detached mode. The app is launched natively (not via
+# compose app service) to enable hot-reload with tsx watch. The compose db/redis
+# services have healthchecks; we wait for them to be healthy before proceeding.
+# runtime-environment.md §3: DB-backed apps self-provide via compose; the wrapper
+# starts infrastructure, then runs migrate natively.
+echo "[pivota] starting infrastructure services (db, redis) via docker compose"
+docker compose up -d db redis
 
-# Wait for datastores to be healthy (up to 60s)
-echo "[pivota] waiting for postgres and redis to be healthy..."
-WAIT_TRIES=24
-for i in $(seq 1 $WAIT_TRIES); do
-  DB_STATUS=$(docker compose ps --format json db 2>/dev/null | python3 -c "import sys,json; data=sys.stdin.read().strip(); rows=data.split('\n') if data else []; print(next((json.loads(r).get('Health','') for r in rows if r.strip()),'' ))" 2>/dev/null || echo "")
-  REDIS_STATUS=$(docker compose ps --format json redis 2>/dev/null | python3 -c "import sys,json; data=sys.stdin.read().strip(); rows=data.split('\n') if data else []; print(next((json.loads(r).get('Health','') for r in rows if r.strip()),'' ))" 2>/dev/null || echo "")
-  if [[ "$DB_STATUS" == "healthy" && "$REDIS_STATUS" == "healthy" ]]; then
-    echo "[pivota] datastores healthy (postgres + redis)"
+# Wait for db to be healthy (up to 60s, polling every 3s).
+# The compose healthcheck is pg_isready — we rely on docker's own status.
+echo "[pivota] waiting for db to become healthy..."
+DB_HEALTHY=0
+for i in $(seq 1 20); do
+  STATUS=$(docker compose ps --format json db 2>/dev/null | python3 -c "import sys,json; d=[json.loads(l) for l in sys.stdin if l.strip()]; print(d[0].get('Health','') if d else '')" 2>/dev/null || true)
+  if [[ "$STATUS" == "healthy" ]]; then
+    DB_HEALTHY=1
+    echo "[pivota] db is healthy"
     break
   fi
-  if [[ "$i" == "$WAIT_TRIES" ]]; then
-    echo "[pivota] WARNING: datastores may not be healthy after ${WAIT_TRIES}x5s; proceeding anyway (db=$DB_STATUS redis=$REDIS_STATUS)"
-  fi
-  sleep 5
+  sleep 3
 done
+if [[ "$DB_HEALTHY" == "0" ]]; then
+  echo "[pivota] WARNING: db did not report healthy within 60s — proceeding anyway (migrate may fail)"
+fi
 
-# === D-12: idempotent install via lockfile hash + presence check (root / backend) ===
+# === D-12: idempotent install via lockfile hash + presence check ===
+# Root package (Express backend): sentinel keyed on package-lock.json
 SENTINEL="/tmp/pivota-setup-sentinel"
-ROOT_LOCK="package-lock.json"
-ROOT_PRESENCE="node_modules"
-BACKEND_INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'
+LOCK_FILE_PATH="package-lock.json"
+INSTALL_PRESENCE_CHECK="node_modules"
+INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'
 
-run_root_install() {
-  echo "[pivota] running root install: $BACKEND_INSTALL_CMD"
+run_install() {
+  local dir="$1" lock_file="$2" sentinel_key="$3" install_cmd="$4" presence_check="$5"
+  local sentinel_file="${SENTINEL}-${sentinel_key}"
+  local prev_dir
+  prev_dir="$(pwd)"
+  cd "$dir"
+
+  if [[ -n "$lock_file" && -f "$lock_file" ]]; then
+    CURRENT_HASH=$(sha256sum "$lock_file" | cut -d' ' -f1)
+    PREVIOUS_HASH=$(cat "$sentinel_file" 2>/dev/null || echo "")
+    PRESENCE_OK=1
+    if [[ -n "$presence_check" && ! -e "$presence_check" ]]; then
+      PRESENCE_OK=0
+    fi
+    if [[ "$CURRENT_HASH" == "$PREVIOUS_HASH" && "$PRESENCE_OK" == "1" ]]; then
+      echo "[pivota] [$sentinel_key] lockfile unchanged AND install output present; skipping install"
+      cd "$prev_dir"
+      return 0
+    fi
+    if [[ "$PRESENCE_OK" == "0" ]]; then
+      echo "[pivota] [$sentinel_key] install output ($presence_check) missing; install required"
+    else
+      echo "[pivota] [$sentinel_key] lockfile changed (or first boot); install required"
+    fi
+  elif [[ -f "$sentinel_file" ]]; then
+    echo "[pivota] [$sentinel_key] no lockfile but sentinel exists; skipping install"
+    cd "$prev_dir"
+    return 0
+  fi
+
+  echo "[pivota] [$sentinel_key] running install: $install_cmd"
   local rc=0
-  bash -c "$BACKEND_INSTALL_CMD" || rc=$?
-  if (( rc == 0 )); then return 0; fi
-  if [[ "$BACKEND_INSTALL_CMD" == *"npm "* ]]; then
-    echo "[pivota] WARN root install failed (exit=$rc) — retrying with --legacy-peer-deps"
+  bash -c "$install_cmd" || rc=$?
+  if (( rc == 0 )); then
+    [[ -n "$CURRENT_HASH" ]] && echo "$CURRENT_HASH" > "$sentinel_file" || touch "$sentinel_file"
+    cd "$prev_dir"
+    return 0
+  fi
+  # D-12.1: npm ERESOLVE fallback
+  if [[ "$install_cmd" == *"npm "* ]]; then
+    echo "[pivota] WARN [$sentinel_key] install failed (exit=$rc) — retrying with --legacy-peer-deps"
     local rc2=0
     npm install --legacy-peer-deps || rc2=$?
     if (( rc2 == 0 )); then
-      echo "[pivota] WARN install succeeded via --legacy-peer-deps fallback"
+      echo "[pivota] WARN [$sentinel_key] install succeeded via --legacy-peer-deps fallback — fix package.json (real bug)"
+      [[ -n "$CURRENT_HASH" ]] && echo "$CURRENT_HASH" > "$sentinel_file" || touch "$sentinel_file"
+      cd "$prev_dir"
       return 0
     fi
     rc=$rc2
   fi
-  echo "[pivota] FATAL root install failed (exit=$rc) — backend cannot start" >&2
+  echo "[pivota] FATAL [$sentinel_key] install failed (exit=$rc) — dev server cannot start; resolve the dependency conflict" >&2
+  cd "$prev_dir"
   return "$rc"
 }
 
-ROOT_SENTINEL="${SENTINEL}-root"
-if [[ -f "$ROOT_LOCK" ]]; then
-  CURRENT_HASH=$(sha256sum "$ROOT_LOCK" | cut -d' ' -f1)
-  PREVIOUS_HASH=$(cat "$ROOT_SENTINEL" 2>/dev/null || echo "")
-  PRESENCE_OK=1
-  if [[ ! -e "$ROOT_PRESENCE" ]]; then PRESENCE_OK=0; fi
-  if [[ "$CURRENT_HASH" == "$PREVIOUS_HASH" && "$PRESENCE_OK" == "1" ]]; then
-    echo "[pivota] root lockfile unchanged AND node_modules present; skipping root install"
-  else
-    run_root_install
-    echo "$CURRENT_HASH" > "$ROOT_SENTINEL"
-  fi
+# Install root (backend) dependencies
+run_install "." "package-lock.json" "backend" \
+  "npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev" \
+  "node_modules"
+
+# Install client (frontend) dependencies
+run_install "client" "package-lock.json" "frontend" \
+  "npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev" \
+  "node_modules"
+
+# === Post-install: run DB migration and seed ===
+# Migrate runs AFTER install so node_modules (tsx, knex) exist.
+# Never uses psql/mysql CLIs (absent from sandbox image — runtime-environment.md §3/§5).
+# Non-fatal: a transient hiccup must not strand boot; errors are logged loudly.
+if [[ -n "${DATABASE_URL:-}" ]]; then
+  echo "[pivota] running database migration (npm run migrate)"
+  npm run migrate || echo "[pivota] WARNING: npm run migrate returned non-zero (continuing)"
+  echo "[pivota] running database seed (npm run seed)"
+  npm run seed || echo "[pivota] WARNING: npm run seed returned non-zero (continuing)"
 else
-  if [[ ! -f "${ROOT_SENTINEL}" ]]; then
-    run_root_install
-    touch "$ROOT_SENTINEL"
-  fi
+  echo "[pivota] WARNING: DATABASE_URL not set — skipping migrate/seed"
 fi
 
-# === Run DB migrations (after root install so tsx/knex exist in node_modules) ===
-# runtime-environment.md §3: migrate → seed → serve ordering.
-# The project declares `npm run migrate` which uses tsx to run src/db/migrate.ts.
-echo "[pivota] running DB migrations (npm run migrate)..."
-npm run migrate 2>&1 || echo "[pivota] WARNING: npm run migrate returned non-zero (continuing — DB may be already migrated or unavailable)"
-
-# Run seed if declared (makes preview usable with ≥1 login user / reference rows)
-if node -e "process.exit(((require('./package.json').scripts||{})['seed'])?0:1)" 2>/dev/null; then
-  echo "[pivota] running DB seed (npm run seed — idempotent)..."
-  npm run seed 2>&1 || echo "[pivota] WARNING: npm run seed returned non-zero (continuing)"
-fi
-
-# === D-12: idempotent install for client/ (Vite frontend) ===
-CLIENT_LOCK="client/package-lock.json"
-CLIENT_PRESENCE="client/node_modules"
-CLIENT_INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'
-CLIENT_SENTINEL="${SENTINEL}-client"
-
-run_client_install() {
-  echo "[pivota] running client install in client/: $CLIENT_INSTALL_CMD"
-  local rc=0
-  ( cd client && bash -c "$CLIENT_INSTALL_CMD" ) || rc=$?
-  if (( rc == 0 )); then return 0; fi
-  if [[ "$CLIENT_INSTALL_CMD" == *"npm "* ]]; then
-    echo "[pivota] WARN client install failed (exit=$rc) — retrying with --legacy-peer-deps"
-    local rc2=0
-    ( cd client && npm install --legacy-peer-deps ) || rc2=$?
-    if (( rc2 == 0 )); then
-      echo "[pivota] WARN client install succeeded via --legacy-peer-deps fallback"
-      return 0
-    fi
-    rc=$rc2
-  fi
-  echo "[pivota] FATAL client install failed (exit=$rc) — frontend cannot start" >&2
-  return "$rc"
-}
-
-if [[ -f "$CLIENT_LOCK" ]]; then
-  CURRENT_HASH=$(sha256sum "$CLIENT_LOCK" | cut -d' ' -f1)
-  PREVIOUS_HASH=$(cat "$CLIENT_SENTINEL" 2>/dev/null || echo "")
-  PRESENCE_OK=1
-  if [[ ! -e "$CLIENT_PRESENCE" ]]; then PRESENCE_OK=0; fi
-  if [[ "$CURRENT_HASH" == "$PREVIOUS_HASH" && "$PRESENCE_OK" == "1" ]]; then
-    echo "[pivota] client lockfile unchanged AND client/node_modules present; skipping client install"
-  else
-    run_client_install
-    echo "$CURRENT_HASH" > "$CLIENT_SENTINEL"
-  fi
-else
-  if [[ ! -f "${CLIENT_SENTINEL}" ]]; then
-    run_client_install
-    touch "$CLIENT_SENTINEL"
-  fi
-fi
-
-# === Write Vite allowedHosts overlay if needed ===
-# vite.config.ts already sets host: '0.0.0.0' and port: 5173.
-# allowedHosts is not set — add overlay so preview iframe can embed the sandbox origin.
-if [[ -f client/vite.config.ts && ! -f client/vite.config.pivota.ts ]]; then
-  if ! grep -q "allowedHosts" client/vite.config.ts 2>/dev/null; then
-    cat > client/vite.config.pivota.ts <<'EOF'
-// Auto-generated by pivota init-dev-server. Extends user's vite.config.ts at runtime
-// to set server.allowedHosts = true (sandbox preview embedding).
-// Remove this file if you set allowedHosts yourself in vite.config.ts.
-import { defineConfig, mergeConfig } from 'vite';
-import userConfig from './vite.config';
-export default defineConfig((env) => mergeConfig(
-  typeof userConfig === 'function' ? userConfig(env) : userConfig,
-  { server: { allowedHosts: true } }
-));
-EOF
-    echo "[pivota] wrote client/vite.config.pivota.ts (allowedHosts overlay)"
-  fi
-fi
-
-# === Multi-process supervision: backend + frontend (RESEARCH.md Pattern 3) ===
-# bash trap + background PIDs + wait -n. No concurrently/pm2/supervisord.
-# Defense-in-depth bash version guard:
+# === Multi-process: backend + frontend via trap + wait -n (RESEARCH.md Pattern 3) ===
+# DO NOT use concurrently/pm2/supervisord — bash trap+wait -n is zero-dep and uniform.
+# Defense-in-depth bash version guard (multi-process-template.md prerequisite check).
 if (( BASH_VERSINFO[0] < 4 )) || { (( BASH_VERSINFO[0] == 4 )) && (( BASH_VERSINFO[1] < 3 )); }; then
   echo "[pivota] multi-process block requires bash 4.3+ for wait -n; found ${BASH_VERSION}" >&2
   exit 127
 fi
+
+declare -a PIDS=()
 
 shutdown() {
   echo "[pivota] shutting down children"
@@ -242,38 +231,40 @@ shutdown() {
   sleep 2
   kill -KILL "${PIDS[@]}" 2>/dev/null || true
   wait
-  # Stop compose datastores cleanly
-  docker compose stop db redis 2>/dev/null || true
 }
 trap shutdown SIGTERM SIGINT EXIT
 
-declare -a PIDS=()
-
-# Process 1: Express/TypeScript backend (port 3000)
-# tsx watch provides hot-reload and needs no prebuilt dist/ (runtime-environment.md §7).
+# Process 1: Express backend (tsx watch — hot-reload, no build needed)
+# tsx watch reads src/server.ts directly; no dist/ needed (runtime-environment.md §7).
+# Server already binds 0.0.0.0 in code; PORT defaults to 3000.
 (
-  cd /home/daytona/project \
+  cd . \
+    && export PORT="${PORT:-3000}" HOST=0.0.0.0 \
     && exec bash -c 'npm run dev'
 ) 2>&1 | sed 's/^/[backend] /' &
 PIDS+=($!)
 
-# Process 2: React/Vite frontend (port 5173)
-# Uses overlay config if present for allowedHosts; vite.config.ts already sets
-# host: '0.0.0.0' and port: 5173.
+# Process 2: Vite frontend (client/ subdirectory)
+# vite.config.ts already sets host: '0.0.0.0' and port: 5173.
+# vite.config.pivota.ts overlay (already present) sets allowedHosts: true for sandbox preview.
+# --host 0.0.0.0 is passed explicitly as belt-and-suspenders (Vite ignores env vars for binding).
 (
-  cd /home/daytona/project/client \
-    && exec bash -c 'npm run dev -- --config vite.config.pivota.ts --host 0.0.0.0 2>/dev/null || npm run dev -- --host 0.0.0.0'
+  cd client \
+    && : \
+    && exec bash -c 'npm run dev -- --config vite.config.pivota.ts --host 0.0.0.0 --strictPort 2>/dev/null || npm run dev -- --host 0.0.0.0'
 ) 2>&1 | sed 's/^/[frontend] /' &
 PIDS+=($!)
 
-echo "[pivota] backend (port 3000) and frontend (port 5173) launched; supervising..."
+echo "[pivota] backend (port 3000) and frontend (port 5173) started; waiting for either to exit"
 
 # Wait for ANY child to exit; if one dies, the trap tears down siblings.
 wait -n
 EXIT_CODE=$?
+echo "[pivota] a child process exited with code $EXIT_CODE; shutting down"
 shutdown
 exit "$EXIT_CODE"
 
 # === END PIVOTA PREAMBLE ===
 # Below this marker, projects may add custom shutdown / setup logic.
-# This region is PRESERVED across regenerations.
+# This region is PRESERVED across regenerations (plan 06's regen logic detects
+# the marker and re-appends user content verbatim after re-emitting the preamble).
