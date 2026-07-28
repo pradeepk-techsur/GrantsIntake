@@ -82,7 +82,7 @@ export function ApplicantLayout() {
             {/* Main content */}
             <main
               id="main-content"
-              className="usa-layout-docs__main desktop:grid-col-9 usa-prose"
+              className="usa-layout-docs__main desktop:grid-col-9"
               tabIndex={-1}
             >
               <Outlet />
