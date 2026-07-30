@@ -152,102 +152,104 @@ export function AttachmentManager({ workspaceId, requirementId }: AttachmentMana
       {displayAttachments.length === 0 ? (
         <p className="usa-hint">No attachments yet. Upload a file or link from your document library.</p>
       ) : (
-        <table className="usa-table usa-table--borderless" style={{ width: '100%' }} data-testid="attachment-list">
-          <thead>
-            <tr>
-              <th>File Name</th>
-              <th>Source</th>
-              <th>Version</th>
-              <th>Uploaded</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayAttachments.map((att: WorkspaceAttachment) => (
-              <tr key={att.attachment_id}>
-                <td>
-                  {att.file_name ?? '(unnamed)'}
-                  {att.mime_type && (
-                    <div className="usa-hint" style={{ fontSize: '0.8rem' }}>{att.mime_type}</div>
-                  )}
-                </td>
-                <td>
-                  <span className="usa-tag">
-                    {att.source_type === 'upload' ? 'Upload' : 'Library'}
-                  </span>
-                </td>
-                <td>v{att.version_number}</td>
-                <td>{new Date(att.uploaded_at).toLocaleDateString()}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                      type="button"
-                      className="usa-button usa-button--unstyled"
-                      onClick={() => setShowVersions(
-                        showVersions === att.attachment_id ? null : att.attachment_id
-                      )}
-                      style={{ fontSize: '0.875rem' }}
-                    >
-                      {showVersions === att.attachment_id ? 'Hide Versions' : 'View Versions'}
-                    </button>
-                    <button
-                      type="button"
-                      className="usa-button usa-button--unstyled usa-button--secondary"
-                      onClick={() => setConfirmDelete(att.attachment_id)}
-                      style={{ fontSize: '0.875rem' }}
-                      data-testid={`delete-attachment-btn-${att.attachment_id}`}
-                    >
-                      Delete
-                    </button>
-                  </div>
-
-                  {/* Version history inline */}
-                  {showVersions === att.attachment_id && versions.length > 0 && (
-                    <div style={{ marginTop: '0.5rem', background: '#f0f0f0', padding: '0.5rem', borderRadius: '4px' }}>
-                      <strong style={{ fontSize: '0.85rem' }}>Version History:</strong>
-                      <ul className="usa-list usa-list--unstyled" style={{ marginTop: '0.25rem' }}>
-                        {versions.map((v: WorkspaceAttachment) => (
-                          <li key={v.attachment_id} style={{ fontSize: '0.85rem' }}>
-                            v{v.version_number} — {v.file_name ?? '(unnamed)'}{' '}
-                            <span className="usa-hint">
-                              ({v.is_active ? 'active' : 'superseded'})
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Delete confirmation */}
-                  {confirmDelete === att.attachment_id && (
-                    <div style={{ marginTop: '0.5rem', background: '#fff1f1', padding: '0.5rem', borderRadius: '4px', border: '1px solid #b50909' }}>
-                      <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem' }}>
-                        Are you sure? This will mark the attachment as inactive.
-                      </p>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button
-                          type="button"
-                          className="usa-button usa-button--secondary usa-button--small"
-                          onClick={() => deleteMutation.mutate(att.attachment_id)}
-                          disabled={deleteMutation.isPending}
-                        >
-                          Yes, delete
-                        </button>
-                        <button
-                          type="button"
-                          className="usa-button usa-button--unstyled usa-button--small"
-                          onClick={() => setConfirmDelete(null)}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </td>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="usa-table usa-table--borderless" style={{ width: '100%' }} data-testid="attachment-list">
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Source</th>
+                <th>Version</th>
+                <th>Uploaded</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {displayAttachments.map((att: WorkspaceAttachment) => (
+                <tr key={att.attachment_id}>
+                  <td>
+                    {att.file_name ?? '(unnamed)'}
+                    {att.mime_type && (
+                      <div className="usa-hint" style={{ fontSize: '0.8rem' }}>{att.mime_type}</div>
+                    )}
+                  </td>
+                  <td>
+                    <span className="usa-tag">
+                      {att.source_type === 'upload' ? 'Upload' : 'Library'}
+                    </span>
+                  </td>
+                  <td>v{att.version_number}</td>
+                  <td>{new Date(att.uploaded_at).toLocaleDateString()}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        className="usa-button usa-button--unstyled"
+                        onClick={() => setShowVersions(
+                          showVersions === att.attachment_id ? null : att.attachment_id
+                        )}
+                        style={{ fontSize: '0.875rem' }}
+                      >
+                        {showVersions === att.attachment_id ? 'Hide Versions' : 'View Versions'}
+                      </button>
+                      <button
+                        type="button"
+                        className="usa-button usa-button--unstyled usa-button--secondary"
+                        onClick={() => setConfirmDelete(att.attachment_id)}
+                        style={{ fontSize: '0.875rem' }}
+                        data-testid={`delete-attachment-btn-${att.attachment_id}`}
+                      >
+                        Delete
+                      </button>
+                    </div>
+
+                    {/* Version history inline */}
+                    {showVersions === att.attachment_id && versions.length > 0 && (
+                      <div style={{ marginTop: '0.5rem', background: '#f0f0f0', padding: '0.5rem', borderRadius: '4px' }}>
+                        <strong style={{ fontSize: '0.85rem' }}>Version History:</strong>
+                        <ul className="usa-list usa-list--unstyled" style={{ marginTop: '0.25rem' }}>
+                          {versions.map((v: WorkspaceAttachment) => (
+                            <li key={v.attachment_id} style={{ fontSize: '0.85rem' }}>
+                              v{v.version_number} — {v.file_name ?? '(unnamed)'}{' '}
+                              <span className="usa-hint">
+                                ({v.is_active ? 'active' : 'superseded'})
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Delete confirmation */}
+                    {confirmDelete === att.attachment_id && (
+                      <div style={{ marginTop: '0.5rem', background: '#fff1f1', padding: '0.5rem', borderRadius: '4px', border: '1px solid #b50909' }}>
+                        <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem' }}>
+                          Are you sure? This will mark the attachment as inactive.
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            className="usa-button usa-button--secondary usa-button--small"
+                            onClick={() => deleteMutation.mutate(att.attachment_id)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            Yes, delete
+                          </button>
+                          <button
+                            type="button"
+                            className="usa-button usa-button--unstyled usa-button--small"
+                            onClick={() => setConfirmDelete(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

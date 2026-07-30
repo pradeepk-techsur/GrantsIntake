@@ -35,8 +35,8 @@ export function ReadinessDashboard({ workspaceId }: ReadinessDashboardProps) {
 
   if (isLoading) {
     return (
-      <div className="usa-prose">
-        <p>Loading readiness…</p>
+      <div>
+        <p className="usa-hint">Loading readiness…</p>
       </div>
     );
   }
