@@ -368,6 +368,38 @@ async function seed() {
       uatOpportunityId = uatOpportunityResult.rows[0].opportunity_id;
     }
 
+    // 3b. Second published opportunity (UAT-OPP-002) — NO workspace seeded, enables Start Application UAT Test 2
+    const existingUatOpportunity2 = await pool.query(
+      `SELECT opportunity_id FROM opportunities WHERE opportunity_number = $1`,
+      ['UAT-OPP-002'],
+    );
+    if (existingUatOpportunity2.rows.length === 0) {
+      await pool.query(
+        `INSERT INTO opportunities (
+           program_id, title, funding_source, announcement_type, opportunity_number,
+           eligibility_summary, executive_summary, contact_name, contact_email,
+           program_area, funding_amount_max, status, created_by
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+        [
+          uatProgramId,
+          'UAT Community Health Grant 2',
+          'UAT Federal Agency',
+          'Initial',
+          'UAT-OPP-002',
+          'Open to 501(c)(3) nonprofits in urban communities.',
+          'Supports non-profit organizations developing health programs for urban communities.',
+          'UAT Program Officer',
+          'uat-officer@example.gov',
+          'Public Health',
+          150000.00,
+          'published',
+          adminUserId,
+        ],
+      );
+    }
+    console.log('Seeded UAT-OPP-002 (no workspace — enables Start Application flow) (idempotent)');
+
     // 4. Applicant organization for applicant@example.com
     const existingUatOrg = await pool.query(
       `SELECT org_id FROM organizations WHERE legal_name = $1`,
