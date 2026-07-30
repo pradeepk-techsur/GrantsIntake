@@ -51,7 +51,13 @@ export function SectionFormPanel({ section, workspaceId }: SectionFormPanelProps
         response_json: isJson ? value : undefined,
       });
     },
-    onSuccess: () => refetch(),
+    onSuccess: () => {
+      refetch();
+      // Clear the "Saved ✓" indicator after 2 s so it doesn't persist
+      // while the user edits subsequent fields (TanStack Query v5 keeps
+      // isSuccess === true until reset() is called explicitly).
+      setTimeout(() => saveMutation.reset(), 2000);
+    },
   });
 
   // ─── Validate section mutation ────────────────────────────────────────────
