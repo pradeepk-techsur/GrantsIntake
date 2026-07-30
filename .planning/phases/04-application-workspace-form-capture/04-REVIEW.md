@@ -1,103 +1,113 @@
 ---
 phase: 4
 status: issues_found
-blockers: 0
+blockers: 2
 warnings: 3
-files_reviewed: 11
+files_reviewed: 8
 files_reviewed_list:
-  - client/src/pages/applicant/OpportunityDetailPage.tsx
+  - client/src/pages/auth/LoginPage.tsx
+  - client/src/App.tsx
   - client/src/pages/applicant/WorkspacePage.tsx
-  - client/src/components/workspace/ReadinessDashboard.tsx
-  - e2e/workspacePreview.spec.ts
-  - client/src/components/workspace/AttachmentManager.tsx
-  - client/src/components/workspace/BudgetBuilder.tsx
-  - src/db/seed.ts
-  - src/routes/publicOpportunities.ts
-  - src/services/workspace/workspaceService.ts
-  - src/routes/workspaces.ts
-  - src/db/migrations/010_org_profile_schema.sql
-reviewed_at: 2026-07-28T03:28:55Z
-iteration: 2
+  - client/src/layouts/ApplicantLayout.tsx
+  - client/src/components/workspace/WorkspaceSectionPanel.tsx
+  - client/src/components/workspace/SectionFormPanel.tsx
+  - e2e/workspace-layout-fixes.spec.ts
+  - e2e/formFields.spec.ts
+reviewed_at: 2026-07-30T15:25:56Z
+iteration: 3
 ---
 
-# Phase 4 Code Review
+# Phase 4 Code Review — Gap Closure Iteration (Plans 04-10 + 04-11)
 
 ## BLOCKERs
 
-_None._
+### B1: Three pre-existing `formFields.spec.ts` tests navigate directly to `/applicant/applications` without login and will always redirect to `/login` in a clean browser context
+- **File:** `e2e/formFields.spec.ts`:26, 49, 74
+- **Category:** bug (test reliability / false-pass by unconditional skip)
+- **Evidence:**
+  Tests `'text field triggers onBlur save'` (line 23), `'required field shows error message when left blank'` (line 47), and the newly added `'blurring a text field shows Saving… indicator'` (line 67) all call `page.goto('/applicant/applications')` after either no login at all (lines 26, 49) or a `page.goto('/login')` sequence followed by a second full-reload `page.goto('/applicant/applications')` (line 74).
+
+  `ApplicantLayout` auth-guards every `/applicant/*` route with `if (!accessToken) return <Navigate to="/login" replace />` where `accessToken` lives **only in Zustand in-memory state** (confirmed `authStore.ts:14` — no persistence). A `page.goto(...)` triggers a full browser navigation which destroys the current JS heap, zeroing the Zustand store. After the full reload the `accessToken` is `null` and the guard fires, redirecting to `/login`.
+
+  For the **new** auto-save indicator test (line 67): the user _does_ log in (line 68-72) and then waits for `**/applicant/**`, but then calls `page.goto('/applicant/applications')` at line 74 which causes a new full-page reload that clears the token. The `ApplicantLayout` guard redirects to `/login`. The `/login` page has no `[data-testid="workspace-card"]`, so `cards.count()` returns 0, the test hits `test.skip(true, 'No workspaces seeded…')` at line 79, and the **entire Saving… / Saved ✓ assertion block (lines 83–109) is never reached**. The plan 04-11 goal — verifying the auto-save indicator — is never actually tested.
+
+  For lines 26 and 49: no login attempt at all — same redirect-to-login outcome.
+
+  This is a BLOCKER because the primary UAT deliverable of plan 04-11 (auto-save visual feedback) is verified by a test that silently skips instead of asserting.
+- **Fix direction:** Replace the `page.goto('/applicant/applications')` calls with the `history.pushState` + `PopStateEvent` in-SPA navigation pattern already applied in `workspace-layout-fixes.spec.ts` (lines 43-46 of that file). The login sequence must precede the SPA navigation. Apply the same fix to all three affected tests in `formFields.spec.ts`.
 
 ---
 
-## B1 — RESOLVED ✓
+### B2: `Saved ✓` indicator persists indefinitely after the first successful save — never clears between field blurs
+- **File:** `client/src/components/workspace/SectionFormPanel.tsx`:102-110
+- **Category:** bug (incorrect UI state — misleading persistent indicator)
+- **Evidence:**
+  TanStack Query v5 mutation state (`"@tanstack/react-query": "^5.101.4"` confirmed in `client/package.json:14`) keeps `isSuccess === true` after a mutation completes and **never resets it automatically**. The only reset vectors are: (a) calling `saveMutation.reset()`, (b) calling `saveMutation.mutate()` again (which transitions to `isPending=true` first), or (c) component unmount/remount. No `saveMutation.reset()` call exists anywhere in `SectionFormPanel.tsx` (confirmed by full file read and grep).
 
-**commit 804c348** — `workspace-status` uses `org_roles` JOIN instead of non-existent `applicant_user_id` column.
+  Concrete sequence:
+  1. User blurs field A → `saveMutation.mutate()` → `isPending=true` → "Saving…" shown.
+  2. Mutation resolves → `isSuccess=true`, `isPending=false` → "Saved ✓" shown. **Correct.**
+  3. User types in field B (no blur yet) → `isSuccess` remains `true` → "Saved ✓" still shown. **Misleading — field B is not yet saved.**
+  4. User blurs field B → `saveMutation.mutate()` again → during the new in-flight window `isPending=true` so "Saving…" is shown, "Saved ✓" hidden. **Correct briefly.**
+  5. After field B resolves → "Saved ✓" shown again. **Correct.**
 
-**Verification:** The fix at `publicOpportunities.ts:212-219` replaces the invalid `applicant_user_id = $2` predicate with:
-```sql
-SELECT aw.workspace_id FROM application_workspaces aw
-JOIN org_roles orr ON orr.org_id = aw.org_id
-WHERE aw.opportunity_id = $1
-  AND orr.user_id = $2
-  AND orr.revoked_at IS NULL
-LIMIT 1
-```
-Schema confirmed: `org_roles` (migration 010) has `org_id`, `user_id`, `revoked_at` exactly as required. Fix is correct and complete.
+  The problem is step 3: "Saved ✓" remains visible while the user is actively editing a different field whose changes have not been saved. This violates the PRD-INTAKE-038 intent of showing feedback "after save completes" (implying transient feedback, not a sticky banner). The `!saveMutation.isPending` guard on line 102 only hides the "Saved ✓" during an active save, but does not clear it between user interactions.
 
----
-
-## B2 — RESOLVED ✓
-
-**commit 34bab0a** — three coordinated changes:
-
-1. **`workspaceService.ts:63-84`** — On `23505` unique violation, the inner transaction client is now in an aborted state; the fix correctly uses the pool (not the aborted `client`) to SELECT the existing `workspace_id`, attaches it to the thrown error as `dupErr.workspace_id`. The thrown `dupErr` propagates to the outer `catch` at line 111 which issues a `ROLLBACK` (benign on an already-aborted transaction) then `client.release()`. Control flow is correct.
-
-2. **`workspaces.ts:115-121`** — The 409 response is now `{ error: 'DUPLICATE_WORKSPACE', message: '...', workspace_id: dupErr.workspace_id }`, exposing the ID to callers. If `existingWorkspaceId` was not found (inner SELECT failed), `workspace_id` is `undefined`, which serialises to omission in JSON — the `onError` condition then evaluates false and silently does nothing, which is the documented fallback behaviour.
-
-3. **`OpportunityDetailPage.tsx:129-131`** — `error_code` → `error`, matching the backend field name. Field alignment between the 409 JSON (`error`, `workspace_id`) and the frontend type annotation (`{ error?: string; workspace_id?: string }`) is now correct.
-
-**Verification:** All three seams checked end-to-end. No regression introduced.
+  Additionally, the `onSuccess` callback at line 54 calls `refetch()` which causes a query invalidation re-render. After the refetch, `isSuccess` stays `true` because TanStack Query v5 does not auto-reset mutation state on query refetch.
+- **Fix direction:** Add a `useEffect` that calls `saveMutation.reset()` after a short delay (e.g., 2000 ms) once `saveMutation.isSuccess` becomes true, clearing the indicator back to neutral state. A `setTimeout` inside `onSuccess` calling `saveMutation.reset()` is the simplest approach.
 
 ---
 
 ## WARNINGs
 
-### W1: E2E test "preview page does not contain internal comments" runs without authentication — always skips in CI
-
+### W1 (carried from iteration 2 — unchanged): E2E test "preview page does not contain internal comments" runs without authentication — always skips in CI
 - **File:** `e2e/workspacePreview.spec.ts`:30-46
-- **Evidence:**
-  The test navigates directly to `/applicant/applications` at line 31 without calling the login flow. `ApplicantLayout` auth-guards this route and redirects unauthenticated users to `/login`. The resulting `/login` page contains no `[data-testid="workspace-card"]` elements, so `cards.count()` returns 0 and the test unconditionally hits `test.skip(true, ...)`. The test never verifies that internal comments are absent from the preview page. The first and third tests in the same file correctly perform a login sequence before navigating.
-- **Fix direction:** Add the same login sequence (lines 4-8 of the first test) at the beginning of this test before navigating to `/applicant/applications`.
+- **Evidence:** Test navigates directly to `/applicant/applications` without login. `ApplicantLayout` redirects to `/login`; no workspace cards found; `test.skip` unconditionally fires. Not in this iteration's change set — flagged as pre-existing.
 
 ---
 
-### W2: USWDS inner grid columns sum to 9 of 12 — 3 columns unused in workspace layout
-
-- **File:** `client/src/pages/applicant/WorkspacePage.tsx`:115-134
-- **Evidence:**
-  The `grid-row` is a child of the `desktop:grid-col-9` main content area. In USWDS, a nested `grid-row` creates a new 12-column context; children should sum to 12 to fill the container. The 04-08 fix changes `grid-col-3+grid-col-6+grid-col-3=12` to `grid-col-2+grid-col-5+grid-col-2=9`, leaving 3 of 12 inner columns permanently empty — approximately 25% of available horizontal space is unused. If the prior "visual overlap" was real, the root cause may be the `usa-prose` `max-width` constraint on `<main>` rather than USWDS column overflow; reducing child column counts is not the correct USWDS remedy.
-- **Fix direction:** Revert to `grid-col-3+grid-col-6+grid-col-3` (sum=12). If `usa-prose` max-width was causing overflow, remove `usa-prose` from the layout wrapper element or move it to specific section panels only.
+### W2 (carried from iteration 2 — now RESOLVED by plan 04-10): USWDS inner grid columns summing to 9 of 12
+- **Status: RESOLVED.** `WorkspacePage.tsx` lines 116, 123, 132 now correctly use `grid-col-3 + grid-col-6 + grid-col-3 = 12`. W2 is closed.
 
 ---
 
-### W3: `BudgetBuilder` "Add Line Item" button disappears with no cancel affordance when accordion collapses while add-form is open
-
+### W3 (carried from iteration 2): `BudgetBuilder` "Add Line Item" button disappears with no cancel affordance when accordion collapses while add-form is open
 - **File:** `client/src/components/workspace/BudgetBuilder.tsx`:258-276
+- **Evidence:** Not touched in plans 04-10 or 04-11 — pre-existing defect, unchanged.
+
+---
+
+### W4: `LoginPage.tsx` JSDoc comment still says "redirects to /grantor/dashboard" after the routing change
+- **File:** `client/src/pages/auth/LoginPage.tsx`:7
 - **Evidence:**
-  The "Add Line Item" button renders when `{!isAdding}` (line 258). The add form renders inside `{isExpanded && (...)}` (line 276) when `isAdding` is true. If a user: (1) clicks the add button → `isAdding=true`, accordion expands, form appears; (2) clicks the accordion header to collapse it → `isExpanded=false`. The add form is hidden (correct), but the "Add Line Item" button is also hidden (`isAdding` is still `true`). The accordion header is now the only interactive element; clicking it re-expands without warning the user that partially entered data is waiting. The user's only recovery is to expand the accordion and click "Cancel" inside the re-revealed form — a discoverability failure introduced by the 04-08 fix.
-- **Fix direction:** When the accordion is collapsed (`toggleCategory` causes `isExpanded` to become false) and `addingCategory === category`, also call `setAddingCategory(null)` and `setFormState(emptyForm)` to abort the in-progress add. Alternatively, render a minimal cancel affordance outside the `{isExpanded}` gate when `isAdding` is true.
+  Line 7 reads `* On success: redirects to /grantor/dashboard.` The actual logic at line 26 routes non-grantor users to `/applicant/applications` and only grantor admins to `/grantor/dashboard`. The stale comment misleads anyone reading the contract.
+- **Fix direction:** Update the JSDoc to: `On success: grantor_admin → /grantor/dashboard; applicants → /applicant/applications.`
+
+---
+
+### W5: `history.pushState` + `PopStateEvent` SPA-navigation workaround does not reliably trigger React Router's URL update in all Chromium builds
+- **File:** `e2e/workspace-layout-fixes.spec.ts`:24-27, 43-46, 89-92
+- **Category:** bug (test reliability)
+- **Evidence:**
+  React Router v6 (`BrowserRouter`) listens to the `popstate` event on `window`, but the listener is registered by the internal `@remix-run/router` which wraps the native history API. Firing a raw `new PopStateEvent('popstate')` bypasses the router's own history wrapper — the event does reach the `window` listener, so React Router _does_ pick it up in most cases. However, the `pushState` call changes the browser's location but the router's internal `state` object (the second arg `{}`) does not carry the router-managed location state. In Chromium's Playwright implementation, `page.evaluate` runs synchronously and the `popstate` event dispatch is also synchronous, but React's state update is asynchronous (scheduled microtask/batched render). The test then immediately calls `await expect(page).toHaveURL(...)` without awaiting a React re-render.
+
+  The `{ timeout: 5000 }` on the first test (line 28) gives React time to respond, making that test resilient. However, in the second and third tests (lines 47, 93), `await expect(page).toHaveURL(/applicant\/applications/)` has **no explicit timeout** — it falls back to the Playwright config default of `5000 ms` (playwright.config.ts line 8). With `fullyParallel: false` and `workers: 1` this is likely fine in practice, but the workaround is fragile: it depends on the `popstate` event reliably triggering React Router's internal history listener, which is an implementation detail of `@remix-run/router` not covered by Playwright's navigation primitives. If React Router changes its event subscription strategy (e.g., in a future v6 patch), these tests will silently fail or race.
+
+  The more robust alternative — using Playwright's `storageState` / cookie-based auth persisted in `playwright.config.ts` — would make `page.goto` safe and eliminate the workaround entirely. The current approach is functional but brittle.
+- **Fix direction:** This is a WARNING rather than a BLOCKER because the tests do pass today (as documented in the 04-10-SUMMARY.md). The long-term fix is to use Playwright's `storageState` with a persistent session cookie (the httpOnly refresh cookie IS written to browser storage and survives page reloads — only the in-memory Zustand token is lost). Alternatively, implement `localStorage`/`sessionStorage` persistence in `authStore.ts` behind an explicit test flag.
 
 ---
 
 ## Cross-file seams checked
 
-- `workspaceApi.createWorkspace` → `POST /api/v1/workspaces` → response shape `{ workspace, sections }` matches client expectation → **OK**
-- `OpportunityDetailPage` 409 `DUPLICATE_WORKSPACE` handler reads `response.data.error` + `response.data.workspace_id` ↔ backend now emits `{ error, message, workspace_id }` → **RESOLVED (was B2)**
-- `workspace-status` route queries `org_roles JOIN application_workspaces` on `user_id` ↔ `org_roles` schema confirmed to have `org_id`, `user_id`, `revoked_at` columns → **RESOLVED (was B1)**
-- `workspaceService.createWorkspace` uses `pool` (not aborted `client`) for the duplicate workspace_id SELECT → control flow ROLLBACK → release is correct → **OK**
-- `WorkspacePage` preview link `to="/applicant/workspaces/${workspaceId}/preview"` ↔ `ReadinessDashboard` same path ↔ `WorkspacePreviewPage` registered at that route → **OK**
-- `data-testid="preview-application-link"` in `WorkspacePage.tsx:106` ↔ E2E locator `[data-testid="preview-application-link"]` at `workspacePreview.spec.ts:68` → **OK**
-- `data-testid="draft-preview-banner"` in `WorkspacePreviewPage.tsx:50` ↔ E2E assertion at `workspacePreview.spec.ts:21` → **OK**
-- `form_field_definitions` seed uses `uatOpportunityId` (FK to `opportunities`) and `narrativeSectionId` (FK to `application_sections`) — both resolved correctly from prior seed steps → **OK**
-- `BudgetBuilder` `add-line-item-btn-${category}` testid ↔ no E2E test directly exercises this button (no integration risk) → **OK**
-- `AttachmentManager` `usa-button-group ul > li` markup + clip-positioned file input → no downstream consumer mismatch → **OK**
-- E2E test 2 (`preview page does not contain internal comments`) missing login → unconditionally skips → **WARNING W1 (unchanged)**
+- `LoginPage.tsx:26` `navigate('/applicant/applications')` ↔ `App.tsx:56` `<Route path="applications" element={<WorkspaceListPage />} />` — route registered, **OK**
+- `App.tsx:52` `<Navigate to="/applicant/applications" replace />` on index ↔ same `applications` route — **OK**
+- `WorkspacePage.tsx` `grid-col-3 + grid-col-6 + grid-col-3` — USWDS grid sum = 12, fills `desktop:grid-col-9` parent — **OK**
+- `ApplicantLayout.tsx:85` `<main>` className — `usa-prose` absent, confirmed no output from grep — **OK**
+- `WorkspaceSectionPanel.tsx:63` root `<div>` — `usa-prose` absent, confirmed no output from grep — **OK**
+- `WorkspacePage.tsx` still uses `usa-prose` at lines 42, 88, 127 for loading state / page header / empty-state divs — these are targeted, non-layout wrappers; not double-nested with layout since `ApplicantLayout` no longer carries `usa-prose` on `<main>` — **OK**
+- `SectionFormPanel.tsx:97` `saveMutation.isPending` → renders `[data-testid="save-status-saving"]` ↔ `formFields.spec.ts:104` asserts `[data-testid="save-status-saving"]` visibility — structural match, **OK** (test reliability is a separate issue, see B1)
+- `SectionFormPanel.tsx:102` `saveMutation.isSuccess && !saveMutation.isPending` → renders `[data-testid="save-status-saved"]` ↔ `formFields.spec.ts:108` asserts `[data-testid="save-status-saved"]` — structural match, **OK** (persistent indicator is a separate issue, see B2)
+- `e2e/workspace-layout-fixes.spec.ts:50` `waitForSelector('[data-testid="workspace-list"]')` ↔ `WorkspaceListPage.tsx:40,47` both branches emit `data-testid="workspace-list"` (empty-state div at line 40, card-group div at line 47) — **OK**
+- `useAuth.ts:32-36` `login()` returns `response.data` (shape `{ user: { roles: string[] }, access_token, refresh_token }`) ↔ `LoginPage.tsx:25` reads `result.user?.roles?.includes('grantor_admin')` — type matches `AuthResponse.user.roles: string[]` — **OK**
+- `authStore.ts` — in-memory only, no persistence — explains why `page.goto()` after login clears the token; root cause of B1 and W5 — **documented**
