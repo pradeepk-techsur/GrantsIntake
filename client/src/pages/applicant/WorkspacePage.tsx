@@ -23,6 +23,20 @@ export function WorkspacePage() {
     enabled: !!workspaceId,
   });
 
+  // Secondary fetch for opportunity title (public endpoint — no auth needed for published opps)
+  const opportunityQuery = useQuery({
+    queryKey: ['opportunity-title', workspaceQuery.data?.opportunity_id],
+    queryFn: async () => {
+      const oppId = workspaceQuery.data!.opportunity_id;
+      const res = await fetch(`/api/v1/opportunities/${oppId}`);
+      if (!res.ok) return null;
+      const data = await res.json() as { title?: string };
+      return data.title ?? null;
+    },
+    enabled: !!workspaceQuery.data?.opportunity_id,
+    staleTime: 5 * 60_000, // opportunity title rarely changes
+  });
+
   // Zustand: local UI state for active section
   const { activeSectionType, setActiveSectionType } = useWorkspaceStore();
 
@@ -95,7 +109,9 @@ export function WorkspacePage() {
           )}
         </h1>
         {workspace && (
-          <p className="usa-hint">Opportunity: {workspace.opportunity_id}</p>
+          <p className="usa-hint">
+            Opportunity: {opportunityQuery.data ?? workspace.opportunity_id}
+          </p>
         )}
         {/* Preview Application link */}
         {workspaceId && (
@@ -120,7 +136,7 @@ export function WorkspacePage() {
             onSectionSelect={setActiveSectionType}
           />
         </div>
-        <div className="grid-col-6" data-testid="workspace-section-content">
+        <div className="grid-col-6" data-testid="workspace-section-content" style={{ overflow: 'hidden' }}>
           {activeSection ? (
             <WorkspaceSectionPanel section={activeSection} workspaceId={workspaceId!} />
           ) : (
