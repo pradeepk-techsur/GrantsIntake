@@ -1,6 +1,7 @@
 ---
 phase: 4
 gate_status: passed
+review_blockers_open: 0
 build_command: "npm run build"
 test_command: "npm test"
 last_updated: "2026-07-27T19:25:00.000Z"
@@ -29,7 +30,7 @@ phase_gate:
   total_tests: 220
   failed_tests: 0
   note: "Final regression gate after gap closure 04-06 — all 220 tests green (217 + 3 new serverHeaders tests). Code review: clean after 2 iterations."
-boot_smoke: skipped
+boot_smoke: pass
 review_status: clean
 review_iterations: 2
 ---
@@ -148,3 +149,46 @@ review_iterations: 2
 | Preview Application link | Test 10 | ✓ closed | preview-application-link in WorkspacePage:106, readiness-preview-link in ReadinessDashboard:184 |
 
 boot_smoke: pass
+
+## Gap Closure Wave — Plans 04-10, 04-11
+
+- Build: `npm run build` → pass (exit 0, tsc clean)
+- Tests: `npm test` → 220/220 pass (exit 0)
+- Fix attempts: 0/3
+- Status: PASSED
+
+Plans executed:
+- 04-10: Login redirect fix (/applicant/applications), WorkspacePage grid 3+6+3=12, remove double usa-prose nesting from ApplicantLayout + WorkspaceSectionPanel, Playwright regression tests (Zustand in-memory token fix)
+- 04-11: SectionFormPanel Saving…/Saved ✓ usa-hint indicators (saveMutation.isPending/isSuccess), Playwright test in formFields.spec.ts
+
+## Code Review — Plans 04-10, 04-11
+
+- Iteration 1: 2 BLOCKERs found (B1: formFields.spec.ts always-skip test, B2: Saved ✓ never clears)
+- Iteration 2: clean — 0 BLOCKERs, 3 advisory WARNINGs (W1: workspacePreview skip, W4: stale JSDoc, W5: PopStateEvent fragility)
+- Commits: 91cac16 (B1 fix), 66e13bc (B2 fix)
+
+## Phase Gate (Final — Post Gap Closure 04-10/11 + Code Review Fixes)
+
+- Build: `npm run build` → pass (exit 0, tsc clean)
+- Tests: `npm test` → 220/220 pass (exit 0)
+- Code review: clean after 2 iterations (B1: formFields.spec.ts SPA navigation fix, B2: saveMutation.reset() 2s timeout)
+- Warnings: 3 advisory — no gaps
+- Status: passed
+
+## Boot Smoke Gate — Post 04-10/11
+
+- Backend (port 3000): HTTP 200
+- Frontend (port 5173): HTTP 200
+- Fatal markers: none
+- boot_smoke: pass
+- Note: DATABASE_URL not injected at wrapper start-time (same pattern as prior gates); migrations already applied; manual DATABASE_URL export + restart confirmed clean boot
+
+## Gap Redrive Results (04-10/11)
+
+| Gap | Tests | Redrive Result | Evidence |
+|-----|-------|---------------|---------|
+| Login redirect to /applicant/applications | 3, 5 | ✓ closed | LoginPage.tsx:26 navigate('/applicant/applications'); App.tsx:52 Navigate to='/applicant/applications' |
+| WorkspacePage grid 3+6+3=12 | 3, 5, 7, 9 | ✓ closed | grid-col-3 (×2) + grid-col-6 (×1) in WorkspacePage.tsx; sum=12 |
+| No double usa-prose nesting | 6, 7, 9 | ✓ closed | ApplicantLayout main: no usa-prose; WorkspaceSectionPanel root: no usa-prose |
+| Auto-save Saving…/Saved ✓ indicators | 6 | ✓ closed | SectionFormPanel.tsx:103-115 — saveMutation.isPending → save-status-saving, isSuccess → save-status-saved |
+| Saved ✓ indicator clears after 2s | 6 | ✓ closed | SectionFormPanel.tsx:59 — setTimeout(() => saveMutation.reset(), 2000) in onSuccess |
