@@ -36,6 +36,8 @@ iteration: 3
   This is a BLOCKER because the primary UAT deliverable of plan 04-11 (auto-save visual feedback) is verified by a test that silently skips instead of asserting.
 - **Fix direction:** Replace the `page.goto('/applicant/applications')` calls with the `history.pushState` + `PopStateEvent` in-SPA navigation pattern already applied in `workspace-layout-fixes.spec.ts` (lines 43-46 of that file). The login sequence must precede the SPA navigation. Apply the same fix to all three affected tests in `formFields.spec.ts`.
 
+**Resolution:** fixed (91cac16) — Added login sequence to the two tests that previously had none, then replaced every `page.goto('/applicant/applications')` call with the `history.pushState` + `PopStateEvent` SPA-navigation pattern. All four tests now preserve the in-memory Zustand token and will reach their assertion blocks. `tsc --noEmit` clean.
+
 ---
 
 ### B2: `Saved ✓` indicator persists indefinitely after the first successful save — never clears between field blurs
@@ -55,6 +57,8 @@ iteration: 3
 
   Additionally, the `onSuccess` callback at line 54 calls `refetch()` which causes a query invalidation re-render. After the refetch, `isSuccess` stays `true` because TanStack Query v5 does not auto-reset mutation state on query refetch.
 - **Fix direction:** Add a `useEffect` that calls `saveMutation.reset()` after a short delay (e.g., 2000 ms) once `saveMutation.isSuccess` becomes true, clearing the indicator back to neutral state. A `setTimeout` inside `onSuccess` calling `saveMutation.reset()` is the simplest approach.
+
+**Resolution:** fixed (66e13bc) — Added `setTimeout(() => saveMutation.reset(), 2000)` inside the `onSuccess` handler of `saveMutation` in `SectionFormPanel.tsx`. "Saved ✓" now auto-clears 2 s after each successful save, returning to neutral state before the user reaches a new field. `tsc --noEmit` clean.
 
 ---
 
