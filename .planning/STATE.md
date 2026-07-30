@@ -3,8 +3,8 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-11-PLAN.md
-last_updated: "2026-07-30T15:19:32.235Z"
+stopped_at: Completed 04-10-PLAN.md
+last_updated: "2026-07-30T15:22:04.854Z"
 last_activity: "2026-07-30 — Plan 04-11 complete: Auto-save indicator gap (UAT Test 6) closed"
 progress:
   total_phases: 7
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 4 of 6 (Application Workspace & Form Capture) — gap closure plans complete
-Plan: 11 of 11 in current phase — Plan 04-11 complete
-Status: Plan 04-11 Complete — Auto-save visual feedback (Saving… / Saved ✓) added to SectionFormPanel; Playwright test updated (PRD-INTAKE-038 UAT Test 6)
-Last activity: 2026-07-30 — Plan 04-11 complete: Auto-save indicator gap (UAT Test 6) closed
+Plan: 10 of 11 in current phase — Plan 04-10 complete
+Status: Plan 04-10 Complete — Login redirect, 3-col grid (3+6+3=12), double usa-prose removal confirmed; Playwright regression tests passing with in-SPA navigation fix
+Last activity: 2026-07-30 — Plan 04-10 complete: routing/layout fixes confirmed, Playwright tests all passing (0 skipped)
 
 Progress: [██████████] 97%
 
@@ -80,6 +80,7 @@ Progress: [██████████] 97%
 | Phase 04-application-workspace-form-capture P07 | 2min | 2 tasks | 4 files |
 | Phase 04-application-workspace-form-capture P08 | 3 min | 2 tasks | 3 files |
 | Phase 04-application-workspace-form-capture P11 | 3 min | 2 tasks | 2 files |
+| Phase 04-application-workspace-form-capture P10 | 5 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,7 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: Grid columns corrected 3+6+3=12 to 2+5+2=9 to fit desktop:grid-col-9 ApplicantLayout parent (UAT Test 5)
 - [Phase 04-application-workspace-form-capture]: BudgetBuilder Add Line Item button moved outside accordion gate to always-visible header; auto-expands accordion on click (UAT Test 7)
 - [Phase 04-application-workspace-form-capture]: Save indicator placed before field list for immediate visibility on blur; isSuccess && !isPending prevents flicker
+- [Phase 04-application-workspace-form-capture]: Playwright tests use window.history.pushState + PopStateEvent for in-SPA navigation to preserve Zustand in-memory accessToken across route changes
 
 ### Pending Todos
 
@@ -153,6 +155,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T15:19:32.234Z
-Stopped at: Completed 04-11-PLAN.md
+Last session: 2026-07-30T15:22:04.852Z
+Stopped at: Completed 04-10-PLAN.md
 Resume file: None
