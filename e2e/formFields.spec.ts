@@ -7,7 +7,15 @@ test('section form panel renders for active section', async ({ page }) => {
   await page.click('[type="submit"]');
   await page.waitForURL('**/applicant/**');
 
-  await page.goto('/applicant/applications');
+  // Navigate within SPA to preserve in-memory Zustand accessToken.
+  // page.goto('/applicant/applications') would cause a full reload,
+  // clearing Zustand state and triggering the auth guard to redirect to /login.
+  await page.evaluate(() => {
+    window.history.pushState({}, '', '/applicant/applications');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await expect(page).toHaveURL(/applicant\/applications/);
+
   const cards = page.locator('[data-testid="workspace-card"]');
   const count = await cards.count();
 
@@ -23,7 +31,19 @@ test('section form panel renders for active section', async ({ page }) => {
 test('text field triggers onBlur save', async ({ page }) => {
   // If form fields are configured, test that typing in a text field and blurring
   // triggers the save mutation (check network request or field state)
-  await page.goto('/applicant/applications');
+  await page.goto('/login');
+  await page.fill('[name="email"]', 'applicant@example.com');
+  await page.fill('[name="password"]', 'TestPass123!');
+  await page.click('[type="submit"]');
+  await page.waitForURL('**/applicant/**');
+
+  // Navigate within SPA to preserve in-memory Zustand accessToken.
+  await page.evaluate(() => {
+    window.history.pushState({}, '', '/applicant/applications');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await expect(page).toHaveURL(/applicant\/applications/);
+
   const cards = page.locator('[data-testid="workspace-card"]');
   const count = await cards.count();
 
@@ -46,7 +66,19 @@ test('text field triggers onBlur save', async ({ page }) => {
 
 test('required field shows error message when left blank', async ({ page }) => {
   // Verify USWDS error-message pattern renders for required field violations
-  await page.goto('/applicant/applications');
+  await page.goto('/login');
+  await page.fill('[name="email"]', 'applicant@example.com');
+  await page.fill('[name="password"]', 'TestPass123!');
+  await page.click('[type="submit"]');
+  await page.waitForURL('**/applicant/**');
+
+  // Navigate within SPA to preserve in-memory Zustand accessToken.
+  await page.evaluate(() => {
+    window.history.pushState({}, '', '/applicant/applications');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await expect(page).toHaveURL(/applicant\/applications/);
+
   const cards = page.locator('[data-testid="workspace-card"]');
   const count = await cards.count();
 
@@ -71,7 +103,15 @@ test('blurring a text field shows Saving… indicator', async ({ page }) => {
   await page.click('[type="submit"]');
   await page.waitForURL('**/applicant/**');
 
-  await page.goto('/applicant/applications');
+  // Navigate within SPA to preserve in-memory Zustand accessToken.
+  // page.goto('/applicant/applications') would cause a full reload,
+  // clearing Zustand state and triggering the auth guard to redirect to /login.
+  await page.evaluate(() => {
+    window.history.pushState({}, '', '/applicant/applications');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await expect(page).toHaveURL(/applicant\/applications/);
+
   const cards = page.locator('[data-testid="workspace-card"]');
   const count = await cards.count();
 
