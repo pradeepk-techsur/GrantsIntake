@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 04-application-workspace-form-capture
 source: 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, 04-04-SUMMARY.md, 04-05-SUMMARY.md, 04-07-SUMMARY.md, 04-08-SUMMARY.md, 04-09-SUMMARY.md, 04-10-SUMMARY.md, 04-11-SUMMARY.md
 started: 2026-07-30T16:12:36Z
-updated: 2026-07-30T16:35:00Z
+updated: 2026-07-30T16:40:00Z
 ---
 
 ## Current Test
@@ -121,6 +121,55 @@ per_test:
     - path: "src/db/seed.ts"
       issue: "Only one published opportunity seeded and workspace pre-created on it — no opportunity available to test the Start Application flow"
   missing:
-    - "Seed a second published opportunity without a pre-created workspace so UAT can test the Start Application button"
+    - "Seed a second published opportunity (UAT-OPP-002) without a pre-created workspace so UAT can test the Start Application button path"
+  debug_session: ""
+
+- truth: "Workspace page header shows opportunity title (not UUID); Readiness Dashboard is properly aligned in right column"
+  status: failed
+  reason: "User reported: The Application readiness dashboard is misaligned. Also, instead of showing opportunity name it shows the id on the top."
+  severity: major
+  test: 3
+  source: user
+  root_cause: "TWO bugs: (1) WorkspacePage.tsx:98 renders workspace.opportunity_id (raw UUID) instead of the opportunity title — the workspace API response does not include a title field and the component makes no secondary fetch for it. (2) ReadinessDashboard misalignment: the grid-col-3 right panel has no overflow:hidden, and the ReadinessDashboard card (usa-card) may be pushed out of position when the center content (grid-col-6) contains wide tables that overflow their column boundary without overflow:hidden."
+  artifacts:
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "Line 98: renders workspace.opportunity_id (UUID) — workspace API has no title field; component makes no secondary call to fetch opportunity title"
+    - path: "client/src/components/workspace/ReadinessDashboard.tsx"
+      issue: "Line 38: usa-prose wrapper in loading state; grid-col-3 right panel has no overflow:hidden to contain wide center-column tables from overlapping"
+  missing:
+    - "WorkspacePage.tsx: fetch opportunity title via GET /api/v1/public/opportunities/:id or join in workspace API; render as opportunity title, not UUID"
+    - "WorkspacePage.tsx: add overflow:hidden to grid-col-6 content container to prevent wide tables from overflowing into right column"
+  debug_session: ""
+
+- truth: "Readiness Dashboard shows completion percentage, ready-to-submit badge, and blocking errors in the right panel"
+  status: failed
+  reason: "User reported: Readiness dashboard is misaligned. I only see a preview application for /d0363e94-..."
+  severity: major
+  test: 5
+  source: user
+  root_cause: "Same root cause as Test 3 — the grid-col-6 content area has no overflow:hidden, allowing wide section tables (BudgetBuilder, AttachmentManager) to visually overlap the grid-col-3 right panel where ReadinessDashboard renders. The Readiness Dashboard component and API are functionally correct (completion: 0 confirmed); the issue is pure CSS overflow containment."
+  artifacts:
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "grid-col-6 content div has no overflow:hidden — wide tables overflow into grid-col-3 readiness panel column"
+  missing:
+    - "Add style={{overflow:'hidden'}} (or overflow-x:auto) to the grid-col-6 content div in WorkspacePage.tsx to contain table overflow"
+  debug_session: ""
+
+- truth: "Attachment table fits within the content column without overflowing past the Readiness Dashboard"
+  status: failed
+  reason: "User reported: upload successful but layout is misaligned. The table goes past the readiness dashboard"
+  severity: minor
+  test: 8
+  source: user
+  root_cause: "Same root cause as Tests 3 and 5 — AttachmentManager table (5 columns: filename, date, version, size, actions) is rendered in the grid-col-6 content div without overflow containment. The table's natural width exceeds the grid-col-6 boundary and visually overlaps the grid-col-3 right panel. Fix is overflow:hidden on the content div and overflow-x:auto on wide tables inside AttachmentManager and BudgetBuilder."
+  artifacts:
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "grid-col-6 content div has no overflow:hidden"
+    - path: "client/src/components/workspace/AttachmentManager.tsx"
+      issue: "usa-table with 5+ columns has no overflow-x:auto wrapper"
+  missing:
+    - "Add overflow:hidden to grid-col-6 content div in WorkspacePage.tsx"
+    - "Wrap AttachmentManager usa-table in div with overflow-x:auto for responsive table scrolling"
+    - "Same overflow-x:auto wrapper for BudgetBuilder table"
   debug_session: ""
 
