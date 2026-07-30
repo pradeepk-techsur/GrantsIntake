@@ -95,7 +95,7 @@ Plans:
   3. A readiness dashboard shows overall completion percentage, all blocking errors with links, missing required attachments, and authorized submitter role readiness — updated in real time
   4. Applicants can enter structured form data (text, number, currency, date, picklist, file upload, calculated fields, repeating tables) with character/page limits enforced and a structured budget with category-level validation against funding ceilings and match requirements
   5. Applicants can manage attachments with version history and generate a submission package preview showing exactly what the grantor will receive — without initiating submission
-**Plans:** 11 plans
+**Plans:** 13 plans
 
 Plans:
 - [x] 04-01-PLAN.md — Migration 012 (application_workspaces, application_sections, workspace_tasks, workspace_comments); WorkspaceService (createWorkspace with 9-section auto-create, uniqueness enforcement, IDOR guards); workspacesRouter (all workspace, section, task, comment endpoints; grantor 403 on comments at router layer); WorkspaceListPage + WorkspacePage (left-sidebar section nav, section-panel swap, no URL change); App.tsx + ApplicantSidebar wiring; integration + Playwright tests (PRD-INTAKE-030 F29, PRD-INTAKE-031 F30, PRD-INTAKE-032 F31, PRD-INTAKE-033 F32)
@@ -109,6 +109,8 @@ Plans:
 - [ ] 04-09-PLAN.md — Gap closure (UAT Test 9 cosmetic): AttachmentManager USWDS fixes — usa-button-group, clip-positioned file input, usa-table--borderless, usa-button--secondary delete button
 - [ ] 04-10-PLAN.md — Gap closure (UAT Tests 3+5+6+7+9): Fix login redirect to /applicant/applications, restore 3+6+3=12 grid columns in WorkspacePage, remove double usa-prose nesting from ApplicantLayout <main> and WorkspaceSectionPanel root div
 - [ ] 04-11-PLAN.md — Gap closure (UAT Test 6): Add Saving…/Saved ✓ visual feedback to SectionFormPanel for auto-save on blur (PRD-INTAKE-038)
+- [ ] 04-12-PLAN.md — Gap closure (UAT Test 2): Seed UAT-OPP-002 published opportunity without pre-created workspace, enabling Start Application CTA test path
+- [ ] 04-13-PLAN.md — Gap closure (UAT Tests 3+5+8): WorkspacePage fetch opportunity title (not UUID), overflow:hidden on content column, AttachmentManager overflow-x:auto table wrapper, ReadinessDashboard loading state fix
 
 ### Phase 5: Q&A, Submission & Validation
 **Goal**: Grantors can manage public Q&A and addenda with an auditable history; applicants experience continuous validation during drafting and can submit a fully certified, immutable application that is locked post-submission
