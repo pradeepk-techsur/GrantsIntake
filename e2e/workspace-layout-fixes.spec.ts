@@ -18,8 +18,14 @@ test.describe('Login redirect', () => {
     await page.click('[type="submit"]');
     await page.waitForURL('**/applicant/**');
 
-    await page.goto('/applicant');
-    await expect(page).toHaveURL(/applicant\/applications/);
+    // Navigate to /applicant using in-SPA history push (full page.goto would lose
+    // the in-memory Zustand accessToken, causing the auth guard to redirect to /login
+    // instead of letting React Router process the index redirect).
+    await page.evaluate(() => {
+      window.history.pushState({}, '', '/applicant');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    await expect(page).toHaveURL(/applicant\/applications/, { timeout: 5000 });
   });
 });
 
@@ -31,7 +37,17 @@ test.describe('Workspace 3-column layout', () => {
     await page.click('[type="submit"]');
     await page.waitForURL('**/applicant/**');
 
-    await page.goto('/applicant/applications');
+    // Navigate within SPA to preserve in-memory Zustand accessToken.
+    // page.goto('/applicant/applications') would cause a full reload,
+    // clearing Zustand state and triggering the auth guard to redirect to /login.
+    await page.evaluate(() => {
+      window.history.pushState({}, '', '/applicant/applications');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    await expect(page).toHaveURL(/applicant\/applications/);
+
+    // Wait for workspace list to render (React Query fetch completes)
+    await page.waitForSelector('[data-testid="workspace-list"]', { timeout: 10000 });
     const cards = page.locator('[data-testid="workspace-card"]');
     const count = await cards.count();
 
@@ -69,7 +85,15 @@ test.describe('Workspace 3-column layout', () => {
     await page.click('[type="submit"]');
     await page.waitForURL('**/applicant/**');
 
-    await page.goto('/applicant/applications');
+    // Navigate within SPA to preserve in-memory Zustand accessToken.
+    await page.evaluate(() => {
+      window.history.pushState({}, '', '/applicant/applications');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    await expect(page).toHaveURL(/applicant\/applications/);
+
+    // Wait for workspace list to render (React Query fetch completes)
+    await page.waitForSelector('[data-testid="workspace-list"]', { timeout: 10000 });
     const cards = page.locator('[data-testid="workspace-card"]');
     const count = await cards.count();
 
