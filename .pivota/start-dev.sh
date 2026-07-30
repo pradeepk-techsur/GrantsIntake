@@ -27,12 +27,16 @@
 #     used for backend and frontend to enable hot-reload via tsx watch).
 #   - DB/Redis launched via `docker compose up -d db redis` (detached infra only);
 #     the app service in compose uses `npm run start` (compiled dist/), which is
-#     wrong for dev — we run the backend natively via `npm run dev` (tsx watch).
+#     wrong for dev hot-reload — we run the backend natively via `npm run dev`
+#     (tsx watch src/server.ts). DATABASE_URL=localhost:5432 works because docker
+#     compose maps port 5432 to the host (5432:5432 in compose file).
 #   - Multi-process block (trap+wait -n) per RESEARCH.md Pattern 3 (no
 #     concurrently/pm2/supervisord — bash is zero-dep and uniform across stacks).
 #   - DB migrate runs AFTER npm ci (node_modules must exist for tsx/knex to work).
-#     Uses the project's own `npm run migrate` script (never psql/mysql —
-#     absent from sandbox image; runtime-environment.md §3/§5).
+#     Uses the project's own `npm run migrate` + `npm run seed` scripts (never
+#     psql/mysql CLIs — absent from sandbox image; runtime-environment.md §3/§5).
+#   - Vite: host:0.0.0.0 is already in client/vite.config.ts; allowedHosts overlay
+#     written to client/vite.config.pivota.ts once (idempotent) for iframe preview.
 
 set -euo pipefail
 
@@ -66,7 +70,7 @@ echo "[pivota] $(date -Iseconds) start-dev.sh begin (catalog: agent-synthesized)
 # === D-11.1 + D-11.2: per-stack 0.0.0.0 binding + host allowlist relaxation ===
 # Express backend already binds 0.0.0.0 in src/server.ts (app.listen(port, '0.0.0.0')).
 # HOST=0.0.0.0 is set defensively for any downstream tooling reading $HOST.
-# Vite frontend: --host 0.0.0.0 is passed via CLI in the exec command.
+# Vite frontend: --host 0.0.0.0 is passed via CLI and configured in client/vite.config.ts.
 # NOTE: Vite does NOT honor HOST/VITE_HOST env vars (RESEARCH.md Pitfall 1);
 # binding is forced via --host CLI flag and allowedHosts via vite.config.pivota.ts.
 # DO NOT set NODE_ENV=production — it strips devDependencies (tsx, typescript)
@@ -123,39 +127,58 @@ if [[ ! -f .env && -f .env.example ]]; then
 fi
 
 # === Pre-exec: Start DB and Redis via docker compose (infra services only) ===
-# Spin up db and redis in detached mode. The app service is intentionally NOT
-# started via compose: the compose app service runs `npm run start` (compiled
-# dist/) which requires a build step — wrong for dev hot-reload. We launch the
-# backend natively via `npm run dev` (tsx watch src/server.ts) below.
-# The compose DB and Redis services have healthchecks; we wait for db healthy
-# before running migrate. runtime-environment.md §3: the compose file IS how a
-# DB-backed app provides its DB; the wrapper starts infra, then runs migrate natively.
+# Spin up db and redis in detached mode. The compose app service is intentionally
+# NOT started: it runs `npm run start` (compiled dist/) which requires a prior build —
+# wrong for hot-reload dev. We launch the backend natively via `npm run dev`
+# (tsx watch src/server.ts) below.
+# DATABASE_URL=localhost:5432 works because compose maps 5432:5432 to the host.
+# Runtime-environment.md §3: the compose file IS how a DB-backed app provides its DB.
 if docker info >/dev/null 2>&1; then
   echo "[pivota] starting infrastructure services (db, redis) via docker compose"
   docker compose up -d db redis
 
-  # Wait for db to be healthy (up to 60s, polling every 3s).
+  # Wait for db to be healthy (up to 90s, polling every 3s = 30 retries).
   echo "[pivota] waiting for db to become healthy..."
   DB_HEALTHY=0
-  for _i in $(seq 1 20); do
-    DB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$(docker compose ps -q db 2>/dev/null)" 2>/dev/null || echo "")
-    if [[ "$DB_STATUS" == "healthy" ]]; then
-      DB_HEALTHY=1
-      echo "[pivota] db is healthy"
-      break
+  for _i in $(seq 1 30); do
+    DB_CONTAINER=$(docker compose ps -q db 2>/dev/null || echo "")
+    if [[ -n "$DB_CONTAINER" ]]; then
+      DB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$DB_CONTAINER" 2>/dev/null || echo "")
+      if [[ "$DB_STATUS" == "healthy" ]]; then
+        DB_HEALTHY=1
+        echo "[pivota] db is healthy"
+        break
+      fi
     fi
     sleep 3
   done
   if [[ "$DB_HEALTHY" == "0" ]]; then
-    echo "[pivota] WARNING: db did not report healthy within 60s — proceeding anyway (migrate may fail)"
+    echo "[pivota] WARNING: db did not report healthy within 90s — proceeding anyway (migrate may fail)"
+  fi
+
+  # Wait for redis to be healthy (up to 30s).
+  REDIS_HEALTHY=0
+  for _i in $(seq 1 10); do
+    REDIS_CONTAINER=$(docker compose ps -q redis 2>/dev/null || echo "")
+    if [[ -n "$REDIS_CONTAINER" ]]; then
+      REDIS_STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$REDIS_CONTAINER" 2>/dev/null || echo "")
+      if [[ "$REDIS_STATUS" == "healthy" ]]; then
+        REDIS_HEALTHY=1
+        echo "[pivota] redis is healthy"
+        break
+      fi
+    fi
+    sleep 3
+  done
+  if [[ "$REDIS_HEALTHY" == "0" ]]; then
+    echo "[pivota] WARNING: redis did not report healthy within 30s — proceeding anyway"
   fi
 else
-  echo "[pivota] WARNING: docker is not available in this sandbox — cannot start db/redis infra; DATABASE_URL must be injected by platform"
+  echo "[pivota] WARNING: docker is not available in this sandbox — cannot start db/redis infra; DATABASE_URL/REDIS_URL must be injected by platform"
 fi
 
 # === D-12: idempotent install via lockfile hash + presence check ===
-# Helper: runs install for a given directory, lockfile, and command.
-# Sentinel files are keyed per subdirectory to avoid collisions.
+# Keyed sentinel per subdirectory to avoid collisions between root and client.
 SENTINEL_BASE="/tmp/pivota-setup-sentinel"
 
 run_install_dir() {
@@ -226,14 +249,15 @@ run_install_dir() {
   cd "$prev_dir"
 }
 
-# Install root (Express backend) dependencies — includes dev deps (tsx, typescript)
+# Install root (Express backend) dependencies — MUST include dev deps (tsx, typescript).
+# Never omit-dev / production install before the dev runner; tsx is a devDependency.
 run_install_dir "backend" "." "package-lock.json" \
-  "npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev" \
+  "npm ci --include=dev 2>/dev/null || npm install --include=dev" \
   "node_modules"
 
-# Install client (Vite React frontend) dependencies
+# Install client (Vite React frontend) dependencies.
 run_install_dir "frontend" "client" "package-lock.json" \
-  "npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev" \
+  "npm ci --include=dev 2>/dev/null || npm install --include=dev" \
   "node_modules"
 
 # === Post-install: Vite allowedHosts overlay for sandbox preview embedding ===
@@ -241,6 +265,8 @@ run_install_dir "frontend" "client" "package-lock.json" \
 # This sidecar extends vite.config.ts at runtime to set server.allowedHosts=true,
 # enabling the preview iframe. The overlay approach leaves the user's config untouched.
 # Vite does NOT honor HOST/VITE_ALLOWED_HOSTS env vars (RESEARCH.md Pitfall 1).
+# Note: client/vite.config.ts already sets host:'0.0.0.0' so binding is fine;
+# the overlay only adds allowedHosts relaxation for the preview iframe.
 if [[ ! -f client/vite.config.pivota.ts ]]; then
   if [[ -f client/vite.config.ts ]] && ! grep -q "allowedHosts" client/vite.config.ts 2>/dev/null; then
     cat > client/vite.config.pivota.ts <<'VITE_EOF'
@@ -258,10 +284,11 @@ VITE_EOF
   fi
 fi
 
-# === Post-install: DB migration ===
+# === Post-install: DB migration and seed ===
 # Migrate runs AFTER install so node_modules (tsx, knex) exist.
 # Never uses psql/mysql CLIs — absent from sandbox image (runtime-environment.md §3/§5).
-# Non-fatal: a transient hiccup must not strand boot; errors are logged loudly.
+# Idempotent: the migrate.ts script checks schema_migrations and skips applied ones.
+# Non-fatal on transient failure: a hiccup must not strand boot; errors are logged loudly.
 if [[ -n "${DATABASE_URL:-}" ]]; then
   echo "[pivota] running database migration (npm run migrate)"
   npm run migrate || echo "[pivota] WARNING: npm run migrate returned non-zero (continuing — app may serve on empty schema)"
@@ -272,7 +299,7 @@ else
 fi
 
 # === Multi-process supervision (RESEARCH.md Pattern 3) ===
-# backend (port 3000) + frontend (port 5173) run in parallel.
+# backend (port 3000) + frontend (port 5173) run in parallel under bash trap+wait -n.
 # DO NOT use concurrently/pm2/supervisord — bash trap+wait -n is zero-dep and uniform.
 
 # Defense-in-depth bash version guard (multi-process-template.md prerequisite check).
@@ -293,9 +320,9 @@ shutdown() {
 }
 trap shutdown SIGTERM SIGINT EXIT
 
-# Process 1: Express backend (tsx watch — hot-reload, no build needed)
+# Process 1: Express backend (tsx watch — hot-reload, no build needed).
 # tsx watch reads src/server.ts directly; no dist/ needed (runtime-environment.md §7).
-# Server binds 0.0.0.0 in code; PORT defaults to 3000 from preamble above.
+# Server binds 0.0.0.0 in src/server.ts; PORT defaults to 3000 from preamble above.
 (
   cd . \
     && export PORT="${PORT:-3000}" HOST=0.0.0.0 \
@@ -303,10 +330,9 @@ trap shutdown SIGTERM SIGINT EXIT
 ) 2>&1 | sed 's/^/[backend] /' &
 PIDS+=($!)
 
-# Process 2: Vite React frontend (client/ subdirectory)
-# Attempts overlay config (allowedHosts) first; falls back to raw --host flag.
-# --host 0.0.0.0 forces binding on all interfaces for preview reachability.
-# vite.config.ts already has host: '0.0.0.0' and port: 5173 in the proxy config.
+# Process 2: Vite React frontend (client/ subdirectory).
+# Attempts overlay config first (adds allowedHosts=true); falls back to plain --host.
+# --host 0.0.0.0 forces binding on all interfaces (client/vite.config.ts already sets this).
 (
   cd client \
     && : \
