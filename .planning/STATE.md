@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-10-PLAN.md
-last_updated: "2026-07-30T15:22:04.854Z"
-last_activity: "2026-07-30 — Plan 04-11 complete: Auto-save indicator gap (UAT Test 6) closed"
+stopped_at: Completed 04-12-PLAN.md
+last_updated: "2026-07-30T19:35:22.760Z"
+last_activity: "2026-07-30 — Plan 04-10 complete: routing/layout fixes confirmed, Playwright tests all passing (0 skipped)"
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 29
-  completed_plans: 29
+  completed_phases: 3
+  total_plans: 31
+  completed_plans: 30
   percent: 97
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 4 of 6 (Application Workspace & Form Capture) — gap closure plans complete
-Plan: 10 of 11 in current phase — Plan 04-10 complete
-Status: Plan 04-10 Complete — Login redirect, 3-col grid (3+6+3=12), double usa-prose removal confirmed; Playwright regression tests passing with in-SPA navigation fix
-Last activity: 2026-07-30 — Plan 04-10 complete: routing/layout fixes confirmed, Playwright tests all passing (0 skipped)
+Plan: 12 of 12 in current phase — Plan 04-12 complete (all gap closure plans done)
+Status: Plan 04-12 Complete — UAT-OPP-002 seed added (no workspace, enables Start Application CTA for UAT Test 2)
+Last activity: 2026-07-30 — Plan 04-12 complete: UAT-OPP-002 published opportunity seeded without workspace in src/db/seed.ts
 
 Progress: [██████████] 97%
 
@@ -81,6 +81,7 @@ Progress: [██████████] 97%
 | Phase 04-application-workspace-form-capture P08 | 3 min | 2 tasks | 3 files |
 | Phase 04-application-workspace-form-capture P11 | 3 min | 2 tasks | 2 files |
 | Phase 04-application-workspace-form-capture P10 | 5 min | 2 tasks | 1 files |
+| Phase 04-application-workspace-form-capture P12 | 5 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,7 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: BudgetBuilder Add Line Item button moved outside accordion gate to always-visible header; auto-expands accordion on click (UAT Test 7)
 - [Phase 04-application-workspace-form-capture]: Save indicator placed before field list for immediate visibility on blur; isSuccess && !isPending prevents flicker
 - [Phase 04-application-workspace-form-capture]: Playwright tests use window.history.pushState + PopStateEvent for in-SPA navigation to preserve Zustand in-memory accessToken across route changes
+- [Phase 04-application-workspace-form-capture]: No workspace row seeded for UAT-OPP-002 — absence of workspace enables Start Application CTA (PRD-INTAKE-030 UAT Test 2)
 
 ### Pending Todos
 
@@ -155,6 +157,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T15:22:04.852Z
-Stopped at: Completed 04-10-PLAN.md
+Last session: 2026-07-30T19:35:22.759Z
+Stopped at: Completed 04-12-PLAN.md
 Resume file: None
