@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '../../store/authStore';
 import { qaApi } from '../../api/qaApi';
 import type { QAItem } from '../../types/qa';
 
@@ -24,10 +25,25 @@ export function QAManagementPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [successId, setSuccessId] = useState<string | null>(null);
 
+  const accessToken = useAuthStore((s) => s.accessToken);
+
   const questionsQuery = useQuery<QAItem[]>({
     queryKey: ['qa-all', opportunityId],
     queryFn: () => qaApi.listAll(opportunityId!),
     enabled: !!opportunityId,
+  });
+
+  // Fetch opportunity title for display (public endpoint — grantor is authenticated)
+  const titleQuery = useQuery<string | null>({
+    queryKey: ['opportunity-title', opportunityId],
+    queryFn: async () => {
+      const res = await fetch(`/api/v1/opportunities/${opportunityId}`);
+      if (!res.ok) return null;
+      const data = await res.json() as { title?: string };
+      return data.title ?? null;
+    },
+    enabled: !!opportunityId,
+    staleTime: 5 * 60_000,
   });
 
   const publishMutation = useMutation({
@@ -69,8 +85,8 @@ export function QAManagementPage() {
     <div style={{ padding: '1.5rem' }}>
       <div className="usa-prose">
         <h1>Q&amp;A Management</h1>
-        <p style={{ color: '#565c65', fontSize: '0.9rem' }}>
-          Opportunity: {opportunityId}
+        <p style={{ color: '#565c65', fontSize: '0.9rem' }} data-testid="qa-opportunity-title">
+          Opportunity: {titleQuery.data ?? opportunityId}
         </p>
       </div>
 
@@ -115,6 +131,20 @@ export function QAManagementPage() {
 
       {/* Questions table */}
       {questionsQuery.isLoading && <p>Loading questions…</p>}
+
+      {questionsQuery.isError && (
+        <div className="usa-alert usa-alert--error" role="alert" data-testid="qa-list-error">
+          <div className="usa-alert__body">
+            <h4 className="usa-alert__heading">Unable to Load Questions</h4>
+            <p className="usa-alert__text">
+              {(questionsQuery.error as { status?: number })?.status === 401 ||
+              (questionsQuery.error as { status?: number })?.status === 403
+                ? 'You do not have permission to view questions for this opportunity. Please ensure you are logged in with a grantor account.'
+                : 'Failed to load questions. Please try again.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {questionsQuery.data && filteredQuestions.length === 0 && (
         <p style={{ color: '#565c65' }}>No questions match the current filter.</p>
