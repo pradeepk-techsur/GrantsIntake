@@ -49,6 +49,15 @@ export function WorkspacePage() {
   // Zustand: local UI state for active section
   const { activeSectionType, setActiveSectionType } = useWorkspaceStore();
 
+  // Seed localStorage.applicant_org_id from workspace data so useIsAuthorizedRep
+  // works even when the user never visited OrgProfilePage (pre-seeded org scenario).
+  // Phase 3 decision: org_id stored in localStorage key 'applicant_org_id' — non-sensitive UUID.
+  useEffect(() => {
+    if (workspaceQuery.data?.org_id) {
+      localStorage.setItem('applicant_org_id', workspaceQuery.data.org_id);
+    }
+  }, [workspaceQuery.data?.org_id]);
+
   // Initialize active section to first visible section on load
   useEffect(() => {
     if (sectionsQuery.data && !activeSectionType) {
