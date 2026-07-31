@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-07-31T05:03:49.796Z"
+stopped_at: Completed 05-07-PLAN.md
+last_updated: "2026-07-31T19:54:47.708Z"
 last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
 progress:
   total_phases: 9
-  completed_phases: 5
-  total_plans: 36
-  completed_plans: 36
+  completed_phases: 4
+  total_plans: 38
+  completed_plans: 37
   percent: 97
 ---
 
@@ -87,6 +87,7 @@ Progress: [█████████▒] 97%
 | Phase 05-q-a-submission-validation P02 | 12 min | 2 tasks | 17 files |
 | Phase 05-q-a-submission-validation P04 | 3 min | 2 tasks | 3 files |
 | Phase 05-q-a-submission-validation P05 | 3 min | 2 tasks | 2 files |
+| Phase 05-q-a-submission-validation P07 | 1 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -163,6 +164,9 @@ Recent decisions affecting current work:
 - [Phase 05-q-a-submission-validation]: CompletenessChecklist phaseNote field and isPhase2 render branch removed entirely — no remaining usages after Phase 2 placeholder removal
 - [Phase 05-q-a-submission-validation]: localStorage.applicant_org_id populated via useEffect in WorkspacePage — org is pre-seeded, user may never visit OrgProfilePage creation path
 - [Phase 05-q-a-submission-validation]: budget/attachments/certifications sections excluded from SECTION_FIELDS seeding — dedicated UIs (BudgetBuilder/AttachmentManager) and POST /certify handle those sections
+- [Phase 05-q-a-submission-validation]: useIsAuthorizedRep accepts orgId as prop (not localStorage) — React Query reactive, no stale-closure on first render
+- [Phase 05-q-a-submission-validation]: certify() UPDATE application_sections section_type=certifications after INSERT (PRD-INTAKE-050 — certifications section now flips to complete)
+- [Phase 05-q-a-submission-validation]: attachments section auto-marked complete when 0 requirements — idempotent WHERE status=not_started; overall_completion_pct recomputed after mutation
 
 ### Pending Todos
 
@@ -174,6 +178,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-31T05:03:49.795Z
-Stopped at: Completed 05-05-PLAN.md
+Last session: 2026-07-31T19:54:47.706Z
+Stopped at: Completed 05-07-PLAN.md
 Resume file: None
