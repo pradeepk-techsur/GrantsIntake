@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-07-31T02:23:23Z"
-last_activity: "2026-07-31 — Plan 05-01 complete: Q&A backend + frontend, migration 015, notification service"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-07-31T02:40:33Z"
+last_activity: "2026-07-31 — Plan 05-02 complete: Validation engine, certification, submit gate"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 34
-  completed_plans: 32
-  percent: 94
+  completed_plans: 33
+  percent: 97
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 5 of 7 (Q&A, Submission & Validation)
-Plan: 1 of 3 in current phase — Plan 05-01 complete
-Status: Plan 05-01 Complete — Migration 015 (qa_items, certifications, submission_snapshots with immutability triggers), Q&A backend + frontend, notification service
-Last activity: 2026-07-31 — Plan 05-01 complete: Q&A flow with window enforcement, audit trails, grantor/applicant UIs
+Plan: 2 of 3 in current phase — Plan 05-02 complete
+Status: Plan 05-02 Complete — Validation engine (three-tier), certification service (SHA-256), submit gate
+Last activity: 2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate
 
-Progress: [█████████▒] 94%
+Progress: [█████████▒] 97%
 
 ## Performance Metrics
 
@@ -84,6 +84,7 @@ Progress: [█████████▒] 94%
 | Phase 04-application-workspace-form-capture P12 | 5 min | 1 tasks | 1 files |
 | Phase 04-application-workspace-form-capture P13 | 9min | 2 tasks | 5 files |
 | Phase 05-q-a-submission-validation P01 | 13 min | 2 tasks | 13 files |
+| Phase 05-q-a-submission-validation P02 | 12 min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,9 @@ Recent decisions affecting current work:
 - [Phase 05-q-a-submission-validation]: audit_events column is 'payload' (not 'metadata') — aligned to existing schema from Phase 1
 - [Phase 05-q-a-submission-validation]: Notification via audit_events: NOTIFICATION_SENT per workspace with payload containing notification_type, IDs, workspace_link — Phase 6 adds real email delivery
 - [Phase 05-q-a-submission-validation]: Q&A window enforcement via opportunity.qa_config JSONB (enabled, question_window_open, question_window_close) — no extra migration needed
+- [Phase 05-q-a-submission-validation]: org_roles query uses `roles @> '["authorized_representative"]'::jsonb` (JSONB array), not role_type column
+- [Phase 05-q-a-submission-validation]: workspace_comments uses posted_by/visibility columns per migration 012 schema (not author_user_id/is_internal)
+- [Phase 05-q-a-submission-validation]: useIsAuthorizedRep hook queries GET /organizations/:org_id/roles — no new backend endpoint needed for client-side AR detection
 
 ### Pending Todos
 
@@ -164,6 +168,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-31T02:23:23Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-07-31T02:40:33Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
