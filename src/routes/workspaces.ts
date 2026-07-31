@@ -6,6 +6,7 @@ import { workspaceService } from '../services/workspace/workspaceService';
 import { readinessService } from '../services/workspace/readinessService';
 import { validationService } from '../services/workspace/validationService';
 import { certificationService } from '../services/workspace/certificationService';
+import { submissionService } from '../services/workspace/submissionService';
 import { formFieldService } from '../services/workspace/formFieldService';
 import { budgetService } from '../services/workspace/budgetService';
 import { attachmentService } from '../services/workspace/attachmentService';
@@ -718,4 +719,61 @@ workspacesRouter.get('/workspaces/:id/certification', async (req: Request, res: 
   if (!isMember) return sendError(res, 403, 'FORBIDDEN', 'You are not a member of this workspace\'s organization');
   const cert = await certificationService.getCertification(id);
   return res.json({ certified: !!cert, certification: cert ?? null });
+});
+
+// ─── Submission routes (F52/F53/F54) ──────────────────────────────────────────
+
+// POST /api/v1/workspaces/:id/submit — final submission
+workspacesRouter.post('/workspaces/:id/submit', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+  // IDOR: verify membership before submit
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return sendError(res, 404, 'NOT_FOUND', 'Workspace not found');
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return sendError(res, 403, 'FORBIDDEN', 'You are not a member of this workspace\'s organization');
+
+  try {
+    const confirmation = await submissionService.submit(id, req.user!.user_id);
+    return res.status(200).json(confirmation);
+  } catch (err: unknown) {
+    const e = err as Error & { status?: number; error_code?: string; blocking_errors?: unknown[]; code?: string };
+    if (e.status === 422 && e.error_code === 'SUBMISSION_BLOCKED') {
+      return res.status(422).json({
+        error_code: 'SUBMISSION_BLOCKED',
+        message: e.message,
+        blocking_errors: e.blocking_errors,
+      });
+    }
+    if (e.status === 409) {
+      return res.status(409).json({ error: e.code, message: e.message });
+    }
+    if (e.status === 404) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: e.message });
+    }
+    console.error('Submit error:', err);
+    return sendError(res, 500, 'INTERNAL_ERROR', 'Submission failed');
+  }
+});
+
+// GET /api/v1/workspaces/:id/receipt — submission receipt (applicant team)
+workspacesRouter.get('/workspaces/:id/receipt', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return sendError(res, 404, 'NOT_FOUND', 'Workspace not found');
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return sendError(res, 403, 'FORBIDDEN', 'You are not a member of this workspace\'s organization');
+
+  try {
+    const receipt = await submissionService.getReceipt(id);
+    return res.json(receipt);
+  } catch (err: unknown) {
+    const e = err as Error & { status?: number };
+    if (e.status === 404) return sendError(res, 404, 'NOT_FOUND', e.message);
+    console.error('Receipt error:', err);
+    return sendError(res, 500, 'INTERNAL_ERROR');
+  }
 });
