@@ -19,7 +19,8 @@ type BuilderSection =
   | 'prescreening'
   | 'conditional-sections'
   | 'attachments'
-  | 'screening';
+  | 'screening'
+  | 'qa';
 
 /**
  * Main Opportunity Builder page.
@@ -335,6 +336,17 @@ export function OpportunityBuilder() {
               Screening Criteria
             </button>
           </li>
+          <li>
+            <button
+              type="button"
+              className={`usa-button${activeSection === 'qa' ? '' : ' usa-button--outline'}`}
+              onClick={() => setActiveSection('qa')}
+              aria-current={activeSection === 'qa' ? 'page' : undefined}
+              data-testid="tab-qa"
+            >
+              Q&amp;A Management
+            </button>
+          </li>
         </ul>
       </nav>
 
@@ -370,6 +382,23 @@ export function OpportunityBuilder() {
           )}
           {activeSection === 'screening' && (
             <ScreeningCriteriaConfig opportunityId={opportunity.opportunity_id} />
+          )}
+          {activeSection === 'qa' && id && (
+            <section aria-labelledby="qa-management-heading">
+              <h2 id="qa-management-heading" className="usa-prose" style={{ marginTop: 0 }}>
+                Q&amp;A Management
+              </h2>
+              <p className="usa-prose">
+                Manage applicant questions and publish public answers for this opportunity.
+              </p>
+              <Link
+                to={`/grantor/opportunities/${id}/qa`}
+                className="usa-button"
+                data-testid="open-qa-management-link"
+              >
+                Open Q&amp;A Management Page
+              </Link>
+            </section>
           )}
         </div>
 
