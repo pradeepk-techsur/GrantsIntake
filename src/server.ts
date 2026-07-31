@@ -15,6 +15,7 @@ import { attachmentRequirementsRouter } from './routes/attachmentRequirements';
 import { screeningCriteriaRouter } from './routes/screeningCriteria';
 import { publicOpportunitiesRouter } from './routes/publicOpportunities';
 import { addendaRouter } from './routes/addenda';
+import { qaRouter } from './routes/qa';
 import { organizationsRouter } from './routes/organizations';
 import { workspacesRouter } from './routes/workspaces';
 
@@ -56,6 +57,7 @@ app.use('/api/v1/opportunity-templates', opportunityTemplatesRouter);
 // so unauthenticated GET /opportunities and GET /opportunities/:id take priority
 app.use('/api/v1', publicOpportunitiesRouter);
 app.use('/api/v1', addendaRouter);
+app.use('/api/v1', qaRouter);
 
 // Mount opportunities and guidance routes (plan 01-03)
 // Note: opportunitiesRouter handles both /programs/:id/opportunities and /opportunities/:id patterns
