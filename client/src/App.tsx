@@ -17,6 +17,8 @@ import { WorkspacePage } from './pages/applicant/WorkspacePage';
 import { WorkspaceListPage } from './pages/applicant/WorkspaceListPage';
 import { WorkspacePreviewPage } from './pages/applicant/WorkspacePreviewPage';
 import { QASubmitPage } from './pages/applicant/QASubmitPage';
+import { CertifySubmitPage } from './pages/applicant/CertifySubmitPage';
+import { SubmissionReceiptPage } from './pages/applicant/SubmissionReceiptPage';
 import { QAManagementPage } from './pages/grantor/QAManagementPage';
 
 const queryClient = new QueryClient({
@@ -58,6 +60,8 @@ function App() {
             <Route path="applications" element={<WorkspaceListPage />} />
             <Route path="workspaces/:workspaceId" element={<WorkspacePage />} />
             <Route path="workspaces/:workspaceId/preview" element={<WorkspacePreviewPage />} />
+            <Route path="workspaces/:workspaceId/certify-submit" element={<CertifySubmitPage />} />
+            <Route path="workspaces/:workspaceId/receipt" element={<SubmissionReceiptPage />} />
             <Route path="opportunities/:opportunityId/prescreen" element={<PrescreenPage />} />
             <Route path="opportunities/:opportunityId/prescreen/result" element={<PrescreenResultPage />} />
             <Route path="opportunities/:opportunityId/qa" element={<QASubmitPage />} />

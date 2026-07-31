@@ -136,6 +136,21 @@ export function WorkspacePage() {
         )}
       </div>
 
+      {/* Locked state banner — shown after successful submission */}
+      {workspace?.is_locked && (
+        <div className="usa-alert usa-alert--info" role="status" data-testid="locked-banner">
+          <div className="usa-alert__body">
+            <h4 className="usa-alert__heading">Application Submitted and Locked</h4>
+            <p className="usa-alert__text">
+              This application has been submitted. All fields are read-only.{' '}
+              <Link to={`/applicant/workspaces/${workspaceId}/receipt`} className="usa-link">
+                View submission receipt
+              </Link>
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Three-column layout: section sidebar (3) + section content (6) + readiness panel (3) = 12 */}
       <div className="grid-row grid-gap">
         <div className="grid-col-3" data-testid="workspace-section-sidebar">

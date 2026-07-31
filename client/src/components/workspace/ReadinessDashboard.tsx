@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { workspaceApi } from '../../api/workspaceApi';
 
 interface ReadinessDashboardProps {
@@ -21,6 +21,7 @@ interface ReadinessDashboardProps {
  * WorkspacePage positions this in the right column of the 3-column grid.
  */
 export function ReadinessDashboard({ workspaceId }: ReadinessDashboardProps) {
+  const navigate = useNavigate();
   const {
     data: readiness,
     isLoading,
@@ -206,7 +207,7 @@ export function ReadinessDashboard({ workspaceId }: ReadinessDashboardProps) {
             aria-disabled={readiness.blocking_errors.length > 0 || !readiness.is_ready_to_submit}
             onClick={() => {
               if (readiness.is_ready_to_submit && readiness.blocking_errors.length === 0) {
-                window.location.href = `/applicant/workspaces/${workspaceId}/certify-submit`;
+                navigate(`/applicant/workspaces/${workspaceId}/certify-submit`);
               }
             }}
             data-testid="submit-application-btn"
