@@ -1,14 +1,16 @@
 {
   "generator_version": "init-dev-server@1",
-  "catalog_entry": null,
-  "generated_at": "2026-07-30T21:21:03Z",
-  "inspection_inputs_hash": "cf75a6957b342c8ec1e6b4f89b16f0db374544d19a8529bddfebf05a75102292",
+  "catalog_entry": "node-express",
+  "generated_at": "2026-07-31T03:01:14Z",
+  "inspection_inputs_hash": "1b21b3ace07214d5abf2b35fc503748e657e9b4cc644b6531a9658e67d76b308",
   "inspection_inputs": {
     "matched_globs": [
       "docker-compose.yml",
       "package.json"
     ],
     "manifest_signatures": [
+      "client/package.json:dep:react-dom@^19.2.7",
+      "client/package.json:dep:react@^19.2.7",
       "client/package.json:dep:vite@^8.1.1",
       "client/package.json:dev-script:vite",
       "docker-compose.yml:services:app,db,redis",
