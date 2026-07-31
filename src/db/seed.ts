@@ -502,7 +502,7 @@ async function seed() {
             help_text: 'Provide a comprehensive description of the project, its goals, and expected outcomes. Maximum 5,000 characters.',
             is_required: true,
             display_order: 1,
-            validation_config: { max_length: 5000 },
+            validation_config: { max_chars: 5000 },
           },
           {
             field_type: 'textarea',
@@ -511,7 +511,7 @@ async function seed() {
             help_text: 'Describe at least 3 measurable goals aligned with the opportunity priorities.',
             is_required: true,
             display_order: 2,
-            validation_config: { max_length: 2000 },
+            validation_config: { max_chars: 2000 },
           },
           {
             field_type: 'number',
@@ -571,7 +571,7 @@ async function seed() {
           help_text: 'As registered with your state or federal authority.',
           is_required: true,
           display_order: 1,
-          validation_config: { max_length: 200 },
+          validation_config: { max_chars: 200 },
         },
         {
           field_type: 'text',
@@ -580,7 +580,7 @@ async function seed() {
           help_text: 'Your 9-digit Employer Identification Number.',
           is_required: true,
           display_order: 2,
-          validation_config: { max_length: 20 },
+          validation_config: { max_chars: 20 },
         },
       ],
       eligibility: [
@@ -591,7 +591,7 @@ async function seed() {
           help_text: 'Describe how your organization meets the eligibility requirements for this opportunity.',
           is_required: true,
           display_order: 1,
-          validation_config: { max_length: 2000 },
+          validation_config: { max_chars: 2000 },
         },
       ],
       workplan: [
@@ -602,7 +602,7 @@ async function seed() {
           help_text: 'Provide a timeline with key milestones, responsible parties, and expected completion dates.',
           is_required: true,
           display_order: 1,
-          validation_config: { max_length: 3000 },
+          validation_config: { max_chars: 3000 },
         },
         {
           field_type: 'textarea',
@@ -611,7 +611,7 @@ async function seed() {
           help_text: 'Identify the lead staff members who will implement the project.',
           is_required: false,
           display_order: 2,
-          validation_config: { max_length: 1000 },
+          validation_config: { max_chars: 1000 },
         },
       ],
       performance_measures: [
@@ -622,7 +622,7 @@ async function seed() {
           help_text: 'Describe the specific, measurable outcomes you will track throughout the project.',
           is_required: true,
           display_order: 1,
-          validation_config: { max_length: 2000 },
+          validation_config: { max_chars: 2000 },
         },
         {
           field_type: 'number',
@@ -642,7 +642,7 @@ async function seed() {
           help_text: 'By completing this field you certify that all information in this application is accurate and complete to the best of your knowledge.',
           is_required: true,
           display_order: 1,
-          validation_config: { max_length: 500 },
+          validation_config: { max_chars: 500 },
         },
       ],
     };
