@@ -26,6 +26,7 @@ export function ApplicantSidebar() {
           <NavLink
             to="/applicant/applications"
             className={({ isActive }) => (isActive ? 'usa-current' : undefined)}
+            data-testid="nav-my-applications"
           >
             My Applications
           </NavLink>

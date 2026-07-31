@@ -13,6 +13,9 @@ import { OrgRolesPage } from './pages/applicant/OrgRolesPage';
 import { OrgDocumentsPage } from './pages/applicant/OrgDocumentsPage';
 import { PrescreenPage } from './pages/applicant/PrescreenPage';
 import { PrescreenResultPage } from './pages/applicant/PrescreenResultPage';
+import { WorkspacePage } from './pages/applicant/WorkspacePage';
+import { WorkspaceListPage } from './pages/applicant/WorkspaceListPage';
+import { WorkspacePreviewPage } from './pages/applicant/WorkspacePreviewPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,19 +49,13 @@ function App() {
           <Route path="/opportunities/:slug" element={<OpportunityDetailPage />} />
           {/* Authenticated applicant portal */}
           <Route path="/applicant" element={<ApplicantLayout />}>
-            <Route index element={<Navigate to="/applicant/profile" replace />} />
+            <Route index element={<Navigate to="/applicant/applications" replace />} />
             <Route path="profile" element={<OrgProfilePage />} />
             <Route path="profile/roles" element={<OrgRolesPage />} />
             <Route path="profile/documents" element={<OrgDocumentsPage />} />
-            <Route
-              path="applications"
-              element={
-                <div className="usa-prose">
-                  <h1>My Applications</h1>
-                  <p>Coming in Phase 4.</p>
-                </div>
-              }
-            />
+            <Route path="applications" element={<WorkspaceListPage />} />
+            <Route path="workspaces/:workspaceId" element={<WorkspacePage />} />
+            <Route path="workspaces/:workspaceId/preview" element={<WorkspacePreviewPage />} />
             <Route path="opportunities/:opportunityId/prescreen" element={<PrescreenPage />} />
             <Route path="opportunities/:opportunityId/prescreen/result" element={<PrescreenResultPage />} />
           </Route>

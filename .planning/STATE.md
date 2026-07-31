@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 4 context gathered
-last_updated: "2026-07-26T18:33:28.428Z"
-last_activity: "2026-07-26 — Plan 03-04 complete: UUID format validation guard for OrgRolesPage assign flow"
+stopped_at: Completed 04-13-PLAN.md
+last_updated: "2026-07-30T19:46:34.659Z"
+last_activity: "2026-07-30 — Plan 04-12 complete: UAT-OPP-002 published opportunity seeded without workspace in src/db/seed.ts"
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 18
-  completed_plans: 18
-  percent: 94
+  completed_phases: 4
+  total_plans: 31
+  completed_plans: 31
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** Grantors receive better applications and applicants submit with less burden — by replacing fragmented, document-heavy intake with a structured, guided, data-driven workflow that enforces completeness, preserves auditability, and accelerates handoff from submission to review.
-**Current focus:** Phase 1 — Platform Foundation & Opportunity Setup (COMPLETE)
+**Current focus:** Phase 4 — Application Workspace & Form Capture (COMPLETE)
 
 ## Current Position
 
-Phase: 3 of 6 (Organization Profile & Eligibility Pre-Screening) — COMPLETE
-Plan: 4 of 4 in current phase — Plan 03-04 complete
-Status: Plan 03-04 Complete — UUID_REGEX client-side guard in OrgRolesPage.tsx preventing 422 on email input (PRD-INTAKE-022)
-Last activity: 2026-07-26 — Plan 03-04 complete: UUID format validation guard for OrgRolesPage assign flow
+Phase: 4 of 6 (Application Workspace & Form Capture) — all gap closure plans complete
+Plan: 13 of 13 in current phase — Plan 04-13 complete (all phase 04 plans done)
+Status: Plan 04-13 Complete — opportunity title fetch in WorkspacePage header, overflow:hidden on content column, overflow-x:auto on AttachmentManager table, ReadinessDashboard loading state usa-prose removed; Playwright regression tests passing (6 pass, 1 skip)
+Last activity: 2026-07-30 — Plan 04-13 complete: workspace layout/display bug fixes (opportunity title, overflow containment, attachment table scroll)
 
-Progress: [█████████░] 94%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -70,6 +70,19 @@ Progress: [█████████░] 94%
 | Phase 03-organization-profile-eligibility-pre-screening P02 | 5 min | 2 tasks | 10 files |
 | Phase 03-organization-profile-eligibility-pre-screening P04 | 1 min | 1 tasks | 1 files |
 | Phase 03-organization-profile-eligibility-pre-screening P05 | 2min | 2 tasks | 4 files |
+| Phase 04-application-workspace-form-capture P01 | 9 min | 2 tasks | 15 files |
+| Phase 04-application-workspace-form-capture P02 | 7min | 2 tasks | 10 files |
+| Phase 04-application-workspace-form-capture P03 | 6 min | 2 tasks | 11 files |
+| Phase 04-application-workspace-form-capture P04 | 12 min | 2 tasks | 17 files |
+| Phase 04-application-workspace-form-capture P05 | 2min | 2 tasks | 3 files |
+| Phase 04-application-workspace-form-capture P06 | 4min | 2 tasks | 7 files |
+| Phase 04-application-workspace-form-capture P09 | 1 min | 1 tasks | 1 files |
+| Phase 04-application-workspace-form-capture P07 | 2min | 2 tasks | 4 files |
+| Phase 04-application-workspace-form-capture P08 | 3 min | 2 tasks | 3 files |
+| Phase 04-application-workspace-form-capture P11 | 3 min | 2 tasks | 2 files |
+| Phase 04-application-workspace-form-capture P10 | 5 min | 2 tasks | 1 files |
+| Phase 04-application-workspace-form-capture P12 | 5 min | 1 tasks | 1 files |
+| Phase 04-application-workspace-form-capture P13 | 9min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -111,6 +124,31 @@ Recent decisions affecting current work:
 - [Phase 03-organization-profile-eligibility-pre-screening]: UUID_REGEX guard gates handleAssignSubmit before assignMutation.mutate — prevents 422 when email entered in User ID field (PRD-INTAKE-022)
 - [Phase 03-organization-profile-eligibility-pre-screening]: GET my-result derives org_id server-side via organizationService.getOrgIdForUser (T-03-22 pattern) — IDOR mitigation for applicant result fetch
 - [Phase 03-organization-profile-eligibility-pre-screening]: 409 ALREADY_SUBMITTED navigates to result page with state:null so PrescreenResultPage API fallback activates automatically
+- [Phase 04-application-workspace-form-capture]: GRANTOR_BLOCK at router layer before IDOR guard — prevents grantor roles from discovering workspace existence via timing (T-04-03)
+- [Phase 04-application-workspace-form-capture]: Section assignment role check via DB query not JWT — org_roles not in JWT payload; mirrors T-03-22 pattern
+- [Phase 04-application-workspace-form-capture]: Zustand for activeSectionType UI state; React Query for server state — section switching is in-page, no URL change
+- [Phase 04-application-workspace-form-capture]: workspace + 9 sections created atomically in single DB transaction — atomicity guarantees sections always exist
+- [Phase 04-application-workspace-form-capture]: blockGrantorOnWorkspace at workspacesRouter.use() level — blanket block on ALL workspace routes replaces per-route blockGrantors() on comments
+- [Phase 04-application-workspace-form-capture]: readinessService gracefully handles missing attachments table via 42P01 error code guard (table created in future phase)
+- [Phase 04-application-workspace-form-capture]: ReadinessDashboard uses refetchInterval: 30000 + staleTime: 20000 (React Query polling, no WebSocket — ws library not in package.json)
+- [Phase 04-application-workspace-form-capture]: ON CONFLICT DO UPDATE for idempotent field response upserts (UNIQUE workspace_id+field_id)
+- [Phase 04-application-workspace-form-capture]: FileReader base64 JSON for file_upload: { file_name, mime_type, file_size_bytes, content_base64 } — consistent with Phase 3 multer-free decision
+- [Phase 04-application-workspace-form-capture]: onBlur save + 500ms deferred server validate — field saved on blur, validation triggered 500ms later to avoid excessive server roundtrips
+- [Phase 04-application-workspace-form-capture]: Migration 013_budget_attachments_schema.sql registered separately; alphabetical sort means budget schema applied before form_field (form_field was already in DB)
+- [Phase 04-application-workspace-form-capture]: match_requirement column not present in opportunities — validateBudget enforces only funding_amount_max ceiling; match validation deferred to future migration
+- [Phase 04-application-workspace-form-capture]: Attachment version history: deactivate prior (is_active=false) then INSERT new with version_number = MAX+1; preview excludes workspace_comments by structural omission from all previewService queries
+- [Phase 04-application-workspace-form-capture]: match_required DEFAULT FALSE preserves backward compat; MATCH_REQUIREMENT_NOT_MET emitted when match_required=true AND match_percentage>0 AND total_match < required_amount (PRD-INTAKE-040)
+- [Phase 04-application-workspace-form-capture]: ON CONFLICT DO NOTHING for org_roles upsert (UNIQUE constraint on org_id+user_id); explicit ::type casts in INSERT SELECT WHERE NOT EXISTS for application_sections to avoid PostgreSQL 42P08 type inference error
+- [Phase 04-application-workspace-form-capture]: CSS clip positioning for file input in AttachmentManager instead of display:none — USWDS class applies while element stays non-interactive via tabIndex=-1
+- [Phase 04-application-workspace-form-capture]: useMutation wraps workspaceApi.createWorkspace; on 409 DUPLICATE_WORKSPACE navigates to existing workspace id if provided in error body
+- [Phase 04-application-workspace-form-capture]: Preview Application Link placed in WorkspacePage page header (after opportunity hint) and ReadinessDashboard usa-card__footer
+- [Phase 04-application-workspace-form-capture]: Grid columns corrected 3+6+3=12 to 2+5+2=9 to fit desktop:grid-col-9 ApplicantLayout parent (UAT Test 5)
+- [Phase 04-application-workspace-form-capture]: BudgetBuilder Add Line Item button moved outside accordion gate to always-visible header; auto-expands accordion on click (UAT Test 7)
+- [Phase 04-application-workspace-form-capture]: Save indicator placed before field list for immediate visibility on blur; isSuccess && !isPending prevents flicker
+- [Phase 04-application-workspace-form-capture]: Playwright tests use window.history.pushState + PopStateEvent for in-SPA navigation to preserve Zustand in-memory accessToken across route changes
+- [Phase 04-application-workspace-form-capture]: No workspace row seeded for UAT-OPP-002 — absence of workspace enables Start Application CTA (PRD-INTAKE-030 UAT Test 2)
+- [Phase 04-application-workspace-form-capture]: opportunityQuery uses workspaceQuery.data?.opportunity_id as dependency (declared before loading/error guards); renders title with UUID fallback
+- [Phase 04-application-workspace-form-capture]: playwright.config.ts baseURL corrected to localhost:5173 (Vite dev server) — API server on 3000 does not serve frontend routes
 
 ### Pending Todos
 
@@ -122,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-26T18:33:28.426Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-application-workspace-form-capture/04-CONTEXT.md
+Last session: 2026-07-30T19:46:34.658Z
+Stopped at: Completed 04-13-PLAN.md
+Resume file: None

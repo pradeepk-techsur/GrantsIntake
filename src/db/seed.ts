@@ -281,14 +281,280 @@ async function seed() {
 
     // Seed applicant test user for e2e tests (idempotent via ON CONFLICT)
     const applicantHash = await bcrypt.hash('TestPass123!', 12);
-    await pool.query(`
+    const applicantResult = await pool.query(`
       INSERT INTO users (email, full_name, password_hash, is_active)
       VALUES ($1, $2, $3, true)
       ON CONFLICT (email) DO UPDATE SET
         full_name = EXCLUDED.full_name,
         is_active = EXCLUDED.is_active
+      RETURNING user_id
     `, ['applicant@example.com', 'Test Applicant', applicantHash]);
+    const applicantUserId = applicantResult.rows[0].user_id;
     console.log('Applicant user upserted: applicant@example.com');
+
+    // ── UAT Scenario Seed ────────────────────────────────────────────────────
+    // Creates a complete UAT scenario so Playwright tests can exercise the full
+    // UI paths without manual DB setup. All inserts are idempotent.
+
+    // 1. Grantor org for the UAT opportunity
+    const existingUatGrantorOrg = await pool.query(
+      `SELECT org_id FROM grantor_organizations WHERE org_name = $1`,
+      ['UAT Federal Agency'],
+    );
+    let uatGrantorOrgId: string;
+    if (existingUatGrantorOrg.rows.length > 0) {
+      uatGrantorOrgId = existingUatGrantorOrg.rows[0].org_id;
+    } else {
+      const uatGrantorOrgResult = await pool.query(
+        `INSERT INTO grantor_organizations (org_name, org_type)
+         VALUES ($1, $2)
+         RETURNING org_id`,
+        ['UAT Federal Agency', 'federal_agency'],
+      );
+      uatGrantorOrgId = uatGrantorOrgResult.rows[0].org_id;
+    }
+
+    // 2. Grant program for the UAT opportunity
+    const existingUatProgram = await pool.query(
+      `SELECT program_id FROM programs WHERE program_name = $1`,
+      ['UAT Grant Program'],
+    );
+    let uatProgramId: string;
+    if (existingUatProgram.rows.length > 0) {
+      uatProgramId = existingUatProgram.rows[0].program_id;
+    } else {
+      const uatProgramResult = await pool.query(
+        `INSERT INTO programs (grantor_org_id, program_name, is_federal, program_area, created_by)
+         VALUES ($1, $2, TRUE, $3, $4)
+         RETURNING program_id`,
+        [uatGrantorOrgId, 'UAT Grant Program', 'General', adminUserId],
+      );
+      uatProgramId = uatProgramResult.rows[0].program_id;
+    }
+
+    // 3. Published opportunity
+    const existingUatOpportunity = await pool.query(
+      `SELECT opportunity_id FROM opportunities WHERE opportunity_number = $1`,
+      ['UAT-OPP-001'],
+    );
+    let uatOpportunityId: string;
+    if (existingUatOpportunity.rows.length > 0) {
+      uatOpportunityId = existingUatOpportunity.rows[0].opportunity_id;
+    } else {
+      const uatOpportunityResult = await pool.query(
+        `INSERT INTO opportunities (
+           program_id, title, funding_source, announcement_type, opportunity_number,
+           eligibility_summary, executive_summary, contact_name, contact_email,
+           program_area, funding_amount_max, status, created_by
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         RETURNING opportunity_id`,
+        [
+          uatProgramId,
+          'UAT Community Health Innovation Grant',
+          'UAT Federal Agency',
+          'Initial',
+          'UAT-OPP-001',
+          'Open to 501(c)(3) nonprofits in rural communities.',
+          'Supports non-profit organizations developing health programs for rural communities.',
+          'UAT Program Officer',
+          'uat-officer@example.gov',
+          'Public Health',
+          200000.00,
+          'published',
+          adminUserId,
+        ],
+      );
+      uatOpportunityId = uatOpportunityResult.rows[0].opportunity_id;
+    }
+
+    // 3b. Second published opportunity (UAT-OPP-002) — NO workspace seeded, enables Start Application UAT Test 2
+    const existingUatOpportunity2 = await pool.query(
+      `SELECT opportunity_id FROM opportunities WHERE opportunity_number = $1`,
+      ['UAT-OPP-002'],
+    );
+    if (existingUatOpportunity2.rows.length === 0) {
+      await pool.query(
+        `INSERT INTO opportunities (
+           program_id, title, funding_source, announcement_type, opportunity_number,
+           eligibility_summary, executive_summary, contact_name, contact_email,
+           program_area, funding_amount_max, status, created_by
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+        [
+          uatProgramId,
+          'UAT Community Health Grant 2',
+          'UAT Federal Agency',
+          'Initial',
+          'UAT-OPP-002',
+          'Open to 501(c)(3) nonprofits in urban communities.',
+          'Supports non-profit organizations developing health programs for urban communities.',
+          'UAT Program Officer',
+          'uat-officer@example.gov',
+          'Public Health',
+          150000.00,
+          'published',
+          adminUserId,
+        ],
+      );
+    }
+    console.log('Seeded UAT-OPP-002 (no workspace — enables Start Application flow) (idempotent)');
+
+    // 4. Applicant organization for applicant@example.com
+    const existingUatOrg = await pool.query(
+      `SELECT org_id FROM organizations WHERE legal_name = $1`,
+      ['UAT Test Nonprofit'],
+    );
+    let uatOrgId: string;
+    if (existingUatOrg.rows.length > 0) {
+      uatOrgId = existingUatOrg.rows[0].org_id;
+    } else {
+      const uatOrgResult = await pool.query(
+        `INSERT INTO organizations (
+           legal_name, address_line1, city, state, zip, entity_type,
+           primary_contact_name, primary_contact_email, banking_readiness, profile_completeness_pct
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         RETURNING org_id`,
+        [
+          'UAT Test Nonprofit',
+          '100 Main Street',
+          'Springfield',
+          'IL',
+          '62701',
+          'nonprofit_501c3',
+          'Test Applicant',
+          'applicant@example.com',
+          'ready',
+          75,
+        ],
+      );
+      uatOrgId = uatOrgResult.rows[0].org_id;
+    }
+
+    // 5. Org role — assign applicant@example.com as authorized_representative
+    await pool.query(
+      `INSERT INTO org_roles (org_id, user_id, roles)
+       VALUES ($1, $2, $3::jsonb)
+       ON CONFLICT (org_id, user_id) DO NOTHING`,
+      [uatOrgId, applicantUserId, JSON.stringify(['authorized_representative', 'proposal_lead'])],
+    );
+
+    // 6. UAT workspace for the applicant org + opportunity
+    const existingUatWorkspace = await pool.query(
+      `SELECT workspace_id FROM application_workspaces
+       WHERE opportunity_id = $1 AND org_id = $2`,
+      [uatOpportunityId, uatOrgId],
+    );
+    let uatWorkspaceId: string | null = null;
+    if (existingUatWorkspace.rows.length > 0) {
+      uatWorkspaceId = existingUatWorkspace.rows[0].workspace_id;
+    } else {
+      const uatWorkspaceResult = await pool.query(
+        `INSERT INTO application_workspaces (opportunity_id, org_id, created_by)
+         VALUES ($1, $2, $3)
+         RETURNING workspace_id`,
+        [uatOpportunityId, uatOrgId, applicantUserId],
+      );
+      uatWorkspaceId = uatWorkspaceResult.rows[0].workspace_id;
+    }
+
+    // 7. 9 workspace sections (idempotent — skip if section_type already exists for workspace)
+    if (uatWorkspaceId) {
+      const DEFAULT_SECTIONS = [
+        { section_type: 'org_profile', section_name: 'Organization Profile', display_order: 1 },
+        { section_type: 'eligibility', section_name: 'Eligibility', display_order: 2 },
+        { section_type: 'narrative', section_name: 'Narrative', display_order: 3 },
+        { section_type: 'budget', section_name: 'Budget', display_order: 4 },
+        { section_type: 'workplan', section_name: 'Work Plan', display_order: 5 },
+        { section_type: 'performance_measures', section_name: 'Performance Measures', display_order: 6 },
+        { section_type: 'attachments', section_name: 'Attachments', display_order: 7 },
+        { section_type: 'certifications', section_name: 'Certifications', display_order: 8 },
+        { section_type: 'review_submit', section_name: 'Review & Submit', display_order: 9 },
+      ];
+      for (const section of DEFAULT_SECTIONS) {
+        await pool.query(
+          `INSERT INTO application_sections (workspace_id, section_type, section_name, display_order)
+           SELECT $1::uuid, $2::varchar, $3::varchar, $4::int
+           WHERE NOT EXISTS (
+             SELECT 1 FROM application_sections
+             WHERE workspace_id = $1::uuid AND section_type = $2::varchar
+           )`,
+          [uatWorkspaceId, section.section_type, section.section_name, section.display_order],
+        );
+      }
+    }
+
+    // 8. Form field definitions for narrative section (idempotent — use WHERE NOT EXISTS on label+section_id)
+    if (uatWorkspaceId) {
+      const narrativeSectionResult = await pool.query(
+        `SELECT section_id FROM application_sections WHERE workspace_id = $1 AND section_type = 'narrative' LIMIT 1`,
+        [uatWorkspaceId],
+      );
+      const narrativeSectionId = narrativeSectionResult.rows[0]?.section_id;
+
+      if (narrativeSectionId && uatOpportunityId && applicantUserId) {
+        const narrativeFields = [
+          {
+            field_type: 'textarea',
+            label: 'Project Narrative',
+            placeholder: 'Describe your project in detail…',
+            help_text: 'Provide a comprehensive description of the project, its goals, and expected outcomes. Maximum 5,000 characters.',
+            is_required: true,
+            display_order: 1,
+            validation_config: { max_length: 5000 },
+          },
+          {
+            field_type: 'textarea',
+            label: 'Goals and Objectives',
+            placeholder: 'List your specific, measurable goals…',
+            help_text: 'Describe at least 3 measurable goals aligned with the opportunity priorities.',
+            is_required: true,
+            display_order: 2,
+            validation_config: { max_length: 2000 },
+          },
+          {
+            field_type: 'number',
+            label: 'Number of Beneficiaries',
+            placeholder: '0',
+            help_text: 'Estimated number of individuals who will directly benefit from this project.',
+            is_required: false,
+            display_order: 3,
+            validation_config: { min: 0, max: 1000000 },
+          },
+        ];
+
+        for (const field of narrativeFields) {
+          await pool.query(
+            `INSERT INTO form_field_definitions
+               (opportunity_id, section_id, field_type, label, placeholder, help_text,
+                is_required, display_order, validation_config, created_by)
+             SELECT $1::uuid, $2::uuid, $3::varchar, $4::varchar, $5::varchar, $6::varchar,
+                    $7::boolean, $8::int, $9::jsonb, $10::uuid
+             WHERE NOT EXISTS (
+               SELECT 1 FROM form_field_definitions
+               WHERE section_id = $2::uuid AND label = $4::varchar
+             )`,
+            [
+              uatOpportunityId,
+              narrativeSectionId,
+              field.field_type,
+              field.label,
+              field.placeholder,
+              field.help_text,
+              field.is_required,
+              field.display_order,
+              JSON.stringify(field.validation_config),
+              applicantUserId,
+            ],
+          );
+        }
+        console.log('Seeded 3 form_field_definitions for UAT narrative section (idempotent)');
+      }
+    }
+
+    console.log('Seeded UAT scenario: UAT-OPP-001 + UAT Test Nonprofit + workspace (idempotent)');
+    // ── End UAT Scenario Seed ────────────────────────────────────────────────
 
     console.log('Seed complete — admin@example.gov / TestPassword123! | applicant@example.com / TestPass123!');
   } catch (err) {
