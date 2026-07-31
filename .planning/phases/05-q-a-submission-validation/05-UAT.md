@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 05-q-a-submission-validation
 source: 05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md
 started: 2026-07-31T03:08:00Z
-updated: 2026-07-31T03:45:00Z
+updated: 2026-07-31T04:00:00Z
 ---
 
 ## Current Test
@@ -97,10 +97,14 @@ per_test:
   severity: major
   test: 1
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Q&A section is the 5th section on a long page (after Overview, Eligibility, Required Documents, Addenda) with no anchor navigation — user doesn't scroll far enough. Additionally, publishedQAQuery.isError state is not rendered so an API error produces a blank section body."
+  artifacts:
+    - path: "client/src/pages/applicant/OpportunityDetailPage.tsx"
+      issue: "Q&A section at lines 490-534 is last in main column with no anchor link or jump navigation; publishedQAQuery.isError case never renders an error message"
+  missing:
+    - "Add id='qa-section' to the Q&A section element and a jump link in the sidebar or page nav pointing to #qa-section"
+    - "Add publishedQAQuery.isError rendering to show a user-visible error state instead of blank"
+  debug_session: ".planning/debug/qa-section-not-visible.md"
 
 - truth: "A grantor navigates to /grantor/opportunities/:id/qa to manage Q&A questions and publish answers"
   status: failed
@@ -108,10 +112,20 @@ per_test:
   severity: major
   test: 2
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "QAManagementPage (/grantor/opportunities/:id/qa) is unreachable via UI — no Q&A tab exists in OpportunityBuilder.tsx and the 'Q&A Inbox' sidebar link redirects back to /grantor/opportunities (dead-end). Publication readiness shows two permanently-incomplete Phase 2 placeholder items hardcoded as always-false in CompletenessChecklist.tsx."
+  artifacts:
+    - path: "client/src/pages/grantor/opportunities/OpportunityBuilder.tsx"
+      issue: "BuilderSection type (lines 14-22) and tab nav (lines 244-339) have no 'qa' entry — QAManagementPage is unreachable via tabs"
+    - path: "client/src/App.tsx"
+      issue: "Line 77: qa-inbox route redirects to /grantor/opportunities (dead-end)"
+    - path: "client/src/components/nav/GrantorSidebar.tsx"
+      issue: "Lines 78-89: Q&A Inbox nav link points to the dead-end route"
+    - path: "client/src/pages/grantor/opportunities/CompletenessChecklist.tsx"
+      issue: "Lines 84-102: Two Phase 2 placeholder items (eligibility_rules, form_sections) hardcoded as always complete=false with 'Phase 2 — coming soon' note"
+  missing:
+    - "Add 'qa' tab to OpportunityBuilder.tsx BuilderSection type and tab nav linking to /grantor/opportunities/:id/qa"
+    - "Remove or separate Phase 2 placeholder items from CompletenessChecklist.tsx (move to a distinct 'Future' section or remove entirely)"
+  debug_session: ".planning/debug/qa-discoverability-publication-readiness.md"
 
 - truth: "AR user sees a Certification panel in the workspace with legal certification text, checkbox, and Submit Certification button"
   status: failed
@@ -119,10 +133,19 @@ per_test:
   severity: major
   test: 4
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "localStorage.getItem('applicant_org_id') is null in the workspace flow — it is only set by OrgProfilePage.tsx createMutation.onSuccess (create-path only). The seed pre-creates the org so the user never hits the create path. With orgId=null, useIsAuthorizedRep() returns false, CertificationPanel returns null (line 66), and the user sees only Tasks/Comments."
+  artifacts:
+    - path: "client/src/hooks/useIsAuthorizedRep.ts"
+      issue: "Line 24: reads applicant_org_id from localStorage; line 32: query disabled when orgId null; line 36: returns false when roles undefined"
+    - path: "client/src/components/workspace/CertificationPanel.tsx"
+      issue: "Line 66: if (!isAuthorizedRep) return null — panel renders nothing for non-AR users"
+    - path: "client/src/pages/applicant/OrgProfilePage.tsx"
+      issue: "Line 172: only place storeOrgId() is called — create-path only, never runs when org already exists"
+    - path: "client/src/pages/applicant/WorkspacePage.tsx"
+      issue: "Line 47: calls useIsAuthorizedRep() but never seeds localStorage.applicant_org_id from workspace data"
+  missing:
+    - "Add useEffect in WorkspacePage.tsx to set localStorage.applicant_org_id from workspaceQuery.data.org_id when workspace loads"
+  debug_session: ".planning/debug/uat-gaps-certification-submit.md"
 
 - truth: "ReadinessDashboard Submit button leads to CertifySubmitPage with pre-submission checklist and then to receipt with GI-YYYY-XXXXXXXX confirmation"
   status: failed
@@ -130,10 +153,20 @@ per_test:
   severity: major
   test: 5
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "is_ready_to_submit=false because overall_completion_pct=0% — 7 of 9 workspace sections have no form_field_definitions seeded (only 'narrative' has 3 fields). SectionFormPanel shows 'No form fields have been configured for this section yet.' for every empty section. Sections never reach status='complete' so completion_pct stays 0 and Submit remains disabled."
+  artifacts:
+    - path: "src/services/workspace/readinessService.ts"
+      issue: "Lines 224-227: is_ready_to_submit requires completion_pct=100% AND blocking_errors=0"
+    - path: "src/db/seed.ts"
+      issue: "Lines 488-553: only narrative section gets form_field_definitions — 7 other sections have no definitions"
+    - path: "client/src/components/workspace/SectionFormPanel.tsx"
+      issue: "Lines 135-138: shows 'No form fields configured' message when fields array empty"
+    - path: "client/src/components/workspace/ReadinessDashboard.tsx"
+      issue: "Line 206: Submit disabled when blocking_errors.length > 0 OR !is_ready_to_submit"
+  missing:
+    - "Seed form_field_definitions for all completable sections (org_profile, eligibility, workplan, performance_measures, review_submit)"
+    - "Verify POST /certify sets certifications section status='complete' so it counts toward completion"
+  debug_session: ".planning/debug/uat-gaps-certification-submit.md"
 
 - truth: "SubmissionReceiptPage shows GI-YYYY-NNNNNNNN confirmation number, timestamp, and download links"
   status: failed
@@ -141,8 +174,11 @@ per_test:
   severity: major
   test: 7
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Downstream of Test 5 gap — Submit button disabled because is_ready_to_submit=false (0% completion due to missing form_field_definitions). The SubmissionReceiptPage itself is correctly implemented (e2e passed) but unreachable without completing the submission flow."
+  artifacts:
+    - path: "client/src/components/workspace/ReadinessDashboard.tsx"
+      issue: "Line 206: Submit permanently disabled while completion_pct=0"
+  missing:
+    - "Fix Test 5 root cause (seed form_field_definitions) to unblock submission path"
+  debug_session: ".planning/debug/uat-gaps-certification-submit.md"
 
