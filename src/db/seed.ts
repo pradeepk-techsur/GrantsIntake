@@ -553,6 +553,137 @@ async function seed() {
       }
     }
 
+    // Seed form_field_definitions for remaining completable sections (idempotent)
+    const SECTION_FIELDS: Record<string, Array<{
+      field_type: string;
+      label: string;
+      placeholder: string;
+      help_text: string;
+      is_required: boolean;
+      display_order: number;
+      validation_config: object;
+    }>> = {
+      org_profile: [
+        {
+          field_type: 'text',
+          label: 'Legal Organization Name',
+          placeholder: 'Enter your organization\'s legal name…',
+          help_text: 'As registered with your state or federal authority.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_length: 200 },
+        },
+        {
+          field_type: 'text',
+          label: 'EIN / Tax ID Number',
+          placeholder: 'XX-XXXXXXX',
+          help_text: 'Your 9-digit Employer Identification Number.',
+          is_required: true,
+          display_order: 2,
+          validation_config: { max_length: 20 },
+        },
+      ],
+      eligibility: [
+        {
+          field_type: 'textarea',
+          label: 'Eligibility Self-Certification',
+          placeholder: 'Confirm your organization meets the eligibility criteria…',
+          help_text: 'Describe how your organization meets the eligibility requirements for this opportunity.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_length: 2000 },
+        },
+      ],
+      workplan: [
+        {
+          field_type: 'textarea',
+          label: 'Project Timeline and Milestones',
+          placeholder: 'Describe your implementation timeline…',
+          help_text: 'Provide a timeline with key milestones, responsible parties, and expected completion dates.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_length: 3000 },
+        },
+        {
+          field_type: 'textarea',
+          label: 'Key Personnel',
+          placeholder: 'List key staff and their roles…',
+          help_text: 'Identify the lead staff members who will implement the project.',
+          is_required: false,
+          display_order: 2,
+          validation_config: { max_length: 1000 },
+        },
+      ],
+      performance_measures: [
+        {
+          field_type: 'textarea',
+          label: 'Outcome Measures',
+          placeholder: 'List measurable outcomes…',
+          help_text: 'Describe the specific, measurable outcomes you will track throughout the project.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_length: 2000 },
+        },
+        {
+          field_type: 'number',
+          label: 'Number of Direct Beneficiaries',
+          placeholder: '0',
+          help_text: 'Total number of individuals directly served by this project.',
+          is_required: true,
+          display_order: 2,
+          validation_config: { min: 1, max: 10000000 },
+        },
+      ],
+      review_submit: [
+        {
+          field_type: 'textarea',
+          label: 'Application Certification Statement',
+          placeholder: 'I certify that the information provided is accurate…',
+          help_text: 'By completing this field you certify that all information in this application is accurate and complete to the best of your knowledge.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_length: 500 },
+        },
+      ],
+    };
+
+    for (const [sectionType, fields] of Object.entries(SECTION_FIELDS)) {
+      if (!uatWorkspaceId || !uatOpportunityId || !applicantUserId) continue;
+      const sectionResult = await pool.query(
+        `SELECT section_id FROM application_sections WHERE workspace_id = $1 AND section_type = $2 LIMIT 1`,
+        [uatWorkspaceId, sectionType],
+      );
+      const sectionId = sectionResult.rows[0]?.section_id;
+      if (!sectionId) continue;
+
+      for (const field of fields) {
+        await pool.query(
+          `INSERT INTO form_field_definitions
+             (opportunity_id, section_id, field_type, label, placeholder, help_text,
+              is_required, display_order, validation_config, created_by)
+           SELECT $1::uuid, $2::uuid, $3::varchar, $4::varchar, $5::varchar, $6::varchar,
+                  $7::boolean, $8::int, $9::jsonb, $10::uuid
+           WHERE NOT EXISTS (
+             SELECT 1 FROM form_field_definitions
+             WHERE section_id = $2::uuid AND label = $4::varchar
+           )`,
+          [
+            uatOpportunityId,
+            sectionId,
+            field.field_type,
+            field.label,
+            field.placeholder,
+            field.help_text,
+            field.is_required,
+            field.display_order,
+            JSON.stringify(field.validation_config),
+            applicantUserId,
+          ],
+        );
+      }
+      console.log(`Seeded form_field_definitions for ${sectionType} section (idempotent)`);
+    }
+
     console.log('Seeded UAT scenario: UAT-OPP-001 + UAT Test Nonprofit + workspace (idempotent)');
     // ── End UAT Scenario Seed ────────────────────────────────────────────────
 
