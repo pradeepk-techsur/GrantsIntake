@@ -1,0 +1,5 @@
+This notice contains link(s). To view, enter the below URLs in your web browser:
+
+JCM Login Link -  https://jtnc.experience.crmforce.mil/JTNC/s/login/
+
+JCM Registration Link -  https://jtnc.experience.crmforce.mil/JTNC/s/register
