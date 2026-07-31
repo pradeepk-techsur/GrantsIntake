@@ -21,7 +21,26 @@ export const qaApi = {
     const res = await fetch(`${BASE}/opportunities/${opportunityId}/questions`, {
       headers: authHeaders(),
     });
-    if (!res.ok) throw new Error('Failed to fetch questions');
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(body.message || 'Failed to fetch questions'), {
+        status: res.status,
+        code: body.error,
+      });
+    }
+    return res.json();
+  },
+
+  async listMyQuestions(opportunityId: string): Promise<QAItem[]> {
+    const res = await fetch(`${BASE}/opportunities/${opportunityId}/my-questions`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(body.message || 'Failed to fetch your questions'), {
+        status: res.status,
+      });
+    }
     return res.json();
   },
 

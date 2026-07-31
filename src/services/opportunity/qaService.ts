@@ -34,6 +34,17 @@ class QAService {
     return result.rows;
   }
 
+  /** List questions submitted by a specific user for an opportunity (applicant-facing). */
+  async listMyQuestions(opportunityId: string, submitterUserId: string): Promise<QAItem[]> {
+    const result = await pool.query<QAItem>(
+      `SELECT * FROM qa_items
+       WHERE opportunity_id = $1 AND submitter_user_id = $2
+       ORDER BY submitted_at DESC`,
+      [opportunityId, submitterUserId],
+    );
+    return result.rows;
+  }
+
   /**
    * Submit a question as an applicant.
    * Validates Q&A is enabled and within question window from opportunity.qa_config JSONB.

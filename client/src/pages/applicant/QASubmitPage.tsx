@@ -32,6 +32,14 @@ export function QASubmitPage() {
     staleTime: 60_000,
   });
 
+  // Load the current user's own submitted questions (pending + answered)
+  const myQuestionsQuery = useQuery<QAItem[]>({
+    queryKey: ['qa-my-questions', opportunityId],
+    queryFn: () => qaApi.listMyQuestions(opportunityId!),
+    enabled: !!opportunityId && !!accessToken,
+    staleTime: 30_000,
+  });
+
   // Submit question mutation
   const submitMutation = useMutation({
     mutationFn: () => qaApi.submitQuestion(opportunityId!, questionText),
@@ -42,6 +50,7 @@ export function QASubmitPage() {
         'Your question has been submitted. The grantor will post a public answer when available.',
       );
       queryClient.invalidateQueries({ queryKey: ['qa-published', opportunityId] });
+      queryClient.invalidateQueries({ queryKey: ['qa-my-questions', opportunityId] });
     },
     onError: (err: Error & { code?: string; status?: number }) => {
       setSuccessMessage('');
@@ -163,6 +172,57 @@ export function QASubmitPage() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* Your Submitted Questions — shows pending/answered questions for the current user */}
+      {accessToken && (
+        <section aria-labelledby="my-questions-heading" style={{ marginBottom: '2rem' }}>
+          <h2 id="my-questions-heading">Your Submitted Questions</h2>
+          {myQuestionsQuery.isLoading && <p>Loading your questions…</p>}
+          {myQuestionsQuery.data && myQuestionsQuery.data.length === 0 && !submitMutation.isSuccess && (
+            <p style={{ color: '#565c65' }}>You have not submitted any questions for this opportunity.</p>
+          )}
+          {myQuestionsQuery.data &&
+            myQuestionsQuery.data.map((item) => (
+              <div
+                key={item.qa_id}
+                className="usa-card"
+                style={{ marginBottom: '0.75rem' }}
+                data-testid="qa-my-question-item"
+              >
+                <div className="usa-card__container">
+                  <div className="usa-card__body">
+                    <p style={{ marginBottom: '0.25rem' }}>
+                      <strong>Q:</strong> {item.question_text}
+                    </p>
+                    {item.status === 'answered' && item.answer_text ? (
+                      <p style={{ color: '#1b1b1b', marginBottom: '0.25rem' }}>
+                        <strong>A:</strong> {item.answer_text}
+                      </p>
+                    ) : (
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          fontSize: '0.8rem',
+                          fontWeight: 'bold',
+                          padding: '0.1rem 0.4rem',
+                          borderRadius: '2px',
+                          backgroundColor: '#fef0c7',
+                          color: '#936f00',
+                        }}
+                        data-testid="qa-pending-badge"
+                      >
+                        Awaiting Answer
+                      </span>
+                    )}
+                    <p style={{ fontSize: '0.8rem', color: '#71767a', marginTop: '0.25rem' }}>
+                      Submitted {new Date(item.submitted_at).toLocaleDateString('en-US')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+        </section>
       )}
 
       {/* Published Q&A */}

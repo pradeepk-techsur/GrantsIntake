@@ -102,6 +102,28 @@ qaRouter.post(
   },
 );
 
+// ─── NEW: GET /opportunities/:opportunityId/my-questions ─────────────────────
+/**
+ * Applicant fetches their own submitted questions (including pending).
+ * Requires authentication. Returns all qa_items where submitter_user_id = req.user.user_id.
+ */
+qaRouter.get(
+  '/opportunities/:opportunityId/my-questions',
+  authenticate,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const items = await qaService.listMyQuestions(
+        req.params.opportunityId,
+        req.user!.user_id,
+      );
+      res.json(items);
+    } catch (err) {
+      console.error('Q&A listMyQuestions error:', err);
+      res.status(500).json({ error: 'INTERNAL_ERROR', message: 'Failed to fetch your questions' });
+    }
+  },
+);
+
 // ─── 4. PUT /questions/:questionId/answer ────────────────────────────────────
 /**
  * Grantor publishes an answer for a question.

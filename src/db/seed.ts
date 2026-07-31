@@ -368,6 +368,15 @@ async function seed() {
       uatOpportunityId = uatOpportunityResult.rows[0].opportunity_id;
     }
 
+    // Enable Q&A on UAT-OPP-001 so applicants can submit questions during UAT
+    await pool.query(
+      `UPDATE opportunities
+       SET qa_config = '{"enabled": true}'::jsonb
+       WHERE opportunity_id = $1 AND (qa_config IS NULL OR (qa_config->>'enabled')::boolean IS NOT TRUE)`,
+      [uatOpportunityId],
+    );
+    console.log('Q&A enabled on UAT-OPP-001 (idempotent)');
+
     // 3b. Second published opportunity (UAT-OPP-002) — NO workspace seeded, enables Start Application UAT Test 2
     const existingUatOpportunity2 = await pool.query(
       `SELECT opportunity_id FROM opportunities WHERE opportunity_number = $1`,
