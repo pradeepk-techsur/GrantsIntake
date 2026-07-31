@@ -7,6 +7,7 @@ import type { WorkspaceSection } from '../../types/workspace';
 interface SectionFormPanelProps {
   section: WorkspaceSection;
   workspaceId: string;
+  onFieldBlur?: () => void; // Optional callback for workspace-level validation trigger
 }
 
 /**
@@ -16,7 +17,7 @@ interface SectionFormPanelProps {
  * - Triggers server-side section validation 500ms after each blur
  * - Displays inline USWDS error-message on validation failures
  */
-export function SectionFormPanel({ section, workspaceId }: SectionFormPanelProps) {
+export function SectionFormPanel({ section, workspaceId, onFieldBlur }: SectionFormPanelProps) {
   const [fieldValues, setFieldValues] = useState<Record<string, string | unknown>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -94,6 +95,9 @@ export function SectionFormPanel({ section, workspaceId }: SectionFormPanelProps
 
     // Trigger server-side section validation after short delay
     setTimeout(() => validateMutation.mutate(), 500);
+
+    // Also trigger workspace-level validation (for ReadinessDashboard updates)
+    if (onFieldBlur) onFieldBlur();
   };
 
   // ─── Render ───────────────────────────────────────────────────────────────

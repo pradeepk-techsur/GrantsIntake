@@ -9,9 +9,10 @@ import type { WorkspaceSection, WorkspaceTask, WorkspaceComment } from '../../ty
 interface WorkspaceSectionPanelProps {
   section: WorkspaceSection;
   workspaceId: string;
+  onFieldBlur?: () => void;
 }
 
-export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSectionPanelProps) {
+export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur }: WorkspaceSectionPanelProps) {
   const queryClient = useQueryClient();
   const [commentText, setCommentText] = useState('');
 
@@ -84,7 +85,7 @@ export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSection
       )}
       {/* For all other sections: SectionFormPanel handles field rendering (from Plan 04-03) */}
       {section.section_type !== 'budget' && section.section_type !== 'attachments' && (
-        <SectionFormPanel section={section} workspaceId={workspaceId} />
+        <SectionFormPanel section={section} workspaceId={workspaceId} onFieldBlur={onFieldBlur} />
       )}
 
       {/* Task list */}

@@ -3,9 +3,12 @@ import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { workspaceApi } from '../../api/workspaceApi';
 import { useWorkspaceStore } from '../../store/workspaceStore';
+import { useValidation } from '../../hooks/useValidation';
+import { useIsAuthorizedRep } from '../../hooks/useIsAuthorizedRep';
 import { WorkspaceSidebar } from '../../components/workspace/WorkspaceSidebar';
 import { WorkspaceSectionPanel } from '../../components/workspace/WorkspaceSectionPanel';
 import { ReadinessDashboard } from '../../components/workspace/ReadinessDashboard';
+import { CertificationPanel } from '../../components/workspace/CertificationPanel';
 
 export function WorkspacePage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -36,6 +39,12 @@ export function WorkspacePage() {
     enabled: !!workspaceQuery.data?.opportunity_id,
     staleTime: 5 * 60_000, // opportunity title rarely changes
   });
+
+  // Workspace-level validation trigger on field blur
+  const { triggerValidation } = useValidation(workspaceId ?? '');
+
+  // Check if current user is authorized representative
+  const isAuthorizedRep = useIsAuthorizedRep();
 
   // Zustand: local UI state for active section
   const { activeSectionType, setActiveSectionType } = useWorkspaceStore();
@@ -138,7 +147,20 @@ export function WorkspacePage() {
         </div>
         <div className="grid-col-6" data-testid="workspace-section-content" style={{ overflow: 'hidden' }}>
           {activeSection ? (
-            <WorkspaceSectionPanel section={activeSection} workspaceId={workspaceId!} />
+            <>
+              <WorkspaceSectionPanel
+                section={activeSection}
+                workspaceId={workspaceId!}
+                onFieldBlur={triggerValidation}
+              />
+              {/* Certification panel renders inline for certifications section */}
+              {activeSection.section_type === 'certifications' && (
+                <CertificationPanel
+                  workspaceId={workspaceId!}
+                  isAuthorizedRep={isAuthorizedRep}
+                />
+              )}
+            </>
           ) : (
             <div className="usa-prose">
               <p className="usa-hint">Select a section from the left sidebar to begin.</p>

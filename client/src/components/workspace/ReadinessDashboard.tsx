@@ -58,7 +58,18 @@ export function ReadinessDashboard({ workspaceId }: ReadinessDashboardProps) {
       className="usa-card"
     >
       <div className="usa-card__header">
-        <h2 className="usa-card__heading">Application Readiness</h2>
+        <h2 className="usa-card__heading">
+          Application Readiness
+          {readiness.blocking_errors.length > 0 && (
+            <span
+              className="usa-tag usa-tag--big"
+              style={{ marginLeft: '0.5rem', backgroundColor: '#b50909', color: '#fff' }}
+              data-testid="blocking-count-badge"
+            >
+              {readiness.blocking_errors.length} blocking
+            </span>
+          )}
+        </h2>
       </div>
       <div className="usa-card__body">
 
@@ -185,6 +196,29 @@ export function ReadinessDashboard({ workspaceId }: ReadinessDashboardProps) {
         >
           Preview Application
         </Link>
+
+        {/* Submit button with blocking gate */}
+        <div style={{ marginTop: '0.75rem' }}>
+          <button
+            type="button"
+            className="usa-button usa-button--big"
+            disabled={readiness.blocking_errors.length > 0 || !readiness.is_ready_to_submit}
+            aria-disabled={readiness.blocking_errors.length > 0 || !readiness.is_ready_to_submit}
+            onClick={() => {
+              if (readiness.is_ready_to_submit && readiness.blocking_errors.length === 0) {
+                window.location.href = `/applicant/workspaces/${workspaceId}/certify-submit`;
+              }
+            }}
+            data-testid="submit-application-btn"
+          >
+            Submit Application
+          </button>
+          {(readiness.blocking_errors.length > 0 || !readiness.is_ready_to_submit) && (
+            <p className="usa-hint" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+              Resolve all blocking errors before submitting.
+            </p>
+          )}
+        </div>
       </div>
     </aside>
   );
