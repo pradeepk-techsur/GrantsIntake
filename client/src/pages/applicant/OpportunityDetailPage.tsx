@@ -488,9 +488,16 @@ export function OpportunityDetailPage() {
                 </section>
 
                 {/* Q&A Section */}
-                <section aria-labelledby="qa-heading" style={{ marginBottom: '2rem' }} data-testid="qa-section">
+                <section id="qa-section" aria-labelledby="qa-heading" style={{ marginBottom: '2rem' }} data-testid="qa-section">
                   <h2 id="qa-heading">Questions &amp; Answers</h2>
                   {publishedQAQuery.isLoading && <p>Loading Q&amp;A…</p>}
+                  {publishedQAQuery.isError && (
+                    <div className="usa-alert usa-alert--error usa-alert--slim" role="alert" data-testid="qa-error">
+                      <div className="usa-alert__body">
+                        <p className="usa-alert__text">Unable to load Q&amp;A. Please refresh the page.</p>
+                      </div>
+                    </div>
+                  )}
                   {publishedQAQuery.data && publishedQAQuery.data.length === 0 && (
                     <p style={{ color: '#565c65' }}>No public questions have been answered yet.</p>
                   )}
@@ -594,6 +601,13 @@ export function OpportunityDetailPage() {
                         </p>
                       </div>
                     )}
+                  </div>
+
+                  {/* Jump to Q&A */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <a href="#qa-section" className="usa-link" style={{ fontSize: '0.875rem' }} data-testid="jump-to-qa-link">
+                      ↓ Jump to Q&amp;A Section
+                    </a>
                   </div>
 
                   {/* CTA Button */}
