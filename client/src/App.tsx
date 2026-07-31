@@ -16,6 +16,8 @@ import { PrescreenResultPage } from './pages/applicant/PrescreenResultPage';
 import { WorkspacePage } from './pages/applicant/WorkspacePage';
 import { WorkspaceListPage } from './pages/applicant/WorkspaceListPage';
 import { WorkspacePreviewPage } from './pages/applicant/WorkspacePreviewPage';
+import { QASubmitPage } from './pages/applicant/QASubmitPage';
+import { QAManagementPage } from './pages/grantor/QAManagementPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +60,7 @@ function App() {
             <Route path="workspaces/:workspaceId/preview" element={<WorkspacePreviewPage />} />
             <Route path="opportunities/:opportunityId/prescreen" element={<PrescreenPage />} />
             <Route path="opportunities/:opportunityId/prescreen/result" element={<PrescreenResultPage />} />
+            <Route path="opportunities/:opportunityId/qa" element={<QASubmitPage />} />
           </Route>
           <Route path="/grantor" element={<GrantorLayout />}>
             <Route index element={<Navigate to="/grantor/dashboard" replace />} />
@@ -66,7 +69,8 @@ function App() {
             <Route path="opportunities/new" element={<OpportunitiesIndex />} />
             <Route path="opportunities/:id" element={<OpportunityBuilder />} />
             <Route path="intake-queue" element={<div><h1>Intake Queue</h1><p>Coming in Phase 6.</p></div>} />
-            <Route path="qa-inbox" element={<div><h1>Q&A Inbox</h1><p>Coming in a future phase.</p></div>} />
+            <Route path="opportunities/:id/qa" element={<QAManagementPage />} />
+            <Route path="qa-inbox" element={<Navigate to="/grantor/opportunities" replace />} />
             <Route path="settings" element={<div><h1>Settings</h1><p>Coming in a future phase.</p></div>} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
