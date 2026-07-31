@@ -123,12 +123,12 @@ Plans:
   3. Validation errors are classified as informational, warning, or blocking with distinct USWDS visual treatments; blocking errors are surfaced continuously during drafting (not only at final submission) and the submit button remains disabled until all blocking items are cleared
   4. An authorized representative can certify the application (with legal certification text), and only authorized representative role users can initiate final submission
   5. Upon successful submission the system generates an immutable snapshot with a unique confirmation number (GI-{YEAR}-{8-digit-seq}), a UTC-timestamped receipt, and both a human-readable and machine-readable (JSON) submission package; the application is locked and no edits are permitted without a formal withdrawal or return-for-correction workflow
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 05-01: Grantor Q&A configuration (F43), public Q&A response publishing (F44), auditable Q&A and addenda history (F46), applicant notifications for addenda and changes (F47)
-- [ ] 05-02: Continuous validation engine (F48), validation message classification (F49), submission blocking (F50), authorized representative certification (F51)
-- [ ] 05-03: Immutable submission snapshot and receipt (F52), human-readable and machine-readable submission package (F53), post-submission edit prevention (F54)
+- [ ] 05-01-PLAN.md — Migration 015 (qa_items, certifications, submission_snapshots + immutability triggers), qaService (listPublished/listAll/submitQuestion/publishAnswer/getAuditHistory), notificationService (NOTIFICATION_SENT audit events + email simulation), qaRouter (5 endpoints), QASubmitPage (/applicant/opportunities/:id/qa), QAManagementPage (/grantor/opportunities/:id/qa), OpportunityDetailPage Q&A section + Submit Question link, integration + Playwright tests (F43, F44, F46, F47)
+- [ ] 05-02-PLAN.md — validationService (three-tier: blocking/warning/info from section JSONB + structural checks), certificationService (SHA-256 hash, CERTIFICATION_COMPLETED audit event, AR role enforcement), POST /certify + POST /validate + GET /certification routes, ValidationBanner (USWDS red/yellow/blue), useValidation hook (blur-triggered 500ms debounced), CertificationPanel (AR-only, legal text, checkbox, concern flag), ReadinessDashboard submit gate (aria-disabled when blocking_count > 0), integration + Playwright tests (F48, F49, F50, F51)
+- [ ] 05-03-PLAN.md — submissionService (full pipeline: validate gate → GI-YEAR-8digit confirmation# → immutable snapshot INSERT → workspace lock is_locked=true/visibility=shared → human-readable HTML path + machine-readable JSON path → SUBMISSION_COMPLETED audit event), POST /submit (422 SUBMISSION_BLOCKED on errors) + GET /receipt + GET /submissions/:id routes, CertifySubmitPage (/applicant/workspaces/:id/certify-submit), SubmissionReceiptPage (/applicant/workspaces/:id/receipt), WorkspacePage locked state banner, immutable table test cleanup (DISABLE/ENABLE TRIGGER), integration + Playwright tests (F52, F53, F54)
 
 ### Phase 6: Intake Queue, Screening & Analytics
 **Goal**: Grantor intake administrators have a structured queue for receiving, triaging, and routing applications; both grantors and applicants have dashboards and export capabilities to monitor intake status and generate audit-ready reports
