@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-07-31T05:03:11.517Z"
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-07-31T05:03:49.796Z"
 last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
 progress:
   total_phases: 9
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 36
-  completed_plans: 35
+  completed_plans: 36
   percent: 97
 ---
 
@@ -86,6 +86,7 @@ Progress: [█████████▒] 97%
 | Phase 05-q-a-submission-validation P01 | 13 min | 2 tasks | 13 files |
 | Phase 05-q-a-submission-validation P02 | 12 min | 2 tasks | 17 files |
 | Phase 05-q-a-submission-validation P04 | 3 min | 2 tasks | 3 files |
+| Phase 05-q-a-submission-validation P05 | 3 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -160,6 +161,8 @@ Recent decisions affecting current work:
 - [Phase 05-q-a-submission-validation]: useIsAuthorizedRep hook queries GET /organizations/:org_id/roles — no new backend endpoint needed for client-side AR detection
 - [Phase 05-q-a-submission-validation]: App.tsx qa-inbox redirect left as-is — canonical path is OpportunityBuilder Q&A tab
 - [Phase 05-q-a-submission-validation]: CompletenessChecklist phaseNote field and isPhase2 render branch removed entirely — no remaining usages after Phase 2 placeholder removal
+- [Phase 05-q-a-submission-validation]: localStorage.applicant_org_id populated via useEffect in WorkspacePage — org is pre-seeded, user may never visit OrgProfilePage creation path
+- [Phase 05-q-a-submission-validation]: budget/attachments/certifications sections excluded from SECTION_FIELDS seeding — dedicated UIs (BudgetBuilder/AttachmentManager) and POST /certify handle those sections
 
 ### Pending Todos
 
@@ -171,6 +174,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-31T05:03:11.516Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-07-31T05:03:49.795Z
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
