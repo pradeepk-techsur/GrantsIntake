@@ -2,16 +2,16 @@
 pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 04-13-PLAN.md
-last_updated: "2026-07-30T19:46:34.659Z"
-last_activity: "2026-07-30 — Plan 04-12 complete: UAT-OPP-002 published opportunity seeded without workspace in src/db/seed.ts"
+status: in_progress
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-07-31T02:23:23Z"
+last_activity: "2026-07-31 — Plan 05-01 complete: Q&A backend + frontend, migration 015, notification service"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 31
-  completed_plans: 31
-  percent: 100
+  total_plans: 34
+  completed_plans: 32
+  percent: 94
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** Grantors receive better applications and applicants submit with less burden — by replacing fragmented, document-heavy intake with a structured, guided, data-driven workflow that enforces completeness, preserves auditability, and accelerates handoff from submission to review.
-**Current focus:** Phase 4 — Application Workspace & Form Capture (COMPLETE)
+**Current focus:** Phase 5 — Q&A, Submission & Validation
 
 ## Current Position
 
-Phase: 4 of 6 (Application Workspace & Form Capture) — all gap closure plans complete
-Plan: 13 of 13 in current phase — Plan 04-13 complete (all phase 04 plans done)
-Status: Plan 04-13 Complete — opportunity title fetch in WorkspacePage header, overflow:hidden on content column, overflow-x:auto on AttachmentManager table, ReadinessDashboard loading state usa-prose removed; Playwright regression tests passing (6 pass, 1 skip)
-Last activity: 2026-07-30 — Plan 04-13 complete: workspace layout/display bug fixes (opportunity title, overflow containment, attachment table scroll)
+Phase: 5 of 7 (Q&A, Submission & Validation)
+Plan: 1 of 3 in current phase — Plan 05-01 complete
+Status: Plan 05-01 Complete — Migration 015 (qa_items, certifications, submission_snapshots with immutability triggers), Q&A backend + frontend, notification service
+Last activity: 2026-07-31 — Plan 05-01 complete: Q&A flow with window enforcement, audit trails, grantor/applicant UIs
 
-Progress: [██████████] 100%
+Progress: [█████████▒] 94%
 
 ## Performance Metrics
 
@@ -83,6 +83,7 @@ Progress: [██████████] 100%
 | Phase 04-application-workspace-form-capture P10 | 5 min | 2 tasks | 1 files |
 | Phase 04-application-workspace-form-capture P12 | 5 min | 1 tasks | 1 files |
 | Phase 04-application-workspace-form-capture P13 | 9min | 2 tasks | 5 files |
+| Phase 05-q-a-submission-validation P01 | 13 min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,9 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: No workspace row seeded for UAT-OPP-002 — absence of workspace enables Start Application CTA (PRD-INTAKE-030 UAT Test 2)
 - [Phase 04-application-workspace-form-capture]: opportunityQuery uses workspaceQuery.data?.opportunity_id as dependency (declared before loading/error guards); renders title with UUID fallback
 - [Phase 04-application-workspace-form-capture]: playwright.config.ts baseURL corrected to localhost:5173 (Vite dev server) — API server on 3000 does not serve frontend routes
+- [Phase 05-q-a-submission-validation]: audit_events column is 'payload' (not 'metadata') — aligned to existing schema from Phase 1
+- [Phase 05-q-a-submission-validation]: Notification via audit_events: NOTIFICATION_SENT per workspace with payload containing notification_type, IDs, workspace_link — Phase 6 adds real email delivery
+- [Phase 05-q-a-submission-validation]: Q&A window enforcement via opportunity.qa_config JSONB (enabled, question_window_open, question_window_close) — no extra migration needed
 
 ### Pending Todos
 
@@ -160,6 +164,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T19:46:34.658Z
-Stopped at: Completed 04-13-PLAN.md
+Last session: 2026-07-31T02:23:23Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
