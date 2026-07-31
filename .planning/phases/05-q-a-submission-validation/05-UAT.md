@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 05-q-a-submission-validation
 source: 05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md
 started: 2026-07-31T14:36:25Z
-updated: 2026-07-31T14:45:00Z
+updated: 2026-07-31T14:50:00Z
 ---
 
 ## Current Test
@@ -96,9 +96,15 @@ per_test:
   severity: major
   test: 1
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "QASubmitPage only shows published/answered questions (GET /opportunities/:id/qa returns only answered items). A freshly submitted question has status='pending' and no answer so it never appears. There is no 'pending questions' list shown to the applicant after submit — only a text success message."
+  artifacts:
+    - path: "client/src/pages/applicant/QASubmitPage.tsx:28-44"
+      issue: "publishedQuery calls listPublished() which returns only answered items; onSuccess invalidates that query but pending questions still won't appear"
+    - path: "client/src/api/qaApi.ts:14-18"
+      issue: "listPublished() calls GET /api/v1/opportunities/:id/qa — public endpoint, answered-only"
+  missing:
+    - "After submit success, display a 'Your submitted questions (awaiting answer)' list using an authenticated endpoint for the submitter's own questions"
+    - "Add GET /opportunities/:id/my-questions endpoint or reuse existing grantor endpoint with user-scoped filter, and render submitted-but-pending questions on QASubmitPage"
   debug_session: ""
 
 - truth: "The Q&A management page (/grantor/opportunities/:id/qa) shows all submitted questions so the grantor can type and publish answers"
@@ -107,9 +113,16 @@ per_test:
   severity: major
   test: 2
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Opportunity ID mismatch between what the applicant submitted to and what the grantor is viewing. The applicant submits via their applicant URL opportunity ID, and the grantor views via a different opportunity ID in OpportunityBuilder. Additionally, QAManagementPage shows only the raw UUID (not opportunity title) making it impossible to verify the correct opportunity."
+  artifacts:
+    - path: "client/src/pages/grantor/QAManagementPage.tsx:73"
+      issue: "Displays raw UUID not opportunity title — no visual confirmation of correct opportunity"
+    - path: "client/src/api/qaApi.ts:22-25"
+      issue: "Error from listAll() does not propagate HTTP status code — auth failures (401/403) indistinguishable from empty results"
+  missing:
+    - "Verify and align the opportunity IDs used by applicant QA submit path and grantor QA management path"
+    - "Add opportunity title to QAManagementPage header via GET /opportunities/:id"
+    - "Propagate HTTP status on listAll() errors so 401/403 is distinguishable from empty"
   debug_session: ""
 
 - truth: "In the workspace Certifications section, applicant@example.com (who has authorized_representative role) sees a Certification panel with legal certification text and a checkbox"
@@ -118,9 +131,17 @@ per_test:
   severity: major
   test: 4
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "useIsAuthorizedRep hook reads orgId from localStorage synchronously at render time. WorkspacePage.tsx sets localStorage.applicant_org_id in a useEffect that fires AFTER the first render. On the initial render orgId is null, the query is disabled, isAuthorizedRep stays false, and CertificationPanel returns null. The fix in 05-05 sets localStorage but the hook is not reactive to localStorage changes — it only picks up the value on the NEXT hard refresh."
+  artifacts:
+    - path: "client/src/hooks/useIsAuthorizedRep.ts:24"
+      issue: "orgId read from localStorage once at render — not reactive to useEffect writes that happen after initial render"
+    - path: "client/src/pages/applicant/WorkspacePage.tsx:55-59"
+      issue: "useEffect sets localStorage.applicant_org_id after mount, but hook has already captured orgId=null and disabled the query"
+    - path: "client/src/components/workspace/CertificationPanel.tsx:66"
+      issue: "if (!isAuthorizedRep) return null — correctly gated but never receives true due to above timing issue"
+  missing:
+    - "Pass org_id directly as prop to useIsAuthorizedRep instead of reading from localStorage — WorkspacePage already has workspaceQuery.data.org_id available"
+    - "Change hook signature to useIsAuthorizedRep(orgId?: string | null) and remove localStorage.getItem call from hook"
   debug_session: ""
 
 - truth: "After filling all workspace sections, ReadinessDashboard shows 100% completion and the Submit Application button becomes active"
@@ -129,8 +150,17 @@ per_test:
   severity: major
   test: 5
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Two compounding issues: (A) certificationService.certify() inserts a cert record but never updates application_sections SET status='complete' WHERE section_type='certifications', so the certifications section permanently stays not_started. (B) The attachments section also stays not_started when no attachments are uploaded, even when no attachment requirements exist. 7/9 sections = 78%; the 2 stuck sections (certifications + attachments) make 100% mathematically impossible. is_ready_to_submit requires overall_completion_pct===100."
+  artifacts:
+    - path: "src/services/workspace/certificationService.ts:62-88"
+      issue: "certify() inserts into certifications table but never UPDATE application_sections SET status='complete' WHERE section_type='certifications'"
+    - path: "src/services/workspace/readinessService.ts:67-72"
+      issue: "overall_completion_pct counts application_sections.status='complete' — certifications section never reaches complete without the UPDATE"
+    - path: "src/services/workspace/readinessService.ts:224-227"
+      issue: "is_ready_to_submit requires overall_completion_pct===100 — unreachable with 2 sections stuck at not_started"
+  missing:
+    - "In certificationService.certify(): after INSERT into certifications, UPDATE application_sections SET status='complete' WHERE workspace_id=$1 AND section_type='certifications'"
+    - "For attachments section: when no attachment requirements exist for the opportunity, auto-mark attachments section as complete (or exclude it from completion denominator)"
+    - "Fix Gap 3 (CertificationPanel visibility) first so user can trigger POST /certify to flip certifications to complete"
   debug_session: ""
 
