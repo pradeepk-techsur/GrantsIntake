@@ -63,13 +63,11 @@ class ReadinessService {
     const sections = sectionsResult.rows;
 
     // ── Completion percentage ──────────────────────────────────────────────────
+    // Computed as 'let' so it can be recomputed after the attachment section
+    // auto-complete logic mutates in-memory sections[] below.
 
     const visibleSections = sections.filter((s) => s.is_visible);
-    const completeSections = visibleSections.filter((s) => s.status === 'complete');
-    const overall_completion_pct =
-      visibleSections.length > 0
-        ? Math.round((completeSections.length / visibleSections.length) * 100)
-        : 0;
+    let overall_completion_pct = 0; // will be (re)computed after attachment section auto-complete
 
     // ── Blocking errors + warnings from section validation_errors JSONB ───────
 
@@ -207,6 +205,23 @@ class ReadinessService {
             });
           }
         }
+
+        // If no attachment requirements exist for this opportunity, auto-mark
+        // the attachments section as complete so it doesn't block 100% completion.
+        // This handles the common case where an opportunity has no attachment requirements.
+        if (attachResult.rows.length === 0) {
+          await pool.query(
+            `UPDATE application_sections
+             SET status = 'complete', updated_at = now()
+             WHERE workspace_id = $1 AND section_type = 'attachments' AND status = 'not_started'`,
+            [workspaceId],
+          );
+          // Also update in-memory sections so this call's completion % is accurate
+          const attachSection = sections.find((s) => s.section_type === 'attachments');
+          if (attachSection && attachSection.status === 'not_started') {
+            attachSection.status = 'complete';
+          }
+        }
       } catch (err: unknown) {
         // Handle missing `attachments` table gracefully (table created in future phase).
         // Error code 42P01 = "undefined_table" in PostgreSQL.
@@ -217,6 +232,16 @@ class ReadinessService {
         }
         // attachments table not yet created — skip silently
       }
+    }
+
+    // ── Recompute completion pct after possible attachment section auto-complete ─
+    // (in-memory sections[] may have been mutated above if attachments auto-completed)
+    {
+      const completeSections = sections.filter((s) => s.is_visible && s.status === 'complete');
+      overall_completion_pct =
+        visibleSections.length > 0
+          ? Math.round((completeSections.length / visibleSections.length) * 100)
+          : 0;
     }
 
     // ── Final readiness determination ───────────────────────────────────────────

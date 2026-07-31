@@ -65,6 +65,16 @@ class CertificationService {
         [workspaceId, certifyingUserId, certificationText, certHash],
       );
       cert = result.rows[0];
+
+      // Mark certifications section as complete (PRD-INTAKE-050)
+      // Without this UPDATE, certifications section stays 'not_started' forever,
+      // making 100% completion mathematically impossible.
+      await pool.query(
+        `UPDATE application_sections
+         SET status = 'complete', updated_at = now()
+         WHERE workspace_id = $1 AND section_type = 'certifications'`,
+        [workspaceId],
+      );
     } catch (dbErr: unknown) {
       const e = dbErr as { code?: string };
       if (e.code === '23505') {
