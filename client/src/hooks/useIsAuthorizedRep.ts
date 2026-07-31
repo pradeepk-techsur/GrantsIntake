@@ -15,13 +15,13 @@ interface OrgRole {
  * useIsAuthorizedRep — checks if the current user has the authorized_representative
  * role in their applicant organization.
  *
- * Reads org_id from localStorage `applicant_org_id`, fetches org roles,
- * and checks if the current user's entry includes 'authorized_representative'.
+ * Accepts orgId as a prop (caller must provide from workspace data or similar source).
+ * Does NOT read localStorage — avoids the stale-closure problem where localStorage
+ * is set in a useEffect AFTER this hook has already captured orgId=null.
  */
-export function useIsAuthorizedRep(): boolean {
+export function useIsAuthorizedRep(orgId?: string | null): boolean {
   const accessToken = useAuthStore((s) => s.accessToken);
   const { user } = useCurrentUser();
-  const orgId = typeof window !== 'undefined' ? localStorage.getItem('applicant_org_id') : null;
 
   const { data: roles } = useQuery<OrgRole[]>({
     queryKey: ['org-roles', orgId],

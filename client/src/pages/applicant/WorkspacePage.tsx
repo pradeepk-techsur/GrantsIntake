@@ -44,7 +44,8 @@ export function WorkspacePage() {
   const { triggerValidation } = useValidation(workspaceId ?? '');
 
   // Check if current user is authorized representative
-  const isAuthorizedRep = useIsAuthorizedRep();
+  // Pass org_id from workspace data (React Query reactive) — avoids stale localStorage read
+  const isAuthorizedRep = useIsAuthorizedRep(workspaceQuery.data?.org_id ?? null);
 
   // Zustand: local UI state for active section
   const { activeSectionType, setActiveSectionType } = useWorkspaceStore();
