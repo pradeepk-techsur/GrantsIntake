@@ -124,7 +124,7 @@ Plans:
   3. Validation errors are classified as informational, warning, or blocking with distinct USWDS visual treatments; blocking errors are surfaced continuously during drafting (not only at final submission) and the submit button remains disabled until all blocking items are cleared
   4. An authorized representative can certify the application (with legal certification text), and only authorized representative role users can initiate final submission
   5. Upon successful submission the system generates an immutable snapshot with a unique confirmation number (GI-{YEAR}-{8-digit-seq}), a UTC-timestamped receipt, and both a human-readable and machine-readable (JSON) submission package; the application is locked and no edits are permitted without a formal withdrawal or return-for-correction workflow
-**Plans:** 7 plans
+**Plans:** 8 plans
 
 Plans:
 - [ ] 05-01-PLAN.md — Migration 015 (qa_items, certifications, submission_snapshots + immutability triggers), qaService (listPublished/listAll/submitQuestion/publishAnswer/getAuditHistory), notificationService (NOTIFICATION_SENT audit events + email simulation), qaRouter (5 endpoints), QASubmitPage (/applicant/opportunities/:id/qa), QAManagementPage (/grantor/opportunities/:id/qa), OpportunityDetailPage Q&A section + Submit Question link, integration + Playwright tests (F43, F44, F46, F47)
@@ -134,6 +134,7 @@ Plans:
 - [ ] 05-05-PLAN.md — Gap closure: WorkspacePage useEffect sets localStorage.applicant_org_id from workspace.org_id (unblocks CertificationPanel for seeded-org users); seed form_field_definitions for org_profile/eligibility/workplan/performance_measures/review_submit sections (unblocks completion_pct and Submit button — UAT Tests 4+5+7)
 - [ ] 05-06-PLAN.md — Gap closure (UAT Tests 1+2): Add GET /my-questions backend endpoint + qaApi.listMyQuestions + pending questions list on QASubmitPage; QAManagementPage shows opportunity title (not UUID) + error alert on 401/403; seed qa_config enabled on UAT-OPP-001
 - [ ] 05-07-PLAN.md — Gap closure (UAT Tests 4+5): Fix useIsAuthorizedRep to accept orgId as prop (not localStorage) so CertificationPanel renders on first load; certificationService marks certifications section complete after INSERT; readinessService auto-completes attachments section when no requirements exist
+- [ ] 05-08-PLAN.md — Gap closure (UAT Test 2): Add "Manage Q&A" link per opportunity card in OpportunitiesIndex; relabel sidebar "Q&A Inbox" to "Q&A Management"; add "Opportunity Builder" subtitle to OpportunityBuilder page header
 
 ### Phase 6: Intake Queue, Screening & Analytics
 **Goal**: Grantor intake administrators have a structured queue for receiving, triaging, and routing applications; both grantors and applicants have dashboards and export capabilities to monitor intake status and generate audit-ready reports
