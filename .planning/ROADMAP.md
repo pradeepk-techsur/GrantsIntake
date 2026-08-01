@@ -135,6 +135,8 @@ Plans:
 - [ ] 05-06-PLAN.md — Gap closure (UAT Tests 1+2): Add GET /my-questions backend endpoint + qaApi.listMyQuestions + pending questions list on QASubmitPage; QAManagementPage shows opportunity title (not UUID) + error alert on 401/403; seed qa_config enabled on UAT-OPP-001
 - [ ] 05-07-PLAN.md — Gap closure (UAT Tests 4+5): Fix useIsAuthorizedRep to accept orgId as prop (not localStorage) so CertificationPanel renders on first load; certificationService marks certifications section complete after INSERT; readinessService auto-completes attachments section when no requirements exist
 - [ ] 05-08-PLAN.md — Gap closure (UAT Test 2): Add "Manage Q&A" link per opportunity card in OpportunitiesIndex; relabel sidebar "Q&A Inbox" to "Q&A Management"; add "Opportunity Builder" subtitle to OpportunityBuilder page header
+- [ ] 05-09-PLAN.md — Gap closure (UAT Test 2): Reseed UAT-OPP-001/002 under admin@example.gov's grantor org (General Grant Programs); fix OpportunitiesIndex to fetch all programs so all opportunities appear in the list
+- [ ] 05-10-PLAN.md — Gap closure (UAT Test 6): Thread workspace.is_locked through WorkspaceSectionPanel → SectionFormPanel → FormFieldRenderer as disabled prop; disable BudgetBuilder and AttachmentManager controls in locked state; Playwright locked-workspace test
 
 ### Phase 6: Intake Queue, Screening & Analytics
 **Goal**: Grantor intake administrators have a structured queue for receiving, triaging, and routing applications; both grantors and applicants have dashboards and export capabilities to monitor intake status and generate audit-ready reports
