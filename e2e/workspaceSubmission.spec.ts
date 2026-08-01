@@ -251,7 +251,173 @@ test('WorkspacePage shows locked banner when workspace is_locked=true', async ({
   await expect(lockedBanner).toContainText('View submission receipt');
 });
 
-// Test 5: Receipt link from locked workspace navigates to /receipt
+// Test 5: Form fields are disabled in locked workspace (PRD-INTAKE-054)
+test('form fields are disabled in locked workspace', async ({ page }) => {
+  // Mock workspace with is_locked=true
+  await page.route('**/api/v1/workspaces/' + MOCK_WORKSPACE_ID, async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          workspace_id: MOCK_WORKSPACE_ID,
+          opportunity_id: 'test-opp-id',
+          org_id: 'test-org-id',
+          status: 'submitted',
+          is_locked: true,
+          visibility: 'shared',
+        }),
+      });
+    } else {
+      await route.continue();
+    }
+  });
+
+  // Mock sections — narrative only so SectionFormPanel renders (not budget/attachments)
+  await page.route('**/api/v1/workspaces/*/sections', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          section_id: 's-narrative',
+          section_type: 'narrative',
+          section_name: 'Narrative',
+          display_order: 1,
+          status: 'complete',
+          is_visible: true,
+        },
+      ]),
+    });
+  });
+
+  // Mock section fields — two fields (text + textarea) so inputs render
+  // Pattern matches /api/v1/workspaces/{id}/sections/{sectionId}/fields (actual endpoint path)
+  await page.route('**/api/v1/workspaces/*/sections/*/fields*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          field_id: 'f-text-1',
+          field_type: 'text',
+          label: 'Project Title',
+          placeholder: 'Enter title',
+          help_text: '',
+          is_required: true,
+          display_order: 1,
+          validation_config: {},
+          current_response: null,
+        },
+        {
+          field_id: 'f-textarea-1',
+          field_type: 'textarea',
+          label: 'Project Narrative',
+          placeholder: 'Enter narrative',
+          help_text: '',
+          is_required: true,
+          display_order: 2,
+          validation_config: {},
+          current_response: null,
+        },
+      ]),
+    });
+  });
+
+  // Mock readiness
+  await page.route('**/api/v1/workspaces/*/readiness', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        overall_completion_pct: 100,
+        is_ready_to_submit: false,
+        authorized_rep_assigned: true,
+        blocking_errors: [],
+        warnings: [],
+        attachment_status: [],
+      }),
+    });
+  });
+
+  // Mock tasks endpoint (returns empty — no tasks for this test workspace)
+  await page.route('**/api/v1/workspaces/' + MOCK_WORKSPACE_ID + '/tasks', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+  });
+  // Mock comments endpoint (returns empty — no comments for this test workspace)
+  await page.route('**/api/v1/workspaces/' + MOCK_WORKSPACE_ID + '/comments', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+  });
+
+  // Mock validate endpoint (specific workspace ID)
+  await page.route('**/api/v1/workspaces/' + MOCK_WORKSPACE_ID + '/validate*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ errors: [], warnings: [], info: [] }),
+    });
+  });
+
+  // Mock org roles (for useIsAuthorizedRep hook) — must return OrgRole[] array, not {roles:[]}
+  await page.route('**/api/v1/organizations/*/roles', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          role_id: 'test-role-id',
+          org_id: 'test-org-id',
+          user_id: 'test-user-id',
+          roles: ['authorized_representative'],
+          revoked_at: null,
+        },
+      ]),
+    });
+  });
+
+  // Mock opportunity title
+  await page.route('**/api/v1/opportunities/*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ title: 'Test Opportunity' }),
+    });
+  });
+
+  await loginAndNavigate(
+    page,
+    APPLICANT_EMAIL,
+    APPLICANT_PASS,
+    `/applicant/workspaces/${MOCK_WORKSPACE_ID}`,
+  );
+
+  // Wait for workspace page — use longer timeout to account for mock API response time
+  await expect(page.getByTestId('workspace-page')).toBeVisible({ timeout: 10000 });
+
+  // Locked banner must be visible
+  await expect(page.getByTestId('locked-banner')).toBeVisible();
+
+  // Narrative section auto-selects (it's the first visible section)
+  // Wait for section form panel to render
+  await page.waitForSelector('[data-testid="section-form-panel"]', { timeout: 8000 });
+
+  // Read-only notice must appear
+  await expect(page.locator('text=This section is read-only')).toBeVisible({ timeout: 8000 });
+
+  // All form inputs must be disabled — this is the core assertion for PRD-INTAKE-054
+  const inputs = page.locator(
+    '[data-testid="section-form-panel"] input, [data-testid="section-form-panel"] textarea, [data-testid="section-form-panel"] select',
+  );
+  const inputCount = await inputs.count();
+  expect(inputCount).toBeGreaterThan(0); // mocked fields must render
+
+  for (let i = 0; i < inputCount; i++) {
+    const isDisabled = await inputs.nth(i).getAttribute('disabled');
+    expect(isDisabled).not.toBeNull();
+  }
+});
+
+// Test 6: Receipt link from locked workspace navigates to /receipt
 test('Locked workspace banner has link to receipt page', async ({ page }) => {
   // Mock workspace with is_locked=true
   await page.route('**/api/v1/workspaces/' + MOCK_WORKSPACE_ID, async (route) => {
