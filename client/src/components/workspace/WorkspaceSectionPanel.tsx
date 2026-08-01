@@ -132,7 +132,7 @@ export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLoc
                       status: task.status === 'open' ? 'complete' : 'open',
                     })
                   }
-                  disabled={updateTaskMutation.isPending}
+                  disabled={updateTaskMutation.isPending || isLocked}
                 >
                   {task.status === 'open' ? 'Mark complete' : 'Reopen'}
                 </button>
@@ -189,7 +189,7 @@ export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLoc
             type="button"
             className="usa-button"
             onClick={handlePostComment}
-            disabled={!commentText.trim() || postCommentMutation.isPending}
+            disabled={!commentText.trim() || postCommentMutation.isPending || isLocked}
           >
             {postCommentMutation.isPending ? 'Posting…' : 'Post Comment'}
           </button>

@@ -81,6 +81,7 @@ async function seed() {
       [orgId, 'General Grant Programs'],
     );
     const mainProgramId = mainProgramResult.rows[0]?.program_id;
+    if (!mainProgramId) throw new Error('mainProgramId missing after upsert — General Grant Programs not found');
 
     // Seed 5 system opportunity templates (idempotent via ON CONFLICT DO NOTHING)
     const systemTemplates = [

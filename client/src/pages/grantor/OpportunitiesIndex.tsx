@@ -32,9 +32,10 @@ export function OpportunitiesIndex() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
     apiClient
-      .get<{ program_id: string }[]>('/programs')
+      .get<{ program_id: string }[]>('/programs', { signal: controller.signal })
       .then(async (res) => {
         const programs = res.data;
         if (programs.length === 0) {
@@ -47,15 +48,16 @@ export function OpportunitiesIndex() {
         const oppArrays = await Promise.all(
           programs.map((p) =>
             apiClient
-              .get<OpportunityListItem[]>(`/programs/${p.program_id}/opportunities`)
+              .get<OpportunityListItem[]>(`/programs/${p.program_id}/opportunities`, { signal: controller.signal })
               .then((r) => r.data)
               .catch(() => [] as OpportunityListItem[]),
           ),
         );
-        setOpportunities(oppArrays.flat());
+        if (!controller.signal.aborted) setOpportunities(oppArrays.flat());
       })
-      .catch(() => setOpportunities([]))
-      .finally(() => setLoading(false));
+      .catch(() => { if (!controller.signal.aborted) setOpportunities([]); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
   }, []);
 
   return (
