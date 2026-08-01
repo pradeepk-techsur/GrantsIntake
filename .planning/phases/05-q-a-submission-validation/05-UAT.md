@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 05-q-a-submission-validation
 source: 05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md, 05-05-SUMMARY.md, 05-06-SUMMARY.md, 05-07-SUMMARY.md, 05-08-SUMMARY.md
 started: 2026-08-01T02:21:45Z
@@ -90,9 +90,14 @@ per_test:
   severity: major
   test: 2
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "UAT opportunities (UAT-OPP-001) are seeded under a separate grantor org (bcdcd712 / UAT Grant Program) — not the same org that admin@example.gov belongs to (77d6d2eb / Example Federal Agency). OpportunitiesIndex fetches /programs from the admin's org, returns only 'General Grant Programs' which has a sample opportunity with no Q&A questions. The UAT opportunity exists and its /questions endpoint returns questions when called directly, but the grantor never navigates there because it doesn't appear in their Opportunities list."
+  artifacts:
+    - path: "src/db/seed.ts"
+      issue: "UAT opportunities are seeded under a separate grantor_org_id (UAT Grant Program) not associated with admin@example.gov's organization"
+    - path: "client/src/pages/grantor/OpportunitiesIndex.tsx:51-57"
+      issue: "Fetches /programs for the logged-in grantor's org; UAT opportunities belong to a different program/org so don't appear"
+  missing:
+    - "Seed UAT-OPP-001 and UAT-OPP-002 under the same grantor org as admin@example.gov (77d6d2eb / cb6ef199 program), or add admin@example.gov as a grantor_admin member of the UAT grantor org"
   debug_session: ""
 
 - truth: "After submission, workspace form fields become read-only (not editable)"
@@ -101,8 +106,19 @@ per_test:
   severity: major
   test: 6
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "WorkspacePage renders the locked banner when workspace.is_locked=true but never passes the locked state down to WorkspaceSectionPanel → SectionFormPanel → FormFieldRenderer. FormFieldRenderer accepts a disabled prop and conditionally renders read-only fields, but the prop is never wired from workspace.is_locked. Result: banner appears correctly but fields remain fully editable."
+  artifacts:
+    - path: "client/src/pages/applicant/WorkspacePage.tsx:150"
+      issue: "Renders locked banner from workspace.is_locked but does not pass isLocked to WorkspaceSectionPanel"
+    - path: "client/src/components/workspace/WorkspaceSectionPanel.tsx:9-15"
+      issue: "WorkspaceSectionPanelProps has no isLocked/disabled prop — locked state can't be threaded through"
+    - path: "client/src/components/workspace/SectionFormPanel.tsx:7-20"
+      issue: "SectionFormPanelProps has no isLocked/disabled prop"
+    - path: "client/src/components/workspace/FormFieldRenderer.tsx:10,25"
+      issue: "disabled prop exists and is plumbed correctly to all input types, but is never set from workspace lock state"
+  missing:
+    - "Add isLocked prop to WorkspaceSectionPanel and SectionFormPanel interfaces"
+    - "Pass workspace.is_locked from WorkspacePage to WorkspaceSectionPanel"
+    - "Thread isLocked through SectionFormPanel to FormFieldRenderer disabled prop"
   debug_session: ""
 
