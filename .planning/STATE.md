@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-08-PLAN.md
-last_updated: "2026-08-01T01:32:03.678Z"
+stopped_at: Completed 05-09-PLAN.md
+last_updated: "2026-08-01T03:11:08.549Z"
 last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
 progress:
   total_phases: 9
-  completed_phases: 5
-  total_plans: 39
-  completed_plans: 39
+  completed_phases: 4
+  total_plans: 41
+  completed_plans: 40
   percent: 97
 ---
 
@@ -90,6 +90,7 @@ Progress: [█████████▒] 97%
 | Phase 05-q-a-submission-validation P07 | 1 min | 2 tasks | 4 files |
 | Phase 05-q-a-submission-validation P06 | 3 min | 2 tasks | 6 files |
 | Phase 05-q-a-submission-validation P08 | 1min | 2 tasks | 3 files |
+| Phase 05-q-a-submission-validation P09 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -174,6 +175,8 @@ Recent decisions affecting current work:
 - [Phase 05-q-a-submission-validation]: titleQuery uses public /api/v1/opportunities/:id endpoint with UUID fallback (T-05-06-03 accepted risk)
 - [Phase 05-q-a-submission-validation]: Sidebar label changed from 'Q&A Inbox' to 'Q&A Management'; destination unchanged per prior decision
 - [Phase 05-q-a-submission-validation]: Q&A card links use usa-card__footer placement in OpportunitiesIndex; Opportunity Builder subtitle uses muted uppercase p tag above h1
+- [Phase 05-q-a-submission-validation]: UAT opportunities moved from 'UAT Federal Agency'/'UAT Grant Program' to 'General Grant Programs' under admin@example.gov's org — OpportunitiesIndex /programs is org-scoped so UAT opps must live in admin's org to appear
+- [Phase 05-q-a-submission-validation]: Multi-program Promise.all fetch replaces useFirstProgramId in OpportunitiesIndex — fetches all programs then parallel-fetches opportunities per program, flattened to one list
 
 ### Pending Todos
 
@@ -185,6 +188,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-01T01:32:03.676Z
-Stopped at: Completed 05-08-PLAN.md
+Last session: 2026-08-01T03:11:08.548Z
+Stopped at: Completed 05-09-PLAN.md
 Resume file: None
