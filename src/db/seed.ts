@@ -75,6 +75,13 @@ async function seed() {
     }
     console.log('Seeded default program: General Grant Programs (idempotent)');
 
+    // Capture the General Grant Programs program_id for UAT opportunities
+    const mainProgramResult = await pool.query(
+      `SELECT program_id FROM programs WHERE grantor_org_id = $1 AND program_name = $2 LIMIT 1`,
+      [orgId, 'General Grant Programs'],
+    );
+    const mainProgramId = mainProgramResult.rows[0]?.program_id;
+
     // Seed 5 system opportunity templates (idempotent via ON CONFLICT DO NOTHING)
     const systemTemplates = [
       {
@@ -295,44 +302,10 @@ async function seed() {
     // ── UAT Scenario Seed ────────────────────────────────────────────────────
     // Creates a complete UAT scenario so Playwright tests can exercise the full
     // UI paths without manual DB setup. All inserts are idempotent.
+    // UAT opportunities are seeded under 'General Grant Programs' (admin@example.gov's org)
+    // so they appear in OpportunitiesIndex which fetches /programs scoped to the admin's org.
 
-    // 1. Grantor org for the UAT opportunity
-    const existingUatGrantorOrg = await pool.query(
-      `SELECT org_id FROM grantor_organizations WHERE org_name = $1`,
-      ['UAT Federal Agency'],
-    );
-    let uatGrantorOrgId: string;
-    if (existingUatGrantorOrg.rows.length > 0) {
-      uatGrantorOrgId = existingUatGrantorOrg.rows[0].org_id;
-    } else {
-      const uatGrantorOrgResult = await pool.query(
-        `INSERT INTO grantor_organizations (org_name, org_type)
-         VALUES ($1, $2)
-         RETURNING org_id`,
-        ['UAT Federal Agency', 'federal_agency'],
-      );
-      uatGrantorOrgId = uatGrantorOrgResult.rows[0].org_id;
-    }
-
-    // 2. Grant program for the UAT opportunity
-    const existingUatProgram = await pool.query(
-      `SELECT program_id FROM programs WHERE program_name = $1`,
-      ['UAT Grant Program'],
-    );
-    let uatProgramId: string;
-    if (existingUatProgram.rows.length > 0) {
-      uatProgramId = existingUatProgram.rows[0].program_id;
-    } else {
-      const uatProgramResult = await pool.query(
-        `INSERT INTO programs (grantor_org_id, program_name, is_federal, program_area, created_by)
-         VALUES ($1, $2, TRUE, $3, $4)
-         RETURNING program_id`,
-        [uatGrantorOrgId, 'UAT Grant Program', 'General', adminUserId],
-      );
-      uatProgramId = uatProgramResult.rows[0].program_id;
-    }
-
-    // 3. Published opportunity
+    // 3. Published opportunity (under General Grant Programs — admin@example.gov's program)
     const existingUatOpportunity = await pool.query(
       `SELECT opportunity_id FROM opportunities WHERE opportunity_number = $1`,
       ['UAT-OPP-001'],
@@ -340,6 +313,11 @@ async function seed() {
     let uatOpportunityId: string;
     if (existingUatOpportunity.rows.length > 0) {
       uatOpportunityId = existingUatOpportunity.rows[0].opportunity_id;
+      // Re-assign to correct program (idempotent migration of existing row)
+      await pool.query(
+        `UPDATE opportunities SET program_id = $1 WHERE opportunity_id = $2`,
+        [mainProgramId, uatOpportunityId],
+      );
     } else {
       const uatOpportunityResult = await pool.query(
         `INSERT INTO opportunities (
@@ -350,9 +328,9 @@ async function seed() {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING opportunity_id`,
         [
-          uatProgramId,
+          mainProgramId,
           'UAT Community Health Innovation Grant',
-          'UAT Federal Agency',
+          'Example Federal Agency',
           'Initial',
           'UAT-OPP-001',
           'Open to 501(c)(3) nonprofits in rural communities.',
@@ -391,9 +369,9 @@ async function seed() {
          )
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
         [
-          uatProgramId,
+          mainProgramId,
           'UAT Community Health Grant 2',
-          'UAT Federal Agency',
+          'Example Federal Agency',
           'Initial',
           'UAT-OPP-002',
           'Open to 501(c)(3) nonprofits in urban communities.',
@@ -406,8 +384,14 @@ async function seed() {
           adminUserId,
         ],
       );
+    } else {
+      // Re-assign to correct program (idempotent migration of existing row)
+      await pool.query(
+        `UPDATE opportunities SET program_id = $1 WHERE opportunity_id = $2`,
+        [mainProgramId, existingUatOpportunity2.rows[0].opportunity_id],
+      );
     }
-    console.log('Seeded UAT-OPP-002 (no workspace — enables Start Application flow) (idempotent)');
+    console.log('Seeded UAT-OPP-002 under General Grant Programs (no workspace — enables Start Application flow) (idempotent)');
 
     // 4. Applicant organization for applicant@example.com
     const existingUatOrg = await pool.query(
@@ -693,7 +677,7 @@ async function seed() {
       console.log(`Seeded form_field_definitions for ${sectionType} section (idempotent)`);
     }
 
-    console.log('Seeded UAT scenario: UAT-OPP-001 + UAT Test Nonprofit + workspace (idempotent)');
+    console.log('Seeded UAT scenario: UAT-OPP-001 + UAT-OPP-002 under General Grant Programs + UAT Test Nonprofit + workspace (idempotent)');
     // ── End UAT Scenario Seed ────────────────────────────────────────────────
 
     console.log('Seed complete — admin@example.gov / TestPassword123! | applicant@example.com / TestPass123!');
