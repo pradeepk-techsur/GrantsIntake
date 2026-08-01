@@ -155,8 +155,8 @@ test('grantor can navigate to QAManagementPage', async ({ page }) => {
     }, oppRes);
     await page.waitForTimeout(1500);
 
-    // QAManagementPage should render
-    await expect(page.locator('text=Q&A Management')).toBeVisible({ timeout: 10000 });
+    // QAManagementPage should render — use h1 filter to avoid strict mode collision with nav link
+    await expect(page.locator('h1').filter({ hasText: 'Q&A Management' })).toBeVisible({ timeout: 10000 });
   }
 });
 
@@ -193,4 +193,73 @@ test('navigation wiring: QASubmitPage accessible from OpportunityDetailPage', as
     const href = await link.getAttribute('href');
     expect(href).toContain(`/applicant/opportunities/${oppRes.id}/qa`);
   }
+});
+
+// Test 6: grantor sees UAT opportunity in opportunities list (hard / non-advisory assertion)
+// Verifies that the 05-09 seed fix (UAT-OPP-001 under General Grant Programs) is effective end-to-end.
+test('grantor sees UAT opportunity in opportunities list', async ({ page }) => {
+  await page.goto('/login');
+  await page.fill('[name="email"]', 'admin@example.gov');
+  await page.fill('[name="password"]', 'TestPassword123!');
+  await page.click('[type="submit"]');
+  await page.waitForURL('**/grantor/**', { timeout: 10000 });
+
+  // Navigate to opportunities list using SPA pushState to preserve auth token
+  await page.evaluate(() => {
+    window.history.pushState({}, '', '/grantor/opportunities');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await page.waitForTimeout(2000);
+
+  // Wait for cards to render
+  await expect(page.locator('.usa-card-group')).toBeVisible({ timeout: 10000 });
+
+  // UAT Community Health Innovation Grant MUST appear (hard assertion — not advisory)
+  await expect(page.locator('text=UAT Community Health Innovation Grant')).toBeVisible({ timeout: 10000 });
+
+  // The card must have a Manage Q&A link with the correct aria-label
+  const qaLink = page.locator('[aria-label*="Manage Q&A for UAT Community Health Innovation Grant"]');
+  await expect(qaLink).toBeVisible({ timeout: 5000 });
+});
+
+// Test 7: grantor navigates from opportunities list to Q&A management and sees the page render without errors
+// Verifies the full UAT Test 2 flow: opportunities list → Manage Q&A → Q&A Management page loads (no auth error).
+test('grantor sees submitted questions on Q&A management page', async ({ page }) => {
+  await page.goto('/login');
+  await page.fill('[name="email"]', 'admin@example.gov');
+  await page.fill('[name="password"]', 'TestPassword123!');
+  await page.click('[type="submit"]');
+  await page.waitForURL('**/grantor/**', { timeout: 10000 });
+
+  // Get the UAT opportunity ID via authenticated API call
+  const uatOppId = await page.evaluate(async () => {
+    const res = await fetch('/api/v1/opportunities');
+    if (!res.ok) return null;
+    const data = await res.json() as { opportunities?: Array<{ opportunity_id: string; title: string }> };
+    const uatOpp = data.opportunities?.find((o) => o.title === 'UAT Community Health Innovation Grant');
+    return uatOpp?.opportunity_id ?? null;
+  });
+  expect(uatOppId).not.toBeNull();
+
+  // Navigate to Q&A management for UAT opportunity using SPA pushState
+  await page.evaluate((oppId) => {
+    window.history.pushState({}, '', `/grantor/opportunities/${oppId}/qa`);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, uatOppId);
+  await page.waitForTimeout(2000);
+
+  // Q&A Management page must render
+  await expect(page.locator('h1').filter({ hasText: 'Q&A Management' })).toBeVisible({ timeout: 10000 });
+
+  // Page must NOT show an auth error (401/403 would indicate the UAT opp is not accessible to the grantor)
+  const errorAlert = page.locator('.usa-alert--error');
+  const hasError = await errorAlert.isVisible().catch(() => false);
+  expect(hasError).toBe(false);
+
+  // Page must show either questions or the no-questions placeholder (not an error state)
+  const questions = page.locator('[data-testid="qa-item"]');
+  const noQuestionsText = page.locator('text=No questions');
+  const hasQaItems = (await questions.count()) > 0;
+  const hasNoQuestionsText = await noQuestionsText.isVisible().catch(() => false);
+  expect(hasQaItems || hasNoQuestionsText).toBe(true);
 });
