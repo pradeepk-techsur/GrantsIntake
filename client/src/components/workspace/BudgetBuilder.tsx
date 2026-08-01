@@ -51,9 +51,10 @@ const emptyForm: AddLineItemFormState = {
 
 interface BudgetBuilderProps {
   workspaceId: string;
+  isLocked?: boolean; // When true, all budget editing controls are disabled
 }
 
-export function BudgetBuilder({ workspaceId }: BudgetBuilderProps) {
+export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderProps) {
   const queryClient = useQueryClient();
   const [expandedCategories, setExpandedCategories] = useState<Set<BudgetCategory>>(new Set());
   const [addingCategory, setAddingCategory] = useState<BudgetCategory | null>(null);
@@ -266,6 +267,7 @@ export function BudgetBuilder({ workspaceId }: BudgetBuilderProps) {
                     setFormState(emptyForm);
                     setExpandedCategories(prev => new Set(prev).add(category));
                   }}
+                  disabled={isLocked}
                 >
                   + Add {CATEGORY_LABELS[category]} Line Item
                 </button>
@@ -306,17 +308,17 @@ export function BudgetBuilder({ workspaceId }: BudgetBuilderProps) {
                           <td>{li.quantity ?? '—'}</td>
                           <td>{li.unit_cost != null ? `$${Number(li.unit_cost).toFixed(2)}` : '—'}</td>
                           <td>${Number(li.total_cost).toFixed(2)}</td>
-                          <td>
-                            <button
-                              type="button"
-                              className="usa-button usa-button--unstyled"
-                              onClick={() => deleteLineItemMutation.mutate(li.line_id)}
-                              disabled={deleteLineItemMutation.isPending}
-                              style={{ color: '#b50909' }}
-                            >
-                              Remove
-                            </button>
-                          </td>
+                           <td>
+                             <button
+                               type="button"
+                               className="usa-button usa-button--unstyled"
+                               onClick={() => deleteLineItemMutation.mutate(li.line_id)}
+                               disabled={deleteLineItemMutation.isPending || isLocked}
+                               style={{ color: '#b50909' }}
+                             >
+                               Remove
+                             </button>
+                           </td>
                         </tr>
                       ))}
                     </tbody>
@@ -335,54 +337,58 @@ export function BudgetBuilder({ workspaceId }: BudgetBuilderProps) {
                   <div style={{ background: '#f0f0f0', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
                     <h5 style={{ marginTop: 0 }}>Add {CATEGORY_LABELS[category]} Line Item</h5>
 
-                    <label className="usa-label" htmlFor={`desc-${category}`}>Description *</label>
-                    <input
-                      id={`desc-${category}`}
-                      className="usa-input"
-                      type="text"
-                      value={formState.description}
-                      onChange={e => handleFormChange('description', e.target.value)}
-                      maxLength={500}
-                      required
-                    />
+                     <label className="usa-label" htmlFor={`desc-${category}`}>Description *</label>
+                     <input
+                       id={`desc-${category}`}
+                       className="usa-input"
+                       type="text"
+                       value={formState.description}
+                       onChange={e => handleFormChange('description', e.target.value)}
+                       maxLength={500}
+                       required
+                       disabled={isLocked}
+                     />
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
                       <div>
-                        <label className="usa-label" htmlFor={`qty-${category}`}>Quantity</label>
-                        <input
-                          id={`qty-${category}`}
-                          className="usa-input"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={formState.quantity}
-                          onChange={e => handleFormChange('quantity', e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="usa-label" htmlFor={`uc-${category}`}>Unit Cost ($)</label>
-                        <input
-                          id={`uc-${category}`}
-                          className="usa-input"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={formState.unit_cost}
-                          onChange={e => handleFormChange('unit_cost', e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="usa-label" htmlFor={`tc-${category}`}>Total Cost ($) *</label>
-                        <input
-                          id={`tc-${category}`}
-                          className="usa-input"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={formState.total_cost}
-                          onChange={e => handleFormChange('total_cost', e.target.value)}
-                          required
-                        />
+                         <label className="usa-label" htmlFor={`qty-${category}`}>Quantity</label>
+                         <input
+                           id={`qty-${category}`}
+                           className="usa-input"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           value={formState.quantity}
+                           onChange={e => handleFormChange('quantity', e.target.value)}
+                           disabled={isLocked}
+                         />
+                       </div>
+                       <div>
+                         <label className="usa-label" htmlFor={`uc-${category}`}>Unit Cost ($)</label>
+                         <input
+                           id={`uc-${category}`}
+                           className="usa-input"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           value={formState.unit_cost}
+                           onChange={e => handleFormChange('unit_cost', e.target.value)}
+                           disabled={isLocked}
+                         />
+                       </div>
+                       <div>
+                         <label className="usa-label" htmlFor={`tc-${category}`}>Total Cost ($) *</label>
+                         <input
+                           id={`tc-${category}`}
+                           className="usa-input"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           value={formState.total_cost}
+                           onChange={e => handleFormChange('total_cost', e.target.value)}
+                           required
+                           disabled={isLocked}
+                         />
                       </div>
                     </div>
 
@@ -390,53 +396,57 @@ export function BudgetBuilder({ workspaceId }: BudgetBuilderProps) {
                     {isPersonnelCategory(category) && (
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
                         <div>
-                          <label className="usa-label" htmlFor={`pname-${category}`}>Personnel Name</label>
-                          <input
-                            id={`pname-${category}`}
-                            className="usa-input"
-                            type="text"
-                            value={formState.personnel_name}
-                            onChange={e => handleFormChange('personnel_name', e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="usa-label" htmlFor={`fte-${category}`}>FTE (0.001–1.000)</label>
-                          <input
-                            id={`fte-${category}`}
-                            className="usa-input"
-                            type="number"
-                            min="0.001"
-                            max="1.000"
-                            step="0.001"
-                            value={formState.fte}
-                            onChange={e => handleFormChange('fte', e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="usa-label" htmlFor={`salary-${category}`}>Annual Salary ($)</label>
-                          <input
-                            id={`salary-${category}`}
-                            className="usa-input"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={formState.annual_salary}
-                            onChange={e => handleFormChange('annual_salary', e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="usa-label" htmlFor={`fringe-${category}`}>Fringe Rate (%)</label>
-                          <input
-                            id={`fringe-${category}`}
-                            className="usa-input"
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.01"
-                            value={formState.fringe_rate}
-                            onChange={e => handleFormChange('fringe_rate', e.target.value)}
-                          />
-                        </div>
+                           <label className="usa-label" htmlFor={`pname-${category}`}>Personnel Name</label>
+                           <input
+                             id={`pname-${category}`}
+                             className="usa-input"
+                             type="text"
+                             value={formState.personnel_name}
+                             onChange={e => handleFormChange('personnel_name', e.target.value)}
+                             disabled={isLocked}
+                           />
+                         </div>
+                         <div>
+                           <label className="usa-label" htmlFor={`fte-${category}`}>FTE (0.001–1.000)</label>
+                           <input
+                             id={`fte-${category}`}
+                             className="usa-input"
+                             type="number"
+                             min="0.001"
+                             max="1.000"
+                             step="0.001"
+                             value={formState.fte}
+                             onChange={e => handleFormChange('fte', e.target.value)}
+                             disabled={isLocked}
+                           />
+                         </div>
+                         <div>
+                           <label className="usa-label" htmlFor={`salary-${category}`}>Annual Salary ($)</label>
+                           <input
+                             id={`salary-${category}`}
+                             className="usa-input"
+                             type="number"
+                             min="0"
+                             step="0.01"
+                             value={formState.annual_salary}
+                             onChange={e => handleFormChange('annual_salary', e.target.value)}
+                             disabled={isLocked}
+                           />
+                         </div>
+                         <div>
+                           <label className="usa-label" htmlFor={`fringe-${category}`}>Fringe Rate (%)</label>
+                           <input
+                             id={`fringe-${category}`}
+                             className="usa-input"
+                             type="number"
+                             min="0"
+                             max="100"
+                             step="0.01"
+                             value={formState.fringe_rate}
+                             onChange={e => handleFormChange('fringe_rate', e.target.value)}
+                             disabled={isLocked}
+                           />
+                         </div>
                       </div>
                     )}
 
@@ -444,55 +454,58 @@ export function BudgetBuilder({ workspaceId }: BudgetBuilderProps) {
                     {isMatchCategory(category) && (
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
                         <div>
-                          <label className="usa-label" htmlFor={`msrc-${category}`}>Match Source</label>
-                          <input
-                            id={`msrc-${category}`}
-                            className="usa-input"
-                            type="text"
-                            value={formState.match_source}
-                            onChange={e => handleFormChange('match_source', e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="usa-label" htmlFor={`mtype-${category}`}>Match Type</label>
-                          <input
-                            id={`mtype-${category}`}
-                            className="usa-input"
-                            type="text"
-                            value={formState.match_type}
-                            onChange={e => handleFormChange('match_type', e.target.value)}
-                          />
+                         <label className="usa-label" htmlFor={`msrc-${category}`}>Match Source</label>
+                           <input
+                             id={`msrc-${category}`}
+                             className="usa-input"
+                             type="text"
+                             value={formState.match_source}
+                             onChange={e => handleFormChange('match_source', e.target.value)}
+                             disabled={isLocked}
+                           />
+                         </div>
+                         <div>
+                           <label className="usa-label" htmlFor={`mtype-${category}`}>Match Type</label>
+                           <input
+                             id={`mtype-${category}`}
+                             className="usa-input"
+                             type="text"
+                             value={formState.match_type}
+                             onChange={e => handleFormChange('match_type', e.target.value)}
+                             disabled={isLocked}
+                           />
                         </div>
                       </div>
                     )}
 
                     {/* Justification */}
-                    <label className="usa-label" htmlFor={`just-${category}`} style={{ marginTop: '0.5rem' }}>Justification</label>
-                    <textarea
-                      id={`just-${category}`}
-                      className="usa-textarea"
-                      value={formState.justification_text}
-                      onChange={e => handleFormChange('justification_text', e.target.value)}
-                      rows={2}
-                    />
+                     <label className="usa-label" htmlFor={`just-${category}`} style={{ marginTop: '0.5rem' }}>Justification</label>
+                     <textarea
+                       id={`just-${category}`}
+                       className="usa-textarea"
+                       value={formState.justification_text}
+                       onChange={e => handleFormChange('justification_text', e.target.value)}
+                       rows={2}
+                       disabled={isLocked}
+                     />
 
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                      <button
-                        type="button"
-                        className="usa-button"
-                        onClick={() => handleAddLineItem(category)}
-                        disabled={!formState.description || !formState.total_cost || addLineItemMutation.isPending}
-                      >
-                        {addLineItemMutation.isPending ? 'Adding…' : 'Add Line Item'}
-                      </button>
-                      <button
-                        type="button"
-                        className="usa-button usa-button--unstyled"
-                        onClick={() => { setAddingCategory(null); setFormState(emptyForm); }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+                       <button
+                         type="button"
+                         className="usa-button"
+                         onClick={() => handleAddLineItem(category)}
+                         disabled={!formState.description || !formState.total_cost || addLineItemMutation.isPending || isLocked}
+                       >
+                         {addLineItemMutation.isPending ? 'Adding…' : 'Add Line Item'}
+                       </button>
+                       <button
+                         type="button"
+                         className="usa-button usa-button--unstyled"
+                         onClick={() => { setAddingCategory(null); setFormState(emptyForm); }}
+                       >
+                         Cancel
+                       </button>
+                     </div>
 
                     {addLineItemMutation.isError && (
                       <p className="usa-error-message">Failed to add line item. Please try again.</p>
