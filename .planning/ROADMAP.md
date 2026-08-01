@@ -114,7 +114,7 @@ Plans:
 - [x] 04-13-PLAN.md — Gap closure (UAT Tests 3+5+8): WorkspacePage fetch opportunity title (not UUID), overflow:hidden on content column, AttachmentManager overflow-x:auto table wrapper, ReadinessDashboard loading state fix
 
 ### Phase 5: Q&A, Submission & Validation
-**Status**: executing
+**Status**: failed
 **Goal**: Grantors can manage public Q&A and addenda with an auditable history; applicants experience continuous validation during drafting and can submit a fully certified, immutable application that is locked post-submission
 **Depends on**: Phase 4
 **Requirements**: PRD-INTAKE-044, PRD-INTAKE-045, PRD-INTAKE-047, PRD-INTAKE-048, PRD-INTAKE-049, PRD-INTAKE-050, PRD-INTAKE-051, PRD-INTAKE-052, PRD-INTAKE-053, PRD-INTAKE-054, PRD-INTAKE-055
