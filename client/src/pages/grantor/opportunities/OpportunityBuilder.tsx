@@ -228,18 +228,27 @@ export function OpportunityBuilder() {
       </nav>
 
       {/* Page header with status badge */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <h1 className="usa-prose" style={{ margin: 0 }}>
-          {opportunity.title}
-        </h1>
-        <span
-          className="usa-tag"
-          style={{ background: statusColor, color: 'white' }}
-          aria-label={`Status: ${statusLabel}`}
-          data-testid="opportunity-status-badge"
+      <div style={{ marginBottom: '1.5rem' }}>
+        <p
+          className="usa-prose"
+          style={{ margin: 0, fontSize: '0.875rem', color: '#71767a', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+          data-testid="opportunity-builder-label"
         >
-          {statusLabel}
-        </span>
+          Opportunity Builder
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <h1 className="usa-prose" style={{ margin: 0 }}>
+            {opportunity.title}
+          </h1>
+          <span
+            className="usa-tag"
+            style={{ background: statusColor, color: 'white' }}
+            aria-label={`Status: ${statusLabel}`}
+            data-testid="opportunity-status-badge"
+          >
+            {statusLabel}
+          </span>
+        </div>
       </div>
 
       {/* Section navigation tabs */}
