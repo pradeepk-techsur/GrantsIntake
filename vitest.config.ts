@@ -7,6 +7,8 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     testTimeout: 30000,
     hookTimeout: 30000,
+    // Run migrations once before any test file runs
+    globalSetup: ['tests/globalSetup.ts'],
     // Run tests sequentially to avoid database conflicts
     pool: 'forks',
     poolOptions: {
