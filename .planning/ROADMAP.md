@@ -124,7 +124,7 @@ Plans:
   3. Validation errors are classified as informational, warning, or blocking with distinct USWDS visual treatments; blocking errors are surfaced continuously during drafting (not only at final submission) and the submit button remains disabled until all blocking items are cleared
   4. An authorized representative can certify the application (with legal certification text), and only authorized representative role users can initiate final submission
   5. Upon successful submission the system generates an immutable snapshot with a unique confirmation number (GI-{YEAR}-{8-digit-seq}), a UTC-timestamped receipt, and both a human-readable and machine-readable (JSON) submission package; the application is locked and no edits are permitted without a formal withdrawal or return-for-correction workflow
-**Plans:** 8 plans
+**Plans:** 12 plans
 
 Plans:
 - [ ] 05-01-PLAN.md — Migration 015 (qa_items, certifications, submission_snapshots + immutability triggers), qaService (listPublished/listAll/submitQuestion/publishAnswer/getAuditHistory), notificationService (NOTIFICATION_SENT audit events + email simulation), qaRouter (5 endpoints), QASubmitPage (/applicant/opportunities/:id/qa), QAManagementPage (/grantor/opportunities/:id/qa), OpportunityDetailPage Q&A section + Submit Question link, integration + Playwright tests (F43, F44, F46, F47)
