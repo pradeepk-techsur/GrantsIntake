@@ -8,23 +8,6 @@ function hasRole(roles: string[], ...check: string[]): boolean {
   return roles.some((r) => check.includes(r));
 }
 
-// For the template library, we need a program ID.
-// In Phase 1 we use the first available program from the user's org.
-// If no program exists, the user must create one first.
-function useFirstProgramId(): string | null {
-  const [programId, setProgramId] = useState<string | null>(null);
-
-  useEffect(() => {
-    apiClient.get<{ program_id: string }[]>('/programs').then((res) => {
-      if (res.data.length > 0) {
-        setProgramId(res.data[0].program_id);
-      }
-    }).catch(() => {/* ignore */});
-  }, []);
-
-  return programId;
-}
-
 interface OpportunityListItem {
   opportunity_id: string;
   title: string;
@@ -42,20 +25,38 @@ export function OpportunitiesIndex() {
   const allRoles = grantor_memberships.flatMap((m) => m.roles);
   const canCreate = hasRole(allRoles, 'grantor_admin', 'program_officer');
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
-  const programId = useFirstProgramId();
+  // programId is kept for the TemplateLibrary modal (create new opportunity flow uses first program)
+  const [programId, setProgramId] = useState<string | null>(null);
 
   const [opportunities, setOpportunities] = useState<OpportunityListItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!programId) return;
     setLoading(true);
     apiClient
-      .get<OpportunityListItem[]>(`/programs/${programId}/opportunities`)
-      .then((res) => setOpportunities(res.data))
-      .catch(() => {/* ignore — show empty state */})
+      .get<{ program_id: string }[]>('/programs')
+      .then(async (res) => {
+        const programs = res.data;
+        if (programs.length === 0) {
+          setOpportunities([]);
+          return;
+        }
+        // Set programId for create modal (first program)
+        if (programs[0]) setProgramId(programs[0].program_id);
+        // Fetch all opportunities across all programs
+        const oppArrays = await Promise.all(
+          programs.map((p) =>
+            apiClient
+              .get<OpportunityListItem[]>(`/programs/${p.program_id}/opportunities`)
+              .then((r) => r.data)
+              .catch(() => [] as OpportunityListItem[]),
+          ),
+        );
+        setOpportunities(oppArrays.flat());
+      })
+      .catch(() => setOpportunities([]))
       .finally(() => setLoading(false));
-  }, [programId]);
+  }, []);
 
   return (
     <div>
