@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-12-PLAN.md
-last_updated: "2026-08-01T12:34:46.953Z"
+stopped_at: Completed 05-11-PLAN.md
+last_updated: "2026-08-01T13:21:52.957Z"
 last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
 progress:
   total_phases: 9
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 43
-  completed_plans: 42
+  completed_plans: 43
   percent: 97
 ---
 
@@ -93,6 +93,7 @@ Progress: [█████████▒] 97%
 | Phase 05-q-a-submission-validation P09 | 2min | 2 tasks | 2 files |
 | Phase 05-q-a-submission-validation P10 | 3min | 2 tasks | 6 files |
 | Phase 05-q-a-submission-validation P12 | 18 min | 1 tasks | 1 files |
+| Phase 05-q-a-submission-validation P11 | 8min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,7 @@ Recent decisions affecting current work:
 - [Phase 05-q-a-submission-validation]: Pure prop-threading of workspace.is_locked as isLocked prop — no new context/state; WorkspacePage passes it to WorkspaceSectionPanel which threads to SectionFormPanel, BudgetBuilder, AttachmentManager
 - [Phase 05-q-a-submission-validation]: handleFieldBlur returns early when isLocked to suppress save/validate mutations in locked state — UI-layer enforcement for PRD-INTAKE-054
 - [Phase 05-q-a-submission-validation]: OrgRole[] mock shape must be array (not object) — useIsAuthorizedRep calls roles.find() which throws TypeError on non-array mock
+- [Phase 05-q-a-submission-validation]: Test 6 hard (non-advisory) assertion: UAT Community Health Innovation Grant must appear in grantor opportunities list — absence fails test outright
 
 ### Pending Todos
 
@@ -193,6 +195,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-01T12:34:46.951Z
-Stopped at: Completed 05-12-PLAN.md
+Last session: 2026-08-01T13:21:52.956Z
+Stopped at: Completed 05-11-PLAN.md
 Resume file: None
