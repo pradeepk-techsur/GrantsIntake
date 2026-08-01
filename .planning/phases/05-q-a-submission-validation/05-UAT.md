@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 05-q-a-submission-validation
 source: 05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md, 05-05-SUMMARY.md, 05-06-SUMMARY.md, 05-07-SUMMARY.md
 started: 2026-07-31T21:43:04Z
@@ -88,8 +88,19 @@ per_test:
   severity: major
   test: 2
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Two UX discoverability issues: (1) The grantor nav says 'Opportunities' — nowhere is the term 'Opportunity Builder' used in the UI. Users don't know to click an opportunity card to reach the builder which contains the Q&A Management tab. (2) The sidebar has a 'Q&A Inbox' link which redirects to /grantor/opportunities (stub, does nothing useful). Users trying the obvious 'Q&A Inbox' path hit a dead-end. The questions ARE in the DB and the /grantor/opportunities/:id/qa page WORKS when accessed — it is purely a navigation/labeling problem."
+  artifacts:
+    - path: "client/src/components/nav/GrantorSidebar.tsx:76-84"
+      issue: "Q&A Inbox link redirects to /grantor/opportunities — no useful content, misleads users looking for Q&A management"
+    - path: "client/src/App.tsx"
+      issue: "Route qa-inbox redirects to /grantor/opportunities instead of a real Q&A inbox or QAManagementPage"
+    - path: "client/src/pages/grantor/OpportunitiesIndex.tsx"
+      issue: "No description/tooltip on opportunity cards indicating they contain the Opportunity Builder with Q&A tab"
+    - path: "client/src/pages/grantor/opportunities/OpportunityBuilder.tsx:header"
+      issue: "Page heading does not use the term 'Opportunity Builder' — users navigating from a non-technical angle don't find it"
+  missing:
+    - "Add a direct 'Q&A Management' link per opportunity to the OpportunitiesIndex list (each opportunity row should have a Q&A link alongside the main link)"
+    - "Fix or remove the 'Q&A Inbox' sidebar stub — either implement it as an aggregated Q&A inbox across all opportunities, or replace with a clear label pointing to per-opportunity Q&A in Opportunity Builder"
+    - "Add 'Opportunity Builder' label/heading to the /grantor/opportunities/:id page so users can identify it from the nav trail"
   debug_session: ""
 
