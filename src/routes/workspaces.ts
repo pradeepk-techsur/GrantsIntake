@@ -534,6 +534,7 @@ workspacesRouter.delete('/workspaces/:id/budget/line-items/:lineId', async (req,
   if (!UUID_REGEX.test(id) || !UUID_REGEX.test(lineId)) return res.status(404).json({ error: 'NOT_FOUND' });
   const workspace = await workspaceService.getWorkspace(id);
   if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });
   const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
   if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
   const deleted = await budgetService.deleteLineItem(lineId);
@@ -626,6 +627,7 @@ workspacesRouter.delete('/workspaces/:id/attachments/:attachmentId', async (req,
   if (!UUID_REGEX.test(id) || !UUID_REGEX.test(attachmentId)) return res.status(404).json({ error: 'NOT_FOUND' });
   const workspace = await workspaceService.getWorkspace(id);
   if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });
   const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
   if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
   const deleted = await attachmentService.deactivate(attachmentId);
