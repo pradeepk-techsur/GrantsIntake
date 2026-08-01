@@ -177,6 +177,7 @@ export function WorkspacePage() {
                 section={activeSection}
                 workspaceId={workspaceId!}
                 onFieldBlur={triggerValidation}
+                isLocked={workspace?.is_locked ?? false}
               />
               {/* Certification panel renders inline for certifications section */}
               {activeSection.section_type === 'certifications' && (
