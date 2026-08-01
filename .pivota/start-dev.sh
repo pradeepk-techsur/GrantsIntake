@@ -114,36 +114,26 @@ if [[ ! -f .env && -f .env.example ]]; then
   done < .env.example > .env
 fi
 
-# === Optional pre-exec snippet (JDK install, rustup, golang one-shot setup) ===
-# Catalog entries with PRE_EXEC_SNIPPET inject heavyweight one-time installs
-# here. Empty string when not needed.
-# (none) — express needs no system-level pre-install setup. DB seeding deliberately
-# does NOT live here: the pre-exec slot runs BEFORE `npm ci`, so no node_modules /
-# prisma client exists yet. Migrate is folded into the EXEC command below, which
-# runs after install. See references/runtime-environment.md §3.
+# === Optional pre-exec snippet ===
+# (none) — express needs no system-level pre-install setup. DB seeding does NOT
+# live here: the pre-exec slot runs BEFORE `npm ci`, so no node_modules yet.
+# Migrate is folded into the exec function below, which runs after install.
+# See references/runtime-environment.md §3.
 
 # === D-12: idempotent install via lockfile hash + presence check ===
 SENTINEL="/tmp/pivota-setup-sentinel"
 LOCK_FILE_PATH="package-lock.json"
 INSTALL_PRESENCE_CHECK="node_modules"
-INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'   # single-quoted: catalog must escape internal quotes correctly
+INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'
 
 run_install() {
   echo "[pivota] running install: $INSTALL_CMD"
   local rc=0
-  bash -c "$INSTALL_CMD" || rc=$?   # capture directly; `if …; then` would reset $? to 0 on the no-else path
+  bash -c "$INSTALL_CMD" || rc=$?
   if (( rc == 0 )); then
     return 0
   fi
   # D-12.1: npm peer-dependency (ERESOLVE) fallback + loud failure.
-  # A fresh scaffold can pin a transitive lib whose peer range lags the
-  # project's react/next major (observed: react-leaflet@4 wants react@18 under
-  # a react@19 project). npm 7+ aborts `npm ci`/`npm install` with ERESOLVE and
-  # writes NO node_modules — so EXEC_CMD below never binds a port and the
-  # preview panel hangs on "Waiting for dev server to bind…" with no surfaced
-  # error. Retry once with --legacy-peer-deps so boot can proceed, but log
-  # LOUDLY: a force-resolved peer range can install a runtime-incompatible tree
-  # (the offending component may crash when rendered — surface it at UAT).
   if [[ "$INSTALL_CMD" == *"npm "* ]]; then
     echo "[pivota] WARN install failed (exit=$rc) — retrying with --legacy-peer-deps (peer conflict force-resolved; runtime incompatibility possible)"
     local rc2=0
@@ -154,8 +144,6 @@ run_install() {
     fi
     rc=$rc2
   fi
-  # Emit a greppable marker so the platform surfaces "install failed" instead of
-  # letting the dev server silently never bind. `set -e` still aborts the script.
   echo "[pivota] FATAL install failed (exit=$rc) — dev server cannot start; resolve the dependency conflict in the manifest" >&2
   return "$rc"
 }
@@ -164,9 +152,7 @@ if [[ -n "$LOCK_FILE_PATH" && -f "$LOCK_FILE_PATH" ]]; then
   CURRENT_HASH=$(sha256sum "$LOCK_FILE_PATH" | cut -d' ' -f1)
   PREVIOUS_HASH=$(cat "$SENTINEL" 2>/dev/null || echo "")
 
-  # RESEARCH.md Pitfall 6: lockfile-unchanged is necessary but not sufficient —
-  # the install-output directory must also exist (sentinel survives but
-  # node_modules / .venv / target might not on a fresh sandbox tmpfs).
+  # RESEARCH.md Pitfall 6: lockfile-unchanged is necessary but not sufficient.
   PRESENCE_OK=1
   if [[ -n "$INSTALL_PRESENCE_CHECK" && ! -e "$INSTALL_PRESENCE_CHECK" ]]; then
     PRESENCE_OK=0
@@ -184,7 +170,6 @@ if [[ -n "$LOCK_FILE_PATH" && -f "$LOCK_FILE_PATH" ]]; then
     echo "$CURRENT_HASH" > "$SENTINEL"
   fi
 elif [[ -n "$INSTALL_CMD" ]]; then
-  # No lockfile to compare; honor any sentinel mismatch by running install once per sandbox.
   if [[ ! -f "$SENTINEL" ]]; then
     run_install
     touch "$SENTINEL"
@@ -192,15 +177,67 @@ elif [[ -n "$INSTALL_CMD" ]]; then
 fi
 
 # === D-14: retry loop (3 attempts, exponential backoff 1s / 2s / 4s) ===
-# Final-attempt exit code propagates the INNER command's exit code, not a
-# fixed 1, so the caller (platform / Daytona) can distinguish "wrapper bug"
-# from "user command failed with N".
-EXEC_CMD='HAS_SCRIPT() { node -e "process.exit(((require(\"./package.json\").scripts||{})[\"$1\"])?0:1)" 2>/dev/null; }; if [ -n "${DATABASE_URL:-}" ]; then SEED=""; for s in migrate:schema migrate db:migrate migrate:deploy migrate:prod prisma:migrate db:push; do if HAS_SCRIPT "$s"; then SEED="$s"; break; fi; done; if [ -n "$SEED" ]; then echo "[pivota] seeding DB via the declared project script: npm run $SEED"; npm run "$SEED" || echo "[pivota] npm run $SEED returned non-zero (continuing)"; elif [ -f prisma/schema.prisma ]; then echo "[pivota] no migrate script declared; seeding via prisma"; npx prisma generate 2>&1 | tail -2 || true; if [ -d prisma/migrations ]; then npx prisma migrate deploy || echo "[pivota] prisma migrate deploy non-zero (continuing)"; else npx prisma db push --skip-generate --accept-data-loss || echo "[pivota] prisma db push non-zero (continuing)"; fi; else echo "[pivota] WARNING: DATABASE_URL is set but no migrate script or prisma schema found — the app may serve on an EMPTY database"; fi; fi; if HAS_SCRIPT dev; then exec npm run dev; elif HAS_SCRIPT start:dev; then exec npm run start:dev; elif HAS_SCRIPT start; then if node -e '"'"'process.exit(/\b(dist|build)\//.test((require("./package.json").scripts||{}).start||"")?0:1)'"'"' && [ ! -d dist ] && [ ! -d build ]; then echo "[pivota] start script targets a compiled entry; building first"; npm run build || echo "[pivota] npm run build returned non-zero (continuing)"; fi; exec npm start; else exec node "$(node -e '"'"'console.log(require("./package.json").main || "index.js")'"'"')"; fi'
+# The exec command is written to a helper script to avoid quoting fragility
+# when embedding complex bash (multiple HAS_SCRIPT calls, nested exec) into a
+# single-quoted variable. The helper is idempotent and lives in /tmp.
+cat > /tmp/pivota-exec-cmd.sh << 'PIVOTA_EXEC_EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+HAS_SCRIPT() {
+  node -e "process.exit(((require('./package.json').scripts||{})['$1'])?0:1)" 2>/dev/null
+}
+
+# (1) Migrate after install — only when the app is configured with a DB.
+# DATABASE_URL comes from the sandbox environment or the seeded .env file.
+# Loud, non-fatal: a transient hiccup must not strand boot.
+if [ -n "${DATABASE_URL:-}" ]; then
+  SEED=""
+  for s in migrate:schema migrate db:migrate migrate:deploy migrate:prod prisma:migrate db:push; do
+    if HAS_SCRIPT "$s"; then SEED="$s"; break; fi
+  done
+  if [ -n "$SEED" ]; then
+    echo "[pivota] seeding DB via the declared project script: npm run $SEED"
+    npm run "$SEED" || echo "[pivota] npm run $SEED returned non-zero (continuing)"
+  elif [ -f prisma/schema.prisma ]; then
+    echo "[pivota] no migrate script declared; seeding via prisma"
+    npx prisma generate 2>&1 | tail -2 || true
+    if [ -d prisma/migrations ]; then
+      npx prisma migrate deploy || echo "[pivota] prisma migrate deploy non-zero (continuing)"
+    else
+      npx prisma db push --skip-generate --accept-data-loss || echo "[pivota] prisma db push non-zero (continuing)"
+    fi
+  else
+    echo "[pivota] WARNING: DATABASE_URL is set but no migrate script or prisma schema found — the app may serve on an EMPTY database"
+  fi
+fi
+
+# (2) Launch. Prefer the project's own dev runner (tsx / nodemon / ts-node —
+# needs no prebuilt output). Fall through to npm start only if no dev script
+# exists; build first when start points at compiled dist/ (gitignored on a
+# fresh clone — runtime-environment.md §7).
+if HAS_SCRIPT dev; then
+  exec npm run dev
+elif HAS_SCRIPT start:dev; then
+  exec npm run start:dev
+elif HAS_SCRIPT start; then
+  if node -e 'process.exit(/\b(dist|build)\//.test((require("./package.json").scripts||{}).start||"")?0:1)' \
+     && [ ! -d dist ] && [ ! -d build ]; then
+    echo "[pivota] start script targets a compiled entry; building first"
+    npm run build || echo "[pivota] npm run build returned non-zero (continuing)"
+  fi
+  exec npm start
+else
+  exec node "$(node -e 'console.log(require("./package.json").main || "index.js")')"
+fi
+PIVOTA_EXEC_EOF
+chmod +x /tmp/pivota-exec-cmd.sh
+
 ATTEMPT=1
 DELAY=1
 while (( ATTEMPT <= 3 )); do
-  echo "[pivota] attempt $ATTEMPT: $EXEC_CMD"
-  if bash -c "$EXEC_CMD"; then
+  echo "[pivota] attempt $ATTEMPT: /tmp/pivota-exec-cmd.sh"
+  if bash /tmp/pivota-exec-cmd.sh; then
     echo "[pivota] inner command exited 0; propagating success"
     exit 0
   fi
