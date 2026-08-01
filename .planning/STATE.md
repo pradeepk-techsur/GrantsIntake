@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-07-31T19:55:36.600Z"
+stopped_at: Completed 05-08-PLAN.md
+last_updated: "2026-08-01T01:32:03.678Z"
 last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
 progress:
   total_phases: 9
   completed_phases: 5
-  total_plans: 38
-  completed_plans: 38
+  total_plans: 39
+  completed_plans: 39
   percent: 97
 ---
 
@@ -89,6 +89,7 @@ Progress: [█████████▒] 97%
 | Phase 05-q-a-submission-validation P05 | 3 min | 2 tasks | 2 files |
 | Phase 05-q-a-submission-validation P07 | 1 min | 2 tasks | 4 files |
 | Phase 05-q-a-submission-validation P06 | 3 min | 2 tasks | 6 files |
+| Phase 05-q-a-submission-validation P08 | 1min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -171,6 +172,8 @@ Recent decisions affecting current work:
 - [Phase 05-q-a-submission-validation]: GET /my-questions uses authenticate only (no requireRole); submitter_user_id from JWT req.user.user_id (T-05-06-01 IDOR mitigation)
 - [Phase 05-q-a-submission-validation]: listAll() error propagates HTTP status+code; QAManagementPage distinguishes 401/403 from generic failures
 - [Phase 05-q-a-submission-validation]: titleQuery uses public /api/v1/opportunities/:id endpoint with UUID fallback (T-05-06-03 accepted risk)
+- [Phase 05-q-a-submission-validation]: Sidebar label changed from 'Q&A Inbox' to 'Q&A Management'; destination unchanged per prior decision
+- [Phase 05-q-a-submission-validation]: Q&A card links use usa-card__footer placement in OpportunitiesIndex; Opportunity Builder subtitle uses muted uppercase p tag above h1
 
 ### Pending Todos
 
@@ -182,6 +185,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-31T19:55:36.599Z
-Stopped at: Completed 05-06-PLAN.md
+Last session: 2026-08-01T01:32:03.676Z
+Stopped at: Completed 05-08-PLAN.md
 Resume file: None
