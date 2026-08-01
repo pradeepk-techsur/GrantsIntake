@@ -1,6 +1,6 @@
 ---
 phase: 05-q-a-submission-validation
-verified: 2026-08-01T04:30:00Z
+verified: 2026-08-01T13:25:00Z
 status: human_needed
 score: 4/5 must-haves verified (SC2 partially delivered by design; all confirmed deliverables verified)
 re_verification: true
@@ -14,6 +14,8 @@ re_verification: true
     - "Code review W1 fix (mainProgramId null-guard in seed.ts): confirmed at seed.ts:84"
     - "Code review W2 fix (AbortController cleanup in OpportunitiesIndex): confirmed at OpportunitiesIndex.tsx:34-61"
     - "Code review W3 fix (isLocked gate on task/comment controls in WorkspaceSectionPanel): confirmed at lines 135, 192"
+    - "Gap A regression guard (plan 05-11): non-advisory Playwright test 6 hard-asserts UAT Community Health Innovation Grant visible in grantor opportunities list; test 7 verifies Q&A management page loads without auth errors; 7/7 qa.spec.ts tests pass; gap redrive confirmed POST /questions → 201, grantor sees 1 question via GET /questions"
+    - "Locked workspace fields regression guard (plan 05-12): mock-based Playwright test asserts all form inputs carry disabled attribute when workspace.is_locked=true; proved isLocked prop threading from WorkspacePage through SectionFormPanel to FormFieldRenderer"
   gaps_remaining: []
   regressions: []
 human_verification:
