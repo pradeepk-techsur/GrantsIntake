@@ -1,111 +1,134 @@
 ---
 phase: 5
 status: issues_found
-blockers: 0
-warnings: 2
-files_reviewed: 5
+blockers: 2
+warnings: 3
+files_reviewed: 10
 files_reviewed_list:
-  - client/src/pages/applicant/OpportunityDetailPage.tsx
-  - client/src/pages/grantor/opportunities/OpportunityBuilder.tsx
-  - client/src/pages/grantor/opportunities/CompletenessChecklist.tsx
-  - client/src/pages/applicant/WorkspacePage.tsx
   - src/db/seed.ts
-reviewed_at: 2026-07-31T05:09:03Z
+  - src/routes/workspaces.ts
+  - src/routes/programs.ts
+  - src/routes/opportunities.ts
+  - client/src/pages/grantor/OpportunitiesIndex.tsx
+  - client/src/pages/applicant/WorkspacePage.tsx
+  - client/src/components/workspace/WorkspaceSectionPanel.tsx
+  - client/src/components/workspace/SectionFormPanel.tsx
+  - client/src/components/workspace/BudgetBuilder.tsx
+  - client/src/components/workspace/AttachmentManager.tsx
+  - e2e/workspaceLocked.spec.ts
+reviewed_at: 2026-08-01T03:18:12Z
 iteration: 1
 ---
 
-# Phase 5 Code Review (Gap-Closure Plans 05-04 and 05-05)
+# Phase 5 Code Review
 
 ## BLOCKERs
 
-_None._
+### B1: DELETE budget line-item route missing `is_locked` guard — submitted workspace data can be mutated via direct API call
+
+- **File:** `src/routes/workspaces.ts`:532–542
+- **Category:** security
+- **Evidence:**
+  ```ts
+  // DELETE /workspaces/:id/budget/line-items/:lineId — remove line item
+  workspacesRouter.delete('/workspaces/:id/budget/line-items/:lineId', async (req, res) => {
+    …
+    const workspace = await workspaceService.getWorkspace(id);
+    if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+    // ← NO is_locked check here
+    const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+    …
+    const deleted = await budgetService.deleteLineItem(lineId);
+    …
+  });
+  ```
+  The POST (add) route at line 500 and PUT (update) route at line 516 both correctly check `if (workspace.is_locked) return res.status(423)` before proceeding. The DELETE route at line 532 does **not**. An authenticated org member can therefore remove existing budget line items from a submitted, locked workspace by sending `DELETE /api/v1/workspaces/:id/budget/line-items/:lineId` directly — bypassing the UI's `disabled` button entirely. This corrupts the immutable submitted record.
+- **Fix direction:** Add `if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });` immediately after the workspace existence check (before the `isMember` check) in the DELETE budget line-items route, consistent with the POST and PUT routes above it.
+
+---
+
+### B2: DELETE attachment route missing `is_locked` guard — submitted workspace attachments can be soft-deleted via direct API call
+
+- **File:** `src/routes/workspaces.ts`:624–634
+- **Category:** security
+- **Evidence:**
+  ```ts
+  // DELETE /workspaces/:id/attachments/:attachmentId — soft delete
+  workspacesRouter.delete('/workspaces/:id/attachments/:attachmentId', async (req, res) => {
+    …
+    const workspace = await workspaceService.getWorkspace(id);
+    if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+    // ← NO is_locked check here
+    const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+    …
+    const deleted = await attachmentService.deactivate(attachmentId);
+    …
+  });
+  ```
+  The POST (upload/link) route at line 590 has `if (workspace.is_locked) return res.status(423)`, but the DELETE route at line 624 does not. An authenticated org member can soft-delete any attachment on a submitted workspace by calling the API directly. The UI disables the Delete button when `isLocked=true`, but the enforcement is UI-only for this mutation.
+- **Fix direction:** Add `if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });` immediately after the workspace existence check in the DELETE attachments route, parallel to the POST route guard at line 595.
 
 ---
 
 ## WARNINGs
 
-### W1: Seed `validation_config` uses `max_length` but both server and client validate/render against `max_chars` — character limits are silently ignored for all 5 new sections
+### W1: `mainProgramId` in seed.ts may be `undefined` — UPDATE silently NULLs `program_id` on existing UAT opportunity rows
 
-- **File:** `src/db/seed.ts` lines 574, 583, 594, 605, 614, 625, 645 (all new SECTION_FIELDS entries)
-- **Category:** bug
+- **File:** `src/db/seed.ts`:79–83 and 317–320
 - **Evidence:**
-
-  `FormFieldRenderer.tsx` reads `vc.max_chars` for the `maxLength` HTML attribute and the character counter:
-  ```tsx
-  // FormFieldRenderer.tsx:126, 142, 149
-  maxLength={vc.max_chars}
-  {vc.max_chars && ( <span>…/{vc.max_chars} characters</span> )}
-  ```
-
-  `formFieldService.ts` validates against `vc.max_chars`:
   ```ts
-  // formFieldService.ts:120
-  if (vc.max_chars && value.length > vc.max_chars) { /* blocking error */ }
+  // line 83 — typed string | undefined
+  const mainProgramId = mainProgramResult.rows[0]?.program_id;
+  
+  // line 317-320 — no null-guard before UPDATE
+  await pool.query(
+    `UPDATE opportunities SET program_id = $1 WHERE opportunity_id = $2`,
+    [mainProgramId, uatOpportunityId],   // mainProgramId may be undefined → NULL
+  );
   ```
-
-  `ValidationConfig` type (`src/types/formField.ts:7-8`) declares **both** `max_length?: number` and `max_chars?: number` as optional — so TypeScript accepts either key without error, but only `max_chars` is checked at runtime.
-
-  Every new field in the SECTION_FIELDS block stores `{ max_length: N }`:
-  ```ts
-  // seed.ts:574
-  validation_config: { max_length: 200 },   // org_profile — Legal Org Name
-  // seed.ts:583
-  validation_config: { max_length: 20 },    // org_profile — EIN
-  // seed.ts:594
-  validation_config: { max_length: 2000 },  // eligibility
-  // seed.ts:605, 614
-  validation_config: { max_length: 3000 },  // workplan (Timeline)
-  validation_config: { max_length: 1000 },  // workplan (Key Personnel)
-  // seed.ts:625
-  validation_config: { max_length: 2000 },  // performance_measures (Outcome Measures)
-  // seed.ts:645
-  validation_config: { max_length: 500 },   // review_submit (Cert Statement)
-  ```
-
-  At runtime `vc.max_chars` is `undefined` for all these fields, so:
-  1. The `maxLength` HTML attribute is omitted — browser does not enforce length limits
-  2. The character counter below textareas is never rendered
-  3. Server-side blocking validation for over-length text is skipped
-
-  **Note:** This same bug is present in the pre-existing narrative fields (lines 505, 514) added before the gap-closure plans. Those are out of scope for this review. The new SECTION_FIELDS block replicates the same incorrect key for 7 additional fields — these are in scope.
-
-- **Fix direction:** Replace `max_length` with `max_chars` in every `validation_config` object within the SECTION_FIELDS block (lines 574–645). The `max_length` key in `ValidationConfig` is dead code; remove it from the type definition as a follow-up.
+  In practice this cannot happen in a correctly seeded database (the program is inserted or found in the same transaction, just above). However, if the SELECT at line 80 returned 0 rows for any reason (race condition, incorrect `orgId`, prior data corruption), `mainProgramId` would be `undefined`, `pg` would serialize it as SQL `NULL`, and the UPDATE would set `program_id = NULL` — violating intent and potentially a NOT NULL FK constraint, causing an undiagnosed silent data corruption or a cryptic postgres FK error.
+- **Severity note:** Low probability in practice (program was just upserted), but the lack of a null-guard means failure mode is data corruption rather than a clear error. A guard of the form `if (!mainProgramId) throw new Error('mainProgramId missing after upsert')` would make this fail loudly.
 
 ---
 
-### W2: `useIsAuthorizedRep` has a stale-read window on first `WorkspacePage` mount — CertificationPanel may not appear immediately
+### W2: `OpportunitiesIndex` multi-program fetch has no AbortController / cleanup — stale state update on unmount
 
-- **File:** `client/src/pages/applicant/WorkspacePage.tsx` lines 55–59
-- **Category:** bug
+- **File:** `client/src/pages/grantor/OpportunitiesIndex.tsx`:34–59
 - **Evidence:**
+  The new `useEffect` fires an async `Promise.all` across N programs. There is no cleanup function returned from `useEffect` and no `AbortController` to cancel in-flight requests. If the grantor user navigates away while the batch is in flight, React 18 will drop the `setOpportunities` call silently (no crash), but `setLoading(false)` in `finally` will still execute on the stale closure, leaving `loading=true` on whichever component instance is now mounted. In a fast-nav scenario the user could see a permanent "Loading…" spinner.
+- **Severity note:** Unlikely in normal usage (the fetch completes in < 1 s) but the pattern is broken: the previous `useFirstProgramId` hook had the same issue, so this is not a regression per se. It is worth noting given the new async pattern is longer-lived.
 
-  The render order on a cold-cache page load:
-  1. Component renders → `useIsAuthorizedRep()` is called → reads `localStorage.getItem('applicant_org_id')` → returns `null` (not set yet) → `enabled: false` for the org-roles query → `isAuthorizedRep = false`
-  2. `workspaceQuery` resolves → React re-renders → useEffect fires → `localStorage.setItem('applicant_org_id', orgId)` is called
-  3. **Same re-render** (or the one triggered by the effect): `useIsAuthorizedRep()` reads the now-set `orgId` → org-roles query becomes enabled with `queryKey: ['org-roles', '<uuid>']` → fires
-  4. Org-roles query resolves → another re-render → `isAuthorizedRep` becomes `true` → `CertificationPanel` renders
+---
 
-  This sequence is **functionally correct** — it will eventually show `CertificationPanel` — because React's effect flush + re-render cycle will pick up the new `orgId`. However, the user experiences a visible delay where the certifications section appears without the panel, then the panel pops in after the org-roles network call completes.
+### W3: `WorkspaceSectionPanel` task and comment controls not gated on `isLocked` — inconsistent UI read-only enforcement
 
-  **Severity assessment:** This is "degraded rather than broken" — the panel does appear but only after a second network round-trip. The UAT gap described in the plan ("AR user sees CertificationPanel without ever visiting OrgProfilePage") is resolved, but with a flash of absent panel. On the happy path (warm cache / user has visited before), the value is already in localStorage and there's no flash.
-
-  There is no race condition that could cause a persistent failure (e.g., `workspaceQuery.data` is not undefined when the effect runs, so the guard `if (workspaceQuery.data?.org_id)` is always satisfied when the effect fires).
-
-- **Fix direction:** This is acceptable given the UAT constraints (pre-seeded org scenario). If the flash is unacceptable, the fix is to also set `localStorage.applicant_org_id` from the `Workspace.org_id` returned by the API client before the query result reaches the component — or to add the query key `['org-roles', orgId]` to `useIsAuthorizedRep`'s enabled guard in a way that reacts to localStorage changes (e.g., via a custom event or `useState` wrapper). No code change is strictly required to unblock UAT.
+- **File:** `client/src/components/workspace/WorkspaceSectionPanel.tsx`:126–138 (task toggle) and 188–195 (Post Comment button)
+- **Evidence:**
+  ```tsx
+  // Task toggle — line 135: disabled={updateTaskMutation.isPending}  ← no isLocked
+  <button … disabled={updateTaskMutation.isPending}>
+    {task.status === 'open' ? 'Mark complete' : 'Reopen'}
+  </button>
+  
+  // Post Comment — line 192: disabled={!commentText.trim() || postCommentMutation.isPending}  ← no isLocked
+  <button … disabled={!commentText.trim() || postCommentMutation.isPending}>
+    Post Comment
+  </button>
+  ```
+  Both controls remain fully interactive after submission even though `isLocked=true` is in scope in the same component. The server-side `PUT /workspaces/:id/tasks/:taskId` also lacks an `is_locked` check, meaning task status can be toggled post-submission at both UI and API layers. Internal comments may be intentionally left open (they are staff-only notes), but the plan's stated goal is "all fields are read-only" — task toggling produces observable state change on a locked workspace. The omission is an **incomplete lockdown** of interactive elements in this component, not a security hole (task status is not application content), but it contradicts the read-only guarantee shown in the locked-banner notice.
 
 ---
 
 ## Cross-file seams checked
 
-| Seam | Status |
-|------|--------|
-| `OpportunityBuilder.tsx` `Link to={/grantor/opportunities/${id}/qa}` → `App.tsx` route `path="opportunities/:id/qa"` under `/grantor` | **OK** — Route is defined at line 76; `GrantorLayout` auth guard at line 17 protects it |
-| `OpportunityDetailPage.tsx` `href="#qa-section"` → `section id="qa-section"` on same page | **OK** — Both are in scope (lines 608, 491); in-page anchor scroll works |
-| `publishedQAQuery.isError` guard does not suppress `publishedQAQuery.data` rendering simultaneously | **OK** — TanStack Query: when `isError=true`, `data` is `undefined` for a failed query with no cached data; the `data &&` guards on lines 501 and 504 prevent double-render |
-| `WorkspacePage.tsx` useEffect → `useIsAuthorizedRep` reads same localStorage key | **OK** (with caveat noted in W2) — same key `'applicant_org_id'`; correct UUID written from `Workspace.org_id` which is typed `string` in `workspace.ts:9` |
-| `seed.ts` SECTION_FIELDS loop references `uatWorkspaceId`, `uatOpportunityId`, `applicantUserId` — variable scope | **OK** — All three are declared in outer `seed()` scope (lines 292, 340, 449); the `continue` guard on line 651 is correct |
-| `seed.ts` new block is outside the `if (uatWorkspaceId)` guard used by the narrative block | **OK** — The SECTION_FIELDS loop has its own `if (!uatWorkspaceId || …) continue` guard per iteration; semantically equivalent |
-| `CompletenessChecklist.tsx` `phaseNote?: string` removal — no remaining callers of removed field | **OK** — diff confirms `phaseNote` is removed from both the interface and all render logic; grep finds no remaining references to `phaseNote` or `isPhase2` in the file |
-| `OpportunityBuilder.tsx` `'qa'` in `BuilderSection` union + `setActiveSection('qa')` + `activeSection === 'qa'` guard | **OK** — All three sites are consistent; TypeScript validates the union |
-| `seed.ts` `validation_config: { max_length }` → `FormFieldRenderer.tsx` reads `vc.max_chars` | **FINDING → W1** |
-| `seed.ts` idempotency: WHERE NOT EXISTS on `(section_id, label)` — narrative has same pattern | **OK** — Consistent with pre-existing pattern; no UNIQUE constraint conflict risk on re-run |
+- **`/programs` GET → `OpportunitiesIndex` fetch**: OK — server scopes to `req.user`'s grantor org (no IDOR). Client passes program_id list received from server back to `/programs/:programId/opportunities`, which re-validates each program_id belongs to the same org — double-checked and correct.
+- **`/programs/:id/opportunities` GET → client multi-fetch**: OK — each per-program fetch re-checks program ownership server-side (line 129–136 in `opportunities.ts`).
+- **`WorkspacePage` → `WorkspaceSectionPanel` `isLocked` prop**: OK — `workspace?.is_locked ?? false` correctly defaults to `false` when workspace is undefined; the `??` is correct (not `||`).
+- **`WorkspaceSectionPanel` → `SectionFormPanel`, `BudgetBuilder`, `AttachmentManager` `isLocked` thread**: OK — all three consumer components accept and apply the prop.
+- **`SectionFormPanel` `handleFieldBlur` early-return guard**: OK — `if (isLocked) return;` at line 84 correctly prevents save/validate mutations when locked.
+- **`BudgetBuilder` "Add Line Item" button**: OK — `disabled={isLocked}` (line 270). The inline "Add Line Item" confirm button: OK — `disabled={… || isLocked}` (line 497).
+- **`AttachmentManager` "Yes, delete" confirm button**: OK — `disabled={deleteMutation.isPending || isLocked}` (line 237). The hidden `<input type="file">`: OK — `disabled={isLocked}` (line 151).
+- **Server-side `is_locked` enforcement — PUT field**: OK (line 431). **POST budget line-item**: OK (line 505). **PUT budget line-item**: OK (line 521). **POST attachment**: OK (line 595). **DELETE budget line-item**: **MISSING → B1**. **DELETE attachment**: **MISSING → B2**.
+- **`seed.ts` UAT-OPP-001/002 re-parenting**: Logically correct — existing row SELECTs then UPDATEs `program_id`; new row INSERTs use `mainProgramId`. FK chain (workspace → opportunity → program) is preserved. Gap: `mainProgramId` null safety → W1.
+- **`seed.ts` removal of `UAT Federal Agency` / `UAT Grant Program`**: No orphan risk — the blocks are simply deleted; any existing rows in those tables from prior seeds remain (they are not deleted), but the new code no longer inserts them. On a fresh DB they simply won't exist. No cascade drop is attempted.
+- **`e2e/workspaceLocked.spec.ts` `data-testid` references**: `locked-banner` (WorkspacePage line 151) ✓, `workspace-page` (WorkspacePage line 119) ✓, `workspace-section-sidebar` (WorkspacePage line 166) ✓, `section-form-panel` (SectionFormPanel line 109) ✓, `budget-builder` (BudgetBuilder line 164) ✓, `attachment-manager` (AttachmentManager line 92) ✓, `upload-attachment-btn` (AttachmentManager line 119) ✓, `link-library-btn` (AttachmentManager line 130) ✓. `data-testid^="add-line-item-btn-"` prefix matches `add-line-item-btn-${category}` (BudgetBuilder line 264) ✓.
