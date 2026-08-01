@@ -137,6 +137,8 @@ Plans:
 - [ ] 05-08-PLAN.md — Gap closure (UAT Test 2): Add "Manage Q&A" link per opportunity card in OpportunitiesIndex; relabel sidebar "Q&A Inbox" to "Q&A Management"; add "Opportunity Builder" subtitle to OpportunityBuilder page header
 - [ ] 05-09-PLAN.md — Gap closure (UAT Test 2): Reseed UAT-OPP-001/002 under admin@example.gov's grantor org (General Grant Programs); fix OpportunitiesIndex to fetch all programs so all opportunities appear in the list
 - [ ] 05-10-PLAN.md — Gap closure (UAT Test 6): Thread workspace.is_locked through WorkspaceSectionPanel → SectionFormPanel → FormFieldRenderer as disabled prop; disable BudgetBuilder and AttachmentManager controls in locked state; Playwright locked-workspace test
+- [ ] 05-11-PLAN.md — Gap closure (UAT Test 2): Add non-advisory Playwright tests to qa.spec.ts verifying grantor sees UAT Community Health Innovation Grant in opportunities list and can navigate to Q&A management page without auth errors
+- [ ] 05-12-PLAN.md — Gap closure (UAT Test 6): Add mock-based Playwright test to workspaceSubmission.spec.ts asserting all form inputs carry disabled attribute when workspace.is_locked=true; proves isLocked prop threading from 05-10 (WorkspacePage → SectionFormPanel → FormFieldRenderer)
 
 ### Phase 6: Intake Queue, Screening & Analytics
 **Goal**: Grantor intake administrators have a structured queue for receiving, triaging, and routing applications; both grantors and applicants have dashboards and export capabilities to monitor intake status and generate audit-ready reports
