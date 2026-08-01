@@ -104,6 +104,16 @@ export function OpportunitiesIndex() {
                     <small>Updated: {new Date(opp.updated_at).toLocaleDateString()}</small>
                   </p>
                 </div>
+                <div className="usa-card__footer">
+                  <Link
+                    to={`/grantor/opportunities/${opp.opportunity_id}/qa`}
+                    className="usa-link"
+                    data-testid={`qa-link-${opp.opportunity_id}`}
+                    aria-label={`Manage Q&A for ${opp.title}`}
+                  >
+                    Manage Q&amp;A
+                  </Link>
+                </div>
               </div>
             </li>
           ))}

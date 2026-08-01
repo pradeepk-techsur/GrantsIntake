@@ -82,8 +82,9 @@ export function GrantorSidebar({ grantor_memberships }: GrantorSidebarProps) {
               className={({ isActive }) =>
                 isActive ? 'usa-current' : ''
               }
+              data-testid="nav-qa-management"
             >
-              Q&amp;A Inbox
+              Q&amp;A Management
             </NavLink>
           </li>
         )}
