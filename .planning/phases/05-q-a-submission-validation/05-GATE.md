@@ -3,7 +3,7 @@ phase: 5
 gate_status: passed
 build_command: "npm run build"
 test_command: "npm test"
-last_updated: 2026-08-01T03:14:40Z
+last_updated: 2026-08-01T03:26:00Z
 boot_smoke: pass
 waves:
   - wave: 1
@@ -67,12 +67,13 @@ waves:
 - Boot smoke: API :3000 → GET /health → 200 OK
 - Status: pass
 
-## Phase gate
+## Phase gate (final — after code-review fixer commits)
 
-- Build: `npm run build` → pass
-- Tests: `npm test` → pass (256/256)
-- Boot smoke: pass
-- Status: pass — green across all waves including gap-closure-3
+- Build: `npm run build` → pass (tsc exit 0)
+- Tests: `npm test` → pass (256/256, 28 files)
+- Boot smoke: API :3000 → GET /health → 200 OK
+- Code review: clean (0 BLOCKERs after fixer — B1/B2 is_locked guards, W1/W2/W3 all resolved)
+- Status: pass — green across all waves including gap-closure-3 and code-review fixes
 
 ## Gap Redrive (--gaps-only, prior waves)
 
