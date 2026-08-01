@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-10-PLAN.md
-last_updated: "2026-08-01T03:12:32.626Z"
+stopped_at: Completed 05-12-PLAN.md
+last_updated: "2026-08-01T12:34:46.953Z"
 last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
 progress:
   total_phases: 9
-  completed_phases: 5
-  total_plans: 41
-  completed_plans: 41
+  completed_phases: 4
+  total_plans: 43
+  completed_plans: 42
   percent: 97
 ---
 
@@ -92,6 +92,7 @@ Progress: [█████████▒] 97%
 | Phase 05-q-a-submission-validation P08 | 1min | 2 tasks | 3 files |
 | Phase 05-q-a-submission-validation P09 | 2min | 2 tasks | 2 files |
 | Phase 05-q-a-submission-validation P10 | 3min | 2 tasks | 6 files |
+| Phase 05-q-a-submission-validation P12 | 18 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -180,6 +181,7 @@ Recent decisions affecting current work:
 - [Phase 05-q-a-submission-validation]: Multi-program Promise.all fetch replaces useFirstProgramId in OpportunitiesIndex — fetches all programs then parallel-fetches opportunities per program, flattened to one list
 - [Phase 05-q-a-submission-validation]: Pure prop-threading of workspace.is_locked as isLocked prop — no new context/state; WorkspacePage passes it to WorkspaceSectionPanel which threads to SectionFormPanel, BudgetBuilder, AttachmentManager
 - [Phase 05-q-a-submission-validation]: handleFieldBlur returns early when isLocked to suppress save/validate mutations in locked state — UI-layer enforcement for PRD-INTAKE-054
+- [Phase 05-q-a-submission-validation]: OrgRole[] mock shape must be array (not object) — useIsAuthorizedRep calls roles.find() which throws TypeError on non-array mock
 
 ### Pending Todos
 
@@ -191,6 +193,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-01T03:12:32.624Z
-Stopped at: Completed 05-10-PLAN.md
+Last session: 2026-08-01T12:34:46.951Z
+Stopped at: Completed 05-12-PLAN.md
 Resume file: None
