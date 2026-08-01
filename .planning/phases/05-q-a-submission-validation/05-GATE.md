@@ -31,6 +31,12 @@ waves:
     fix_attempts: 0
     plans: [05-09, 05-10]
     notes: "256/256 tests pass; tsc exit 0; boot smoke API :3000 → GET /health → 200 OK"
+  - wave: gap-closure-4
+    build: pass
+    tests: pass
+    fix_attempts: 0
+    plans: [05-11]
+    notes: "256/256 tests pass; tsc exit 0; 7/7 qa.spec.ts tests added"
 ---
 
 ## Wave 1
@@ -90,3 +96,14 @@ waves:
 |-----|------|----------------|----------|
 | Gap A | Q&A Mgmt no questions (UAT Test 2) | closed (re-driven) | GET /programs → General Grant Programs; GET /programs/:id/opportunities → UAT-OPP-001+UAT-OPP-002 listed; POST /questions → 201; GET /opportunities/:id/questions → 1 question visible to grantor token ✓ |
 | Gap B | Locked workspace fields editable (UAT Test 6) | closed (code-verified) | WorkspacePage passes isLocked={workspace?.is_locked ?? false} (line 180); WorkspaceSectionPanel threads to SectionFormPanel + BudgetBuilder + AttachmentManager; SectionFormPanel passes disabled={isLocked} to FormFieldRenderer; handleFieldBlur returns early when isLocked (line 84). Full submission E2E required for runtime lock confirmation — advisory Playwright spec e2e/workspaceLocked.spec.ts created. |
+
+## Wave Gap-Closure-4 (Plan 05-11)
+
+- Build: `npm run build` → pass (tsc exit 0)
+- Tests: `npm test` → 256/256 passed (28 files)
+- Fix attempts: 0/3
+- Status: pass
+
+| Gap | Test | Redrive Status | Evidence |
+|-----|------|----------------|----------|
+| Gap A (Q&A visibility regression guard) | UAT Test 2 | closed (Playwright test) | qa.spec.ts Test 6 hard-asserts "UAT Community Health Innovation Grant" visible in opportunities list; Test 7 verifies Q&A mgmt page loads without auth errors; 7/7 qa.spec.ts tests pass |
