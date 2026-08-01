@@ -1,6 +1,6 @@
 ---
 phase: 5
-status: issues_found
+status: fixed
 blockers: 2
 warnings: 3
 files_reviewed: 10
@@ -45,6 +45,8 @@ iteration: 1
   The POST (add) route at line 500 and PUT (update) route at line 516 both correctly check `if (workspace.is_locked) return res.status(423)` before proceeding. The DELETE route at line 532 does **not**. An authenticated org member can therefore remove existing budget line items from a submitted, locked workspace by sending `DELETE /api/v1/workspaces/:id/budget/line-items/:lineId` directly — bypassing the UI's `disabled` button entirely. This corrupts the immutable submitted record.
 - **Fix direction:** Add `if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });` immediately after the workspace existence check (before the `isMember` check) in the DELETE budget line-items route, consistent with the POST and PUT routes above it.
 
+**Resolution:** fixed (053ee29) — added `if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });` at `workspaces.ts` line 537, between workspace existence check and `isMember` check; `tsc --noEmit` clean, 256/256 tests pass.
+
 ---
 
 ### B2: DELETE attachment route missing `is_locked` guard — submitted workspace attachments can be soft-deleted via direct API call
@@ -68,6 +70,8 @@ iteration: 1
   The POST (upload/link) route at line 590 has `if (workspace.is_locked) return res.status(423)`, but the DELETE route at line 624 does not. An authenticated org member can soft-delete any attachment on a submitted workspace by calling the API directly. The UI disables the Delete button when `isLocked=true`, but the enforcement is UI-only for this mutation.
 - **Fix direction:** Add `if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });` immediately after the workspace existence check in the DELETE attachments route, parallel to the POST route guard at line 595.
 
+**Resolution:** fixed (053ee29) — added `if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });` at `workspaces.ts` line 630, between workspace existence check and `isMember` check; both B1 and B2 landed in the same atomic commit since they are in the same file; `tsc --noEmit` clean, 256/256 tests pass.
+
 ---
 
 ## WARNINGs
@@ -89,6 +93,8 @@ iteration: 1
   In practice this cannot happen in a correctly seeded database (the program is inserted or found in the same transaction, just above). However, if the SELECT at line 80 returned 0 rows for any reason (race condition, incorrect `orgId`, prior data corruption), `mainProgramId` would be `undefined`, `pg` would serialize it as SQL `NULL`, and the UPDATE would set `program_id = NULL` — violating intent and potentially a NOT NULL FK constraint, causing an undiagnosed silent data corruption or a cryptic postgres FK error.
 - **Severity note:** Low probability in practice (program was just upserted), but the lack of a null-guard means failure mode is data corruption rather than a clear error. A guard of the form `if (!mainProgramId) throw new Error('mainProgramId missing after upsert')` would make this fail loudly.
 
+**Resolution:** fixed (bf64f87) — added `if (!mainProgramId) throw new Error('mainProgramId missing after upsert — General Grant Programs not found');` immediately after line 83 in seed.ts; fails loudly instead of propagating undefined as SQL NULL.
+
 ---
 
 ### W2: `OpportunitiesIndex` multi-program fetch has no AbortController / cleanup — stale state update on unmount
@@ -97,6 +103,8 @@ iteration: 1
 - **Evidence:**
   The new `useEffect` fires an async `Promise.all` across N programs. There is no cleanup function returned from `useEffect` and no `AbortController` to cancel in-flight requests. If the grantor user navigates away while the batch is in flight, React 18 will drop the `setOpportunities` call silently (no crash), but `setLoading(false)` in `finally` will still execute on the stale closure, leaving `loading=true` on whichever component instance is now mounted. In a fast-nav scenario the user could see a permanent "Loading…" spinner.
 - **Severity note:** Unlikely in normal usage (the fetch completes in < 1 s) but the pattern is broken: the previous `useFirstProgramId` hook had the same issue, so this is not a regression per se. It is worth noting given the new async pattern is longer-lived.
+
+**Resolution:** fixed (bf64f87) — added `AbortController`; both the `/programs` GET and each `/programs/:id/opportunities` GET now receive `{ signal: controller.signal }`; `setOpportunities`, `setOpportunities([])`, and `setLoading(false)` are all guarded with `if (!controller.signal.aborted)`; cleanup function returns `controller.abort()`.
 
 ---
 
@@ -116,6 +124,8 @@ iteration: 1
   </button>
   ```
   Both controls remain fully interactive after submission even though `isLocked=true` is in scope in the same component. The server-side `PUT /workspaces/:id/tasks/:taskId` also lacks an `is_locked` check, meaning task status can be toggled post-submission at both UI and API layers. Internal comments may be intentionally left open (they are staff-only notes), but the plan's stated goal is "all fields are read-only" — task toggling produces observable state change on a locked workspace. The omission is an **incomplete lockdown** of interactive elements in this component, not a security hole (task status is not application content), but it contradicts the read-only guarantee shown in the locked-banner notice.
+
+**Resolution:** fixed (bf64f87) — task toggle button `disabled` changed to `disabled={updateTaskMutation.isPending || isLocked}`; Post Comment button `disabled` changed to `disabled={!commentText.trim() || postCommentMutation.isPending || isLocked}`. Note: server-side `PUT /workspaces/:id/tasks/:taskId` still lacks `is_locked` guard (out of scope per scope-boundary — recorded here for next review cycle).
 
 ---
 
