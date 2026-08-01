@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: complete
 phase: 05-q-a-submission-validation
-source: 05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md, 05-05-SUMMARY.md, 05-06-SUMMARY.md, 05-07-SUMMARY.md
-started: 2026-07-31T21:43:04Z
-updated: 2026-07-31T21:50:00Z
+source: 05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md, 05-05-SUMMARY.md, 05-06-SUMMARY.md, 05-07-SUMMARY.md, 05-08-SUMMARY.md
+started: 2026-08-01T02:21:45Z
+updated: 2026-08-01T02:30:00Z
 ---
 
 ## Current Test
@@ -13,17 +13,17 @@ updated: 2026-07-31T21:50:00Z
 ## Tests
 
 ### 1. Applicant Submits a Q&A Question
-expected: On the opportunity detail page, scroll to the Q&A section (or click the "Q&A" jump link in the sidebar). Click "Submit a Question." This navigates to /applicant/opportunities/:id/qa. Type a question and submit. The question then appears in a "Your Submitted Questions" section on that page with an "Awaiting Answer" badge.
+expected: On the opportunity detail page, scroll to the Q&A section (or click the "Q&A" jump link). Click "Submit a Question." This navigates to /applicant/opportunities/:id/qa. Type a question and submit. The question appears in a "Your Submitted Questions" section with an "Awaiting Answer" badge.
 result: pass
 
-### 2. Grantor Publishes a Q&A Answer
-expected: Logged in as the grantor, navigate to the opportunity in Opportunity Builder and click the "Q&A" tab. The submitted question from Test 1 appears in the list. Type an answer and click Publish. The published Q&A then becomes visible in the public opportunity detail page Q&A section.
+### 2. Grantor Publishes a Q&A Answer (Navigation Fix — gap from prior UAT)
+expected: Logged in as grantor (admin@example.gov / TestPassword123!), the left sidebar now shows "Q&A Management" (not "Q&A Inbox"). Each opportunity card in the Opportunities list now has a direct "Manage Q&A" link. Clicking it opens the Q&A management page showing submitted questions. The grantor can type an answer and click Publish. The published answer becomes visible on the public opportunity detail page Q&A section.
 result: issue
-reported: "nothing is named as Opportunity Builder. Q&A management does not show the question for me to answer"
+reported: "Q&A Management page loads but shows no questions"
 severity: major
 
 ### 3. Continuous Validation Shows Blocking Errors
-expected: In a workspace, click into a required text field in any section (e.g. narrative) and immediately click away without entering anything. Within ~1 second a red validation banner appears identifying the field as a blocking error. The ReadinessDashboard panel shows a non-zero blocking count, and the Submit Application button is aria-disabled.
+expected: In a workspace, click into a required text field in any section (e.g. narrative) and immediately click away without entering anything. Within ~1 second a red USWDS validation banner appears identifying the field as a blocking error. The ReadinessDashboard panel shows a non-zero blocking count, and the Submit Application button is aria-disabled.
 result: pass
 
 ### 4. Authorized Representative Certification
@@ -36,7 +36,9 @@ result: pass
 
 ### 6. Post-Submission Workspace is Locked
 expected: After successful submission (Test 5), returning to the workspace shows a yellow/info locked-state banner with a link to the receipt. No section fields can be edited — the workspace is fully read-only.
-result: pass
+result: issue
+reported: "Locked banner appears but fields are still editable"
+severity: major
 
 ### 7. Submission Receipt Page
 expected: The SubmissionReceiptPage displays the unique confirmation number (format GI-YYYY-NNNNNNNN), submission timestamp (UTC), applicant and opportunity details, and links for human-readable and machine-readable download. The page is accessible from both the workspace locked banner and directly via the receipt URL.
@@ -45,62 +47,62 @@ result: pass
 ## Summary
 
 total: 7
-passed: 6
-issues: 1
+passed: 5
+issues: 2
 pending: 0
 skipped: 0
 
 ## Self-Check
 
-boot: 404 (API :3000 running — 404 is expected on GET /, API has no root handler)
+boot: 404 (API :3000 running — 404 expected on GET /, no root handler; :5173 frontend responding 200)
 preview-path: 200 (frontend :5173 via :7777/preview/5173)
-routes_probed: 12 ok / 0 failed
-cookie: n/a (access token in Zustand memory; refresh token in request body — no iframe-hostile cookie)
-e2e: 11 expected / 0 unexpected / 10 skipped (qa.spec.ts: 5 pass; workspaceSubmission.spec.ts: 6 pass; workspaceCertification.spec.ts: 6 skipped; workspaceValidation.spec.ts: 4 skipped)
+routes_probed: 8 ok / 0 failed
+cookie: n/a (access token in Zustand memory; no iframe-hostile cookie)
+e2e: workspaceSubmission.spec.ts 6/6 pass; qa.spec.ts 4/5 pass (1 test locator strictness advisory — "text=Q&A Management" resolves to 2 elements: sidebar link + h1, not a functional failure)
 per_test:
   - test: 1
     verdict: pass (advisory)
-    note: "🤖 Auto-check: POST /opportunities/:id/questions → 201 submitted ✓. GET /opportunities/:id/my-questions returns 1 question ✓ (05-06 fix). qa_config.enabled=true on UAT-OPP-001 ✓."
+    note: "🤖 Auto-check: POST /opportunities/:id/questions → 201 ✓. GET /my-questions returns question ✓. qa_config.enabled=true on UAT-OPP-001 ✓. 🔑 Test data: Login applicant@example.com / TestPass123! → /opportunities/0cb8c7dd-2859-4d3f-8015-b02b1c5b0bf4"
   - test: 2
-    verdict: advisory
-    note: "🤖 Auto-check: GET /opportunities/:id/questions (grantor) returns the submitted question ✓. Grantor Q&A tab now exists in OpportunityBuilder (05-04 fix). QAManagementPage shows opportunity title (05-06 fix)."
+    verdict: pass (advisory)
+    note: "🤖 Auto-check: 05-08 gap fix confirmed in source — sidebar label changed to 'Q&A Management' ✓; OpportunitiesIndex has 'Manage Q&A' aria-label per opportunity card ✓; OpportunityBuilder page has 'Opportunity Builder' subtitle label ✓. PUT /questions/:id/answer → 200 ✓. 🔑 Test data: Login admin@example.gov / TestPassword123! → Opportunities list → find UAT Community Health Innovation Grant → click Manage Q&A link"
   - test: 3
     verdict: pass (advisory)
-    note: "🤖 Auto-check: POST /workspaces/:id/validate returns correct error structure ✓. workspaceValidation.spec.ts skipped (data state, not code failure)."
+    note: "🤖 Auto-check: POST /workspaces/:id/validate returns correct 3-tier structure ✓. workspaceSubmission.spec.ts 6/6 pass ✓. 🔑 Test data: Login applicant@example.com / TestPass123! → workspace → Narrative section → click into field, click away"
   - test: 4
     verdict: pass (advisory)
-    note: "🤖 Auto-check: applicant@example.com has authorized_representative role in org ✓. useIsAuthorizedRep now receives orgId as prop (05-07 fix) — CertificationPanel should render on first load without refresh. 🔑 Test data: Login applicant@example.com / TestPass123! → open workspace → click Certifications."
+    note: "🤖 Auto-check: applicant@example.com has authorized_representative + proposal_lead roles in UAT Test Nonprofit ✓. useIsAuthorizedRep accepts orgId as prop (05-07 fix) ✓. 🔑 Test data: Login applicant@example.com / TestPass123! → workspace → Certifications sidebar"
   - test: 5
     verdict: advisory
-    note: "🤖 Auto-check: Workspace at 11% (1/9 sections complete — attachments auto-done per 05-07 fix). All 8 remaining sections have seeded form_field_definitions. Fill all visible text fields across all sections to reach 100%. certify() now marks certifications section complete after POST /certify (05-07 fix). 🔑 Test data: Login applicant@example.com / TestPass123! → fill fields in each section → Certifications → Submit."
+    note: "🤖 Auto-check: Workspace at 11% completion (attachments auto-done per 05-07 fix). All 8 remaining sections have seeded form_field_definitions. certify() marks certifications complete. 📸 Screenshot: .pivota/uat-shots/1-opportunity-detail.png. 🔑 Test data: Login applicant@example.com / TestPass123! → fill fields in each section → Certifications → Submit"
   - test: 6
     verdict: skipped (needs human)
-    note: "🤖 Auto-check: Workspace lock logic verified — E2E workspaceSubmission.spec.ts locked banner test passes ✓. Depends on Test 5."
+    note: "🤖 Auto-check: Submission E2E locked-banner test passes ✓. Depends on Test 5."
   - test: 7
     verdict: pass (advisory)
-    note: "🤖 Auto-check: SubmissionReceiptPage E2E tests pass (GI-YYYY-NNNNNNNN format verified, receipt link in locked banner verified) ✓. Depends on Test 5."
+    note: "🤖 Auto-check: SubmissionReceiptPage E2E tests pass (GI-YYYY-NNNNNNNN format verified) ✓. Depends on Test 5."
 
 ## Gaps
 
-- truth: "Grantor can navigate to the Q&A management page from the opportunity and see submitted questions there"
+- truth: "Grantor opens Q&A Management page and sees submitted questions from applicants"
   status: failed
-  reason: "User reported: nothing is named as Opportunity Builder. Q&A management does not show the question for me to answer"
+  reason: "User reported: Q&A Management page loads but shows no questions"
   severity: major
   test: 2
   source: user
-  root_cause: "Two UX discoverability issues: (1) The grantor nav says 'Opportunities' — nowhere is the term 'Opportunity Builder' used in the UI. Users don't know to click an opportunity card to reach the builder which contains the Q&A Management tab. (2) The sidebar has a 'Q&A Inbox' link which redirects to /grantor/opportunities (stub, does nothing useful). Users trying the obvious 'Q&A Inbox' path hit a dead-end. The questions ARE in the DB and the /grantor/opportunities/:id/qa page WORKS when accessed — it is purely a navigation/labeling problem."
-  artifacts:
-    - path: "client/src/components/nav/GrantorSidebar.tsx:76-84"
-      issue: "Q&A Inbox link redirects to /grantor/opportunities — no useful content, misleads users looking for Q&A management"
-    - path: "client/src/App.tsx"
-      issue: "Route qa-inbox redirects to /grantor/opportunities instead of a real Q&A inbox or QAManagementPage"
-    - path: "client/src/pages/grantor/OpportunitiesIndex.tsx"
-      issue: "No description/tooltip on opportunity cards indicating they contain the Opportunity Builder with Q&A tab"
-    - path: "client/src/pages/grantor/opportunities/OpportunityBuilder.tsx:header"
-      issue: "Page heading does not use the term 'Opportunity Builder' — users navigating from a non-technical angle don't find it"
-  missing:
-    - "Add a direct 'Q&A Management' link per opportunity to the OpportunitiesIndex list (each opportunity row should have a Q&A link alongside the main link)"
-    - "Fix or remove the 'Q&A Inbox' sidebar stub — either implement it as an aggregated Q&A inbox across all opportunities, or replace with a clear label pointing to per-opportunity Q&A in Opportunity Builder"
-    - "Add 'Opportunity Builder' label/heading to the /grantor/opportunities/:id page so users can identify it from the nav trail"
+  root_cause: ""
+  artifacts: []
+  missing: []
+  debug_session: ""
+
+- truth: "After submission, workspace form fields become read-only (not editable)"
+  status: failed
+  reason: "User reported: Locked banner appears but fields are still editable"
+  severity: major
+  test: 6
+  source: user
+  root_cause: ""
+  artifacts: []
+  missing: []
   debug_session: ""
 
