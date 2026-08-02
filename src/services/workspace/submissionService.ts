@@ -275,6 +275,26 @@ class SubmissionService {
       ],
     );
 
+    // ── Phase 6: Auto-route submission to intake queue (F55 — SUBMISSION_RECEIVED) ──
+    await pool.query(
+      `INSERT INTO intake_queue_entries (workspace_id, opportunity_id, org_id, snapshot_id, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 'pending_screening', now(), now())`,
+      [workspaceId, ws.opportunity_id, ws.org_id, snapshot.snapshot_id],
+    );
+    await pool.query(
+      `INSERT INTO audit_events (entity_type, entity_id, event_type, actor_user_id, payload)
+       VALUES ('intake_queue_entry', $1, 'SUBMISSION_RECEIVED', $2, $3)`,
+      [
+        snapshot.snapshot_id,
+        submittedByUserId,
+        JSON.stringify({
+          opportunity_id: ws.opportunity_id,
+          org_id: ws.org_id,
+          confirmation_number: confirmationNumber,
+        }),
+      ],
+    );
+
     // ── Notification log (Phase 6 adds real email delivery) ─────────────
     console.log(
       `[NOTIFICATION] APPLICATION_SUBMITTED confirmation=${confirmationNumber} workspace=${workspaceId}`,
