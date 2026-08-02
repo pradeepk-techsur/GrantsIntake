@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 06-intake-queue-screening-analytics
 source: [06-01-SUMMARY.md]
 started: 2026-08-02T16:10:00Z
-updated: 2026-08-02T16:20:00Z
+updated: 2026-08-02T16:22:00Z
 ---
 
 ## Current Test
@@ -92,7 +92,18 @@ per_test:
   severity: major
   test: 7
   source: user
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Notification backend is complete (notification_records populated, GET /api/v1/notifications returns the record for the applicant), but no UI component exists to display notifications to the applicant. The Notification type (client/src/types/intakeQueue.ts:58) and API client method (intakeQueueApi.getNotifications, client/src/api/intakeQueueApi.ts:29) were built but no page, panel, or indicator consumes them. ApplicantSidebar and App.tsx have no notifications route or bell icon."
+  artifacts:
+    - path: "client/src/types/intakeQueue.ts"
+      issue: "Notification type defined but unused by any UI component"
+    - path: "client/src/api/intakeQueueApi.ts"
+      issue: "getNotifications() and markRead() methods exist but not called from any React page"
+    - path: "client/src/App.tsx"
+      issue: "No /applicant/notifications route registered"
+    - path: "client/src/components/nav/ApplicantSidebar.tsx"
+      issue: "No notifications link or badge"
+  missing:
+    - "Applicant NotificationsPage or notification bell component that calls intakeQueueApi.getNotifications and renders the list"
+    - "Route in App.tsx: /applicant/notifications → NotificationsPage"
+    - "Link in ApplicantSidebar (or header badge) navigating to notifications"
   debug_session: ""
