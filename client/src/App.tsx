@@ -22,6 +22,7 @@ import { SubmissionReceiptPage } from './pages/applicant/SubmissionReceiptPage';
 import { QAManagementPage } from './pages/grantor/QAManagementPage';
 import { IntakeQueuePage } from './pages/grantor/IntakeQueuePage';
 import { IntakeQueueDetailPage } from './pages/grantor/IntakeQueueDetailPage';
+import { NotificationsPage } from './pages/applicant/NotificationsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +68,7 @@ function App() {
             <Route path="opportunities/:opportunityId/prescreen" element={<PrescreenPage />} />
             <Route path="opportunities/:opportunityId/prescreen/result" element={<PrescreenResultPage />} />
             <Route path="opportunities/:opportunityId/qa" element={<QASubmitPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="dashboard" element={<div data-testid="applicant-dashboard-placeholder"><h1>My Dashboard</h1><p>Coming soon.</p></div>} />
           </Route>
           <Route path="/grantor" element={<GrantorLayout />}>
