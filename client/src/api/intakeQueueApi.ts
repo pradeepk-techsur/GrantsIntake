@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { QueueListResponse, QueueEntryDetail } from '../types/intakeQueue';
+import type { QueueListResponse, QueueEntryDetail, NotificationsResponse } from '../types/intakeQueue';
 
 export const intakeQueueApi = {
   listEntries: (params?: {
@@ -27,7 +27,7 @@ export const intakeQueueApi = {
     apiClient.get(`/intake-queue/${entryId}/snapshots`),
 
   getNotifications: (params?: { is_read?: boolean; page?: number }) =>
-    apiClient.get('/notifications', { params }),
+    apiClient.get<NotificationsResponse>('/notifications', { params }),
 
   markRead: (notificationId: string) =>
     apiClient.put(`/notifications/${notificationId}/read`),

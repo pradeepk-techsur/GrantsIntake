@@ -27,13 +27,8 @@ export function NotificationsPage() {
   });
 
   // The API returns { notifications: Notification[], total: number }
-  // Accessed via Axios response.data
-  const raw = data?.data;
-  const notifications: Notification[] = Array.isArray(raw)
-    ? raw
-    : Array.isArray((raw as { notifications?: Notification[] })?.notifications)
-      ? (raw as { notifications: Notification[] }).notifications
-      : [];
+  // Accessed via Axios response.data — typed via NotificationsResponse generic
+  const notifications: Notification[] = data?.data?.notifications ?? [];
 
   return (
     <div className="grid-container">
