@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-12-PLAN.md (gap-closure-5 wave; --gaps-only re-execution)
-last_updated: "2026-08-02T04:30:00.000Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-08-02T15:18:15.531Z"
 last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
 progress:
-  total_phases: 9
-  completed_phases: 5
-  total_plans: 43
-  completed_plans: 43
+  total_phases: 11
+  completed_phases: 6
+  total_plans: 44
+  completed_plans: 44
   percent: 97
 ---
 
@@ -94,6 +94,7 @@ Progress: [█████████▒] 97%
 | Phase 05-q-a-submission-validation P10 | 3min | 2 tasks | 6 files |
 | Phase 05-q-a-submission-validation P12 | 18 min | 1 tasks | 1 files |
 | Phase 05-q-a-submission-validation P11 | 8min | 1 tasks | 1 files |
+| Phase 06-intake-queue-screening-analytics P01 | 20 min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -184,6 +185,8 @@ Recent decisions affecting current work:
 - [Phase 05-q-a-submission-validation]: handleFieldBlur returns early when isLocked to suppress save/validate mutations in locked state — UI-layer enforcement for PRD-INTAKE-054
 - [Phase 05-q-a-submission-validation]: OrgRole[] mock shape must be array (not object) — useIsAuthorizedRep calls roles.find() which throws TypeError on non-array mock
 - [Phase 05-q-a-submission-validation]: Test 6 hard (non-advisory) assertion: UAT Community Health Innovation Grant must appear in grantor opportunities list — absence fails test outright
+- [Phase 06-intake-queue-screening-analytics]: Disposition history is append-only: each POST creates a new intake_dispositions row, entry status updated via pointer (disposition_id), no modification of existing rows (T-06-06 repudiation mitigation)
+- [Phase 06-intake-queue-screening-analytics]: grantorOrgId server-derived via grantor_roles JOIN (not grantor_memberships — actual table name in migration 001), consistent with T-02-01 IDOR pattern
 
 ### Pending Todos
 
@@ -195,6 +198,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-01T13:21:52.956Z
-Stopped at: Completed 05-11-PLAN.md
+Last session: 2026-08-02T15:18:15.530Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
