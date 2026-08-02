@@ -11,7 +11,7 @@ import type { Notification } from '../../types/intakeQueue';
  *
  * PRD-INTAKE-062 — applicant status dashboard / notification loop closure.
  */
-export function NotificationsPage(): JSX.Element {
+export function NotificationsPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError } = useQuery({
