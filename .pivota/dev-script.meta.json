@@ -1,7 +1,7 @@
 {
   "generator_version": "init-dev-server@1",
   "catalog_entry": "node-express",
-  "generated_at": "2026-08-02T13:21:46Z",
+  "generated_at": "2026-08-02T16:02:00Z",
   "inspection_inputs_hash": "f5e5d9f101e711cbf4655f49586b0a253a0a6e46ca3107b05dbb67ddb744681d",
   "inspection_inputs": {
     "matched_globs": [

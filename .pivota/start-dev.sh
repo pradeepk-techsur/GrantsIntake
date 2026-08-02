@@ -114,19 +114,41 @@ if [[ ! -f .env && -f .env.example ]]; then
   done < .env.example > .env
 fi
 
-# === Optional pre-exec snippet (JDK install, rustup, golang one-shot setup) ===
-# Catalog entries with PRE_EXEC_SNIPPET inject heavyweight one-time installs
-# here. Empty string when not needed.
-# (none) — express needs no system-level pre-install setup. DB seeding deliberately
-# does NOT live here: the pre-exec slot runs BEFORE `npm ci`, so no node_modules /
-# prisma client exists yet. Migrate is folded into the EXEC command below, which
-# runs after install. See references/runtime-environment.md §3.
+# === Optional pre-exec snippet: start postgres + redis via docker compose ===
+# This project's docker-compose.yml declares db (postgres:16) and redis:7
+# services with health-checks. Start them now so the backend's DATABASE_URL
+# and REDIS_URL are reachable before npm ci and the migrate step run.
+# The app service in compose uses a compiled dist/ entry — we do NOT start it
+# here; we run the backend natively via `tsx watch` so the dev-reload loop works.
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+  echo "[pivota] starting postgres + redis via docker compose (db + redis services only)"
+  docker compose up -d db redis 2>&1 || echo "[pivota] WARN: docker compose up db redis returned non-zero (continuing)"
+
+  # Wait for postgres to report healthy (up to 60s)
+  echo "[pivota] waiting for postgres to become healthy..."
+  DB_READY=0
+  for _ in $(seq 1 12); do
+    STATUS=$(docker compose ps --status running db 2>/dev/null | grep -c "db" || true)
+    HEALTH=$(docker inspect --format='{{.State.Health.Status}}' "$(docker compose ps -q db 2>/dev/null)" 2>/dev/null || echo "unknown")
+    if [[ "$HEALTH" == "healthy" ]]; then
+      DB_READY=1; break
+    fi
+    sleep 5
+  done
+  if [[ "$DB_READY" == "1" ]]; then
+    echo "[pivota] postgres is healthy"
+  else
+    echo "[pivota] WARN: postgres health check timed out; continuing anyway"
+  fi
+else
+  echo "[pivota] WARN: docker not available — postgres and redis will not be started by this wrapper; ensure DATABASE_URL and REDIS_URL are reachable"
+fi
 
 # === D-12: idempotent install via lockfile hash + presence check ===
 SENTINEL="/tmp/pivota-setup-sentinel"
 LOCK_FILE_PATH="package-lock.json"
 INSTALL_PRESENCE_CHECK="node_modules"
-INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'   # single-quoted: catalog must escape internal quotes correctly
+INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'
 
 run_install() {
   echo "[pivota] running install: $INSTALL_CMD"
@@ -195,50 +217,11 @@ fi
 # Final-attempt exit code propagates the INNER command's exit code, not a
 # fixed 1, so the caller (platform / Daytona) can distinguish "wrapper bug"
 # from "user command failed with N".
-EXEC_CMD='HAS_SCRIPT() { node -e "process.exit(((require(\"./package.json\").scripts||{})[\"$1\"])?0:1)" 2>/dev/null; }
-
-# (1) Migrate after install — only when the app is configured with a DB
-# (its own .env / config supplies DATABASE_URL). Loud, non-fatal.
-if [ -n "${DATABASE_URL:-}" ]; then
-  SEED=""
-  for s in migrate:schema migrate db:migrate migrate:deploy migrate:prod prisma:migrate db:push; do
-    if HAS_SCRIPT "$s"; then SEED="$s"; break; fi
-  done
-  if [ -n "$SEED" ]; then
-    echo "[pivota] seeding DB via the declared project script: npm run $SEED"
-    npm run "$SEED" || echo "[pivota] npm run $SEED returned non-zero (continuing)"
-  elif [ -f prisma/schema.prisma ]; then
-    echo "[pivota] no migrate script declared; seeding via prisma"
-    npx prisma generate 2>&1 | tail -2 || true
-    if [ -d prisma/migrations ]; then
-      npx prisma migrate deploy || echo "[pivota] prisma migrate deploy non-zero (continuing)"
-    else
-      npx prisma db push --skip-generate --accept-data-loss || echo "[pivota] prisma db push non-zero (continuing)"
-    fi
-  else
-    echo "[pivota] WARNING: DATABASE_URL is set but no migrate script or prisma schema found — the app may serve on an EMPTY database"
-  fi
-fi
-
-# (2) Launch. Prefer the project'"'"'s own dev runner (nodemon / ts-node / tsx —
-# encodes the correct entry and needs no build), then npm start. If `start`
-# points at a compiled dist/ that a fresh clone has not built (dist/ is
-# gitignored — runtime-environment.md §7), build first.
-if HAS_SCRIPT dev; then exec npm run dev
-elif HAS_SCRIPT start:dev; then exec npm run start:dev
-elif HAS_SCRIPT start; then
-  if node -e '"'"'process.exit(/\b(dist|build)\//.test((require("./package.json").scripts||{}).start||"")?0:1)'"'"' && [ ! -d dist ] && [ ! -d build ]; then
-    echo "[pivota] start script targets a compiled entry; building first"
-    npm run build || echo "[pivota] npm run build returned non-zero (continuing)"
-  fi
-  exec npm start
-else
-  exec node "$(node -e '"'"'console.log(require("./package.json").main || "index.js")'"'"')"
-fi'
+EXEC_CMD='HAS_SCRIPT() { node -e "process.exit(((require(\"./package.json\").scripts||{})[\"$1\"])?0:1)" 2>/dev/null; }; if [ -n "${DATABASE_URL:-}" ]; then SEED=""; for s in migrate:schema migrate db:migrate migrate:deploy migrate:prod prisma:migrate db:push; do if HAS_SCRIPT "$s"; then SEED="$s"; break; fi; done; if [ -n "$SEED" ]; then echo "[pivota] seeding DB via the declared project script: npm run $SEED"; npm run "$SEED" || echo "[pivota] npm run $SEED returned non-zero (continuing)"; elif [ -f prisma/schema.prisma ]; then echo "[pivota] no migrate script declared; seeding via prisma"; npx prisma generate 2>&1 | tail -2 || true; if [ -d prisma/migrations ]; then npx prisma migrate deploy || echo "[pivota] prisma migrate deploy non-zero (continuing)"; else npx prisma db push --skip-generate --accept-data-loss || echo "[pivota] prisma db push non-zero (continuing)"; fi; else echo "[pivota] WARNING: DATABASE_URL is set but no migrate script or prisma schema found — the app may serve on an EMPTY database"; fi; fi; if HAS_SCRIPT dev; then exec npm run dev; elif HAS_SCRIPT start:dev; then exec npm run start:dev; elif HAS_SCRIPT start; then if node -e '"'"'process.exit(/\b(dist|build)\//.test((require("./package.json").scripts||{}).start||"")?0:1)'"'"' && [ ! -d dist ] && [ ! -d build ]; then echo "[pivota] start script targets a compiled entry; building first"; npm run build || echo "[pivota] npm run build returned non-zero (continuing)"; fi; exec npm start; else exec node "$(node -e '"'"'console.log(require("./package.json").main || "index.js")'"'"')"; fi'
 ATTEMPT=1
 DELAY=1
 while (( ATTEMPT <= 3 )); do
-  echo "[pivota] attempt $ATTEMPT: $EXEC_CMD"
+  echo "[pivota] attempt $ATTEMPT: exec node-express start sequence"
   if bash -c "$EXEC_CMD"; then
     echo "[pivota] inner command exited 0; propagating success"
     exit 0
