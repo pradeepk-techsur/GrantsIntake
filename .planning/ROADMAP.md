@@ -156,7 +156,7 @@ Plans:
 Plans:
 - [ ] 06-01-PLAN.md — Intake queue routing (F55), intake queue display (F56), administrative screening dispositions (F57); IntakeQueuePage + IntakeQueueDetailPage; migration 016
 - [ ] 06-02-PLAN.md — Gap closure: Applicant NotificationsPage (/applicant/notifications route + ApplicantSidebar link) consuming existing notification_records backend; closes UAT Test 7 (PRD-INTAKE-062)
-- [ ] 06-03: Grantor intake dashboards (F61), applicant dashboards (F62), intake data export (F63)
+- [ ] 06-03-PLAN.md — Review handoff auto-creation on accepted_for_review (PRD-INTAKE-061); grantor intake analytics dashboard with /intake-analytics endpoint + 3 analytics cards in Dashboard.tsx (PRD-INTAKE-062); ApplicantDashboard page + route + sidebar wiring (PRD-INTAKE-063); synchronous CSV export via /intake-queue/export + Export button (PRD-INTAKE-064)
 
 ## Progress
 
