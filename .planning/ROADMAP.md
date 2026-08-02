@@ -141,7 +141,7 @@ Plans:
 - [ ] 05-12-PLAN.md — Gap closure (UAT Test 6): Add mock-based Playwright test to workspaceSubmission.spec.ts asserting all form inputs carry disabled attribute when workspace.is_locked=true; proves isLocked prop threading from 05-10 (WorkspacePage → SectionFormPanel → FormFieldRenderer)
 
 ### Phase 6: Intake Queue, Screening & Analytics
-**Status**: executing
+**Status**: failed
 **Goal**: Grantor intake administrators have a structured queue for receiving, triaging, and routing applications; both grantors and applicants have dashboards and export capabilities to monitor intake status and generate audit-ready reports
 **Depends on**: Phase 5
 **Requirements**: PRD-INTAKE-056, PRD-INTAKE-057, PRD-INTAKE-058, PRD-INTAKE-059, PRD-INTAKE-060, PRD-INTAKE-061, PRD-INTAKE-062, PRD-INTAKE-063, PRD-INTAKE-064
