@@ -20,6 +20,7 @@ import { organizationsRouter } from './routes/organizations';
 import { workspacesRouter } from './routes/workspaces';
 import { authenticate } from './middleware/authenticate';
 import { submissionService } from './services/workspace/submissionService';
+import { intakeQueueRouter } from './routes/intakeQueue';
 
 const app = express();
 
@@ -75,6 +76,9 @@ app.use('/api/v1', organizationsRouter);
 
 // Mount workspace routes (plan 04-01)
 app.use('/api/v1', workspacesRouter);
+
+// Mount intake queue routes (plan 06-01)
+app.use('/api/v1', intakeQueueRouter);
 
 // Mount intake configuration routes (plan 02-02)
 app.use('/api/v1', sectionConditionsRouter);

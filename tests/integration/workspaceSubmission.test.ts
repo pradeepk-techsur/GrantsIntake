@@ -176,6 +176,16 @@ describe('Workspace Submission API', () => {
     // All workspace IDs to clean (main + second + ephemeral)
     const allWsIds = [workspaceId, workspaceId2, ...ephemeralWorkspaceIds].filter(Boolean);
 
+    // Clean intake queue entries (Phase 6 — references submission_snapshots, must delete first)
+    for (const wsId of allWsIds) {
+      // intake_dispositions references intake_queue_entries
+      await pool.query(
+        `DELETE FROM intake_dispositions WHERE entry_id IN (SELECT entry_id FROM intake_queue_entries WHERE workspace_id = $1)`,
+        [wsId],
+      );
+      await pool.query('DELETE FROM intake_queue_entries WHERE workspace_id = $1', [wsId]);
+    }
+
     // Clean submission_snapshots (all workspaces)
     for (const wsId of allWsIds) {
       await pool.query('DELETE FROM submission_snapshots WHERE workspace_id = $1', [wsId]);

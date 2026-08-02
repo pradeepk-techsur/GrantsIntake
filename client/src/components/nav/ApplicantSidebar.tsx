@@ -31,6 +31,15 @@ export function ApplicantSidebar() {
             My Applications
           </NavLink>
         </li>
+        <li className="usa-sidenav__item">
+          <NavLink
+            to="/applicant/notifications"
+            className={({ isActive }) => (isActive ? 'usa-current' : undefined)}
+            data-testid="nav-notifications"
+          >
+            Notifications
+          </NavLink>
+        </li>
       </ul>
     </nav>
   );
