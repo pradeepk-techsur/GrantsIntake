@@ -51,6 +51,7 @@ export function NotificationsPage() {
           data-testid="notifications-empty"
         >
           <div className="usa-alert__body">
+            <h4 className="usa-alert__heading">No notifications</h4>
             <p className="usa-alert__text">You have no notifications yet.</p>
           </div>
         </div>
