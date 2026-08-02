@@ -21,6 +21,9 @@
 #   - run_install has an npm ERESOLVE fallback (--legacy-peer-deps) + a FATAL
 #     marker (D-12.1) — a scaffold with a lagging peer range must not silently
 #     leave node_modules empty and hang the preview on "Waiting to bind".
+#   - Multi-process: backend (port 3000) + frontend Vite (port 5173) run in
+#     parallel supervised by bash trap+wait-n; DB services start via docker
+#     compose in the pre-exec snippet.
 
 set -euo pipefail
 
@@ -52,9 +55,6 @@ exec > >(tee -a /tmp/pivota-dev.log) 2>&1
 echo "[pivota] $(date -Iseconds) start-dev.sh begin (catalog: node-express)"
 
 # === D-11.1 + D-11.2: per-stack 0.0.0.0 binding + host allowlist relaxation ===
-# NOTE: env vars do NOT cover every stack. Vite / webpack-dev-server / Next.js
-# allowedHosts require CLI flags or config-file overlays — those live in
-# EXEC_CMD or PRE_EXEC_SNIPPET below, not here.
 export PORT="${PORT:-3000}"
 # Node's server.listen(port) with no host arg already binds all interfaces
 # (:: / 0.0.0.0), so most express apps are preview-reachable out of the box.
@@ -69,12 +69,7 @@ export HOST=0.0.0.0
 # === D-11.3: .env.example -> .env seed (platform-injection-safe) ===
 # Seed .env from .env.example for first boot, but NEVER let an .env.example
 # placeholder shadow a variable the platform already injected into the sandbox
-# environment. The motivating bug: .env.example shipped a dead
-# `DATABASE_URL=postgresql://user:pass@localhost/...` that overrode the injected
-# sidecar DATABASE_URL, so Prisma `db push`/`$connect()` failed. Any KEY already
-# set in the environment (DATABASE_URL, POSTGRES_*/MYSQL_*, REDIS_URL, PIVOTA_*,
-# plus PORT/NODE_ENV from the preamble above) is dropped from the copy so the
-# injected value wins. See references/runtime-environment.md §3.
+# environment. Any KEY already set in the environment is dropped from the copy.
 if [[ ! -f .env && -f .env.example ]]; then
   echo "[pivota] seeding .env from .env.example (preserving platform-injected vars)"
   while IFS= read -r line || [[ -n "$line" ]]; do
@@ -87,21 +82,11 @@ if [[ ! -f .env && -f .env.example ]]; then
       printf '# [pivota] %s omitted — provided by platform environment\n' "$key"
       continue
     fi
-    # D-11.5: sanitize the copied assignment. Documented .env.example files
-    # column-align inline `# comments` after values, and docker compose's .env
-    # parser passes those through as part of the value (motivating bug:
-    # `LDAP_URL=   # LDAP server URL, e.g. ldap://…` made a Spring app treat
-    # LDAP as enabled and crash-loop on boot, so the compose frontend behind a
-    # `service_healthy` dependency never started). Strip them from unquoted
-    # values only — a `#` inside quotes is part of the value.
+    # D-11.5: sanitize the copied assignment.
     if [[ "$line" != *\"* && "$line" != *\'* ]]; then
       line="$(printf '%s' "$line" | sed -E 's/[[:space:]]+#.*$//')"
     fi
-    # Replace CHANGE_ME placeholder secrets with generated values. Placeholders
-    # are landmines at runtime, not just cosmetics: jjwt hard-rejects HMAC keys
-    # under 256 bits, so `JWT_SECRET=CHANGE_ME_BASE64_256BIT_SECRET` (240 bits)
-    # 500s every login. Same generated value is seen by every compose service
-    # reading this .env, so cross-service credentials stay consistent.
+    # Replace CHANGE_ME placeholder secrets with generated values.
     value="${line#*=}"
     value_lc="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')"
     if [[ "$value_lc" == change_me* || "$value_lc" == changeme* ]]; then
@@ -114,59 +99,50 @@ if [[ ! -f .env && -f .env.example ]]; then
   done < .env.example > .env
 fi
 
-# === Optional pre-exec snippet: start postgres + redis via docker compose ===
-# This project's docker-compose.yml declares db (postgres:16) and redis:7
-# services with health-checks. Start them now so the backend's DATABASE_URL
-# and REDIS_URL are reachable before npm ci and the migrate step run.
-# The app service in compose uses a compiled dist/ entry — we do NOT start it
-# here; we run the backend natively via `tsx watch` so the dev-reload loop works.
-if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-  echo "[pivota] starting postgres + redis via docker compose (db + redis services only)"
-  docker compose up -d db redis 2>&1 || echo "[pivota] WARN: docker compose up db redis returned non-zero (continuing)"
-
-  # Wait for postgres to report healthy (up to 60s)
-  echo "[pivota] waiting for postgres to become healthy..."
+# === Pre-exec snippet: start DB services (postgres + redis) via docker compose ===
+# This project declares postgres and redis in docker-compose.yml. Start only those
+# services (not the app service, which runs a production build) so DATABASE_URL
+# and REDIS_URL are reachable for the native dev process.
+# Idempotent: `docker compose up -d` is safe to re-invoke on a running container.
+if docker info >/dev/null 2>&1; then
+  echo "[pivota] starting DB services via docker compose (db + redis)"
+  docker compose up -d db redis
+  echo "[pivota] waiting for DB services to be healthy..."
+  # Wait up to 60s for postgres to be ready
   DB_READY=0
   for _ in $(seq 1 12); do
-    STATUS=$(docker compose ps --status running db 2>/dev/null | grep -c "db" || true)
-    HEALTH=$(docker inspect --format='{{.State.Health.Status}}' "$(docker compose ps -q db 2>/dev/null)" 2>/dev/null || echo "unknown")
-    if [[ "$HEALTH" == "healthy" ]]; then
-      DB_READY=1; break
+    if docker compose exec -T db pg_isready -U grants_user -d grants_intake >/dev/null 2>&1; then
+      DB_READY=1
+      break
     fi
     sleep 5
   done
   if [[ "$DB_READY" == "1" ]]; then
-    echo "[pivota] postgres is healthy"
+    echo "[pivota] postgres is ready"
   else
-    echo "[pivota] WARN: postgres health check timed out; continuing anyway"
+    echo "[pivota] WARN: postgres not ready after 60s — proceeding anyway"
   fi
 else
-  echo "[pivota] WARN: docker not available — postgres and redis will not be started by this wrapper; ensure DATABASE_URL and REDIS_URL are reachable"
+  echo "[pivota] WARN: docker not available; DB services not started (DATABASE_URL may be unreachable)"
 fi
 
 # === D-12: idempotent install via lockfile hash + presence check ===
+# Root package (backend)
 SENTINEL="/tmp/pivota-setup-sentinel"
 LOCK_FILE_PATH="package-lock.json"
 INSTALL_PRESENCE_CHECK="node_modules"
 INSTALL_CMD='npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev'
 
 run_install() {
-  echo "[pivota] running install: $INSTALL_CMD"
+  local label="$1"
+  local cmd="$2"
+  echo "[pivota] running install ($label): $cmd"
   local rc=0
-  bash -c "$INSTALL_CMD" || rc=$?   # capture directly; `if …; then` would reset $? to 0 on the no-else path
+  bash -c "$cmd" || rc=$?
   if (( rc == 0 )); then
     return 0
   fi
-  # D-12.1: npm peer-dependency (ERESOLVE) fallback + loud failure.
-  # A fresh scaffold can pin a transitive lib whose peer range lags the
-  # project's react/next major (observed: react-leaflet@4 wants react@18 under
-  # a react@19 project). npm 7+ aborts `npm ci`/`npm install` with ERESOLVE and
-  # writes NO node_modules — so EXEC_CMD below never binds a port and the
-  # preview panel hangs on "Waiting for dev server to bind…" with no surfaced
-  # error. Retry once with --legacy-peer-deps so boot can proceed, but log
-  # LOUDLY: a force-resolved peer range can install a runtime-incompatible tree
-  # (the offending component may crash when rendered — surface it at UAT).
-  if [[ "$INSTALL_CMD" == *"npm "* ]]; then
+  if [[ "$cmd" == *"npm "* ]]; then
     echo "[pivota] WARN install failed (exit=$rc) — retrying with --legacy-peer-deps (peer conflict force-resolved; runtime incompatibility possible)"
     local rc2=0
     npm install --legacy-peer-deps || rc2=$?
@@ -176,69 +152,115 @@ run_install() {
     fi
     rc=$rc2
   fi
-  # Emit a greppable marker so the platform surfaces "install failed" instead of
-  # letting the dev server silently never bind. `set -e` still aborts the script.
-  echo "[pivota] FATAL install failed (exit=$rc) — dev server cannot start; resolve the dependency conflict in the manifest" >&2
+  echo "[pivota] FATAL install failed ($label, exit=$rc) — dev server cannot start; resolve the dependency conflict in the manifest" >&2
   return "$rc"
 }
 
+# Install root (backend) dependencies
 if [[ -n "$LOCK_FILE_PATH" && -f "$LOCK_FILE_PATH" ]]; then
   CURRENT_HASH=$(sha256sum "$LOCK_FILE_PATH" | cut -d' ' -f1)
   PREVIOUS_HASH=$(cat "$SENTINEL" 2>/dev/null || echo "")
-
-  # RESEARCH.md Pitfall 6: lockfile-unchanged is necessary but not sufficient —
-  # the install-output directory must also exist (sentinel survives but
-  # node_modules / .venv / target might not on a fresh sandbox tmpfs).
   PRESENCE_OK=1
   if [[ -n "$INSTALL_PRESENCE_CHECK" && ! -e "$INSTALL_PRESENCE_CHECK" ]]; then
     PRESENCE_OK=0
   fi
-
   if [[ "$CURRENT_HASH" == "$PREVIOUS_HASH" && "$PRESENCE_OK" == "1" ]]; then
-    echo "[pivota] lockfile unchanged AND install output present; skipping install"
+    echo "[pivota] root lockfile unchanged AND node_modules present; skipping backend install"
   else
     if [[ "$PRESENCE_OK" == "0" ]]; then
-      echo "[pivota] install output ($INSTALL_PRESENCE_CHECK) missing; install required"
+      echo "[pivota] node_modules missing; backend install required"
     else
-      echo "[pivota] lockfile changed (or first boot); install required"
+      echo "[pivota] root lockfile changed (or first boot); backend install required"
     fi
-    run_install
+    run_install "backend" "$INSTALL_CMD"
     echo "$CURRENT_HASH" > "$SENTINEL"
   fi
 elif [[ -n "$INSTALL_CMD" ]]; then
-  # No lockfile to compare; honor any sentinel mismatch by running install once per sandbox.
   if [[ ! -f "$SENTINEL" ]]; then
-    run_install
+    run_install "backend" "$INSTALL_CMD"
     touch "$SENTINEL"
   fi
 fi
 
-# === D-14: retry loop (3 attempts, exponential backoff 1s / 2s / 4s) ===
-# Final-attempt exit code propagates the INNER command's exit code, not a
-# fixed 1, so the caller (platform / Daytona) can distinguish "wrapper bug"
-# from "user command failed with N".
-EXEC_CMD='HAS_SCRIPT() { node -e "process.exit(((require(\"./package.json\").scripts||{})[\"$1\"])?0:1)" 2>/dev/null; }; if [ -n "${DATABASE_URL:-}" ]; then SEED=""; for s in migrate:schema migrate db:migrate migrate:deploy migrate:prod prisma:migrate db:push; do if HAS_SCRIPT "$s"; then SEED="$s"; break; fi; done; if [ -n "$SEED" ]; then echo "[pivota] seeding DB via the declared project script: npm run $SEED"; npm run "$SEED" || echo "[pivota] npm run $SEED returned non-zero (continuing)"; elif [ -f prisma/schema.prisma ]; then echo "[pivota] no migrate script declared; seeding via prisma"; npx prisma generate 2>&1 | tail -2 || true; if [ -d prisma/migrations ]; then npx prisma migrate deploy || echo "[pivota] prisma migrate deploy non-zero (continuing)"; else npx prisma db push --skip-generate --accept-data-loss || echo "[pivota] prisma db push non-zero (continuing)"; fi; else echo "[pivota] WARNING: DATABASE_URL is set but no migrate script or prisma schema found — the app may serve on an EMPTY database"; fi; fi; if HAS_SCRIPT dev; then exec npm run dev; elif HAS_SCRIPT start:dev; then exec npm run start:dev; elif HAS_SCRIPT start; then if node -e '"'"'process.exit(/\b(dist|build)\//.test((require("./package.json").scripts||{}).start||"")?0:1)'"'"' && [ ! -d dist ] && [ ! -d build ]; then echo "[pivota] start script targets a compiled entry; building first"; npm run build || echo "[pivota] npm run build returned non-zero (continuing)"; fi; exec npm start; else exec node "$(node -e '"'"'console.log(require("./package.json").main || "index.js")'"'"')"; fi'
-ATTEMPT=1
-DELAY=1
-while (( ATTEMPT <= 3 )); do
-  echo "[pivota] attempt $ATTEMPT: exec node-express start sequence"
-  if bash -c "$EXEC_CMD"; then
-    echo "[pivota] inner command exited 0; propagating success"
-    exit 0
+# Install client (frontend) dependencies
+CLIENT_SENTINEL="/tmp/pivota-setup-sentinel-client"
+if [[ -f "client/package-lock.json" ]]; then
+  CLIENT_HASH=$(sha256sum "client/package-lock.json" | cut -d' ' -f1)
+  CLIENT_PREV=$(cat "$CLIENT_SENTINEL" 2>/dev/null || echo "")
+  CLIENT_PRESENCE_OK=1
+  if [[ ! -e "client/node_modules" ]]; then
+    CLIENT_PRESENCE_OK=0
   fi
-  EXIT_CODE=$?
-  if (( ATTEMPT == 3 )); then
-    echo "[pivota] all 3 attempts failed (last exit=$EXIT_CODE); surfacing failure"
-    exit "$EXIT_CODE"
+  if [[ "$CLIENT_HASH" == "$CLIENT_PREV" && "$CLIENT_PRESENCE_OK" == "1" ]]; then
+    echo "[pivota] client lockfile unchanged AND client/node_modules present; skipping frontend install"
+  else
+    if [[ "$CLIENT_PRESENCE_OK" == "0" ]]; then
+      echo "[pivota] client/node_modules missing; frontend install required"
+    else
+      echo "[pivota] client lockfile changed (or first boot); frontend install required"
+    fi
+    (cd client && run_install "frontend" "npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev")
+    echo "$CLIENT_HASH" > "$CLIENT_SENTINEL"
   fi
-  echo "[pivota] attempt $ATTEMPT failed (exit=$EXIT_CODE); retrying in ${DELAY}s"
-  sleep "$DELAY"
-  DELAY=$(( DELAY * 2 ))
-  ATTEMPT=$(( ATTEMPT + 1 ))
-done
+elif [[ ! -f "$CLIENT_SENTINEL" ]]; then
+  (cd client && run_install "frontend" "npm ci --include=dev --prefer-offline 2>/dev/null || npm install --include=dev")
+  touch "$CLIENT_SENTINEL"
+fi
 
-# Unreachable, but keep for analyzer happiness
-exit 1
+# === DB migration: run after install (node_modules exists) ===
+# Run the project's own migrate command. Non-fatal: loud on failure but boot continues.
+if [[ -n "${DATABASE_URL:-}" ]]; then
+  echo "[pivota] running database migration: npm run migrate"
+  npm run migrate || echo "[pivota] npm run migrate returned non-zero (DB schema may be incomplete — check logs)"
+else
+  echo "[pivota] DATABASE_URL not set; skipping migration (DB may not be provisioned)"
+fi
+
+# === Defense-in-depth bash version guard (RESEARCH.md Pitfall 8) ===
+# Duplicated here for the multi-process block.
+if (( BASH_VERSINFO[0] < 4 )) || { (( BASH_VERSINFO[0] == 4 )) && (( BASH_VERSINFO[1] < 3 )); }; then
+  echo "[pivota] multi-process block requires bash 4.3+ for wait -n; found ${BASH_VERSION}" >&2
+  exit 127
+fi
+
+# === Multi-process: backend (Express/tsx) + frontend (Vite) ===
+# bash trap + wait -n pattern per RESEARCH.md Pattern 3.
+# DO NOT use concurrently / pm2 / supervisord.
+shutdown() {
+  echo "[pivota] shutting down children"
+  kill -TERM "${PIDS[@]}" 2>/dev/null || true
+  # Brief grace, then SIGKILL stragglers (RESEARCH.md Pitfall 3: npm SIGTERM)
+  sleep 2
+  kill -KILL "${PIDS[@]}" 2>/dev/null || true
+  wait
+}
+trap shutdown SIGTERM SIGINT EXIT
+
+declare -a PIDS=()
+
+# Backend: tsx watch (needs no prebuilt dist; runtime-environment.md §7)
+(
+  : &&
+  exec bash -c 'npm run dev'
+) 2>&1 | sed 's/^/[backend] /' &
+PIDS+=($!)
+
+# Frontend: Vite dev server (client/ subdirectory)
+# vite.config.ts already sets host: '0.0.0.0' and port: 5173
+(
+  cd 'client' &&
+  exec bash -c 'npm run dev'
+) 2>&1 | sed 's/^/[frontend] /' &
+PIDS+=($!)
+
+echo "[pivota] backend PID=${PIDS[0]} (port 3000), frontend PID=${PIDS[1]} (port 5173)"
+
+# Wait for ANY child to exit; if one dies, the trap tears down siblings.
+wait -n
+EXIT_CODE=$?
+shutdown
+exit "$EXIT_CODE"
+
 # === END PIVOTA PREAMBLE ===
 # Below this marker, projects may add custom shutdown / setup logic.
 # This region is PRESERVED across regenerations (plan 06's regen logic detects
