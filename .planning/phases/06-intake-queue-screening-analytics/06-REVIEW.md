@@ -1,6 +1,6 @@
 ---
 phase: 6
-status: issues_found
+status: fixed
 blockers: 1
 warnings: 2
 files_reviewed: 4
@@ -33,6 +33,8 @@ iteration: 1
   The test is named `"mark as read button calls markRead API"` and the plan explicitly requires verifying the PUT was made. However the `markReadCalled` boolean is set but the test only checks that no error alert appeared. That assertion would pass even if the button click did nothing — e.g., if the Axios request was silently swallowed or the route handler was never entered. The test provides zero signal that `intakeQueueApi.markRead` was actually invoked. A passing test here gives false confidence that the mark-read flow works end-to-end.
 - **Fix direction:** Add `expect(markReadCalled).toBe(true)` after `page.waitForTimeout(500)`, or replace the flag with `page.waitForRequest(r => r.method() === 'PUT' && r.url().includes('/read'))` before clicking to guarantee the network call occurs.
 
+**Resolution:** fixed (1632243) — added `expect(markReadCalled).toBe(true)` after `page.waitForTimeout(500)` in test 4; all 4 e2e tests pass.
+
 ---
 
 ## WARNINGs
@@ -55,6 +57,8 @@ iteration: 1
   `apiClient.get('/notifications', ...)` has no `<T>` generic argument, so `data.data` is typed as `unknown`. The cast `(raw as { notifications: Notification[] })` is unchecked; if the API ever returns a field with the wrong shape (e.g., `title` as `null` when the type declares `string`), TypeScript provides no safety net and runtime errors (e.g., `notification.title.length`) would surface only in the browser. This is not a crash today because the backend always returns the correct shape, but it is a latent type-safety gap.
 - **Fix direction:** Type the call as `apiClient.get<{ notifications: Notification[]; total: number }>('/notifications', { params })` in `intakeQueueApi.ts`, then access `data.data.notifications` directly without the Array.isArray guard in `NotificationsPage`.
 
+**Resolution:** fixed (22426f4) — added `NotificationsResponse` interface to `types/intakeQueue.ts`, typed `getNotifications` with `apiClient.get<NotificationsResponse>`, replaced unsafe shape-guard cast in `NotificationsPage.tsx` with `data?.data?.notifications ?? []`; `tsc -b` passes.
+
 ### W2: `usa-alert--info` empty-state block is missing the required `usa-alert__heading` element (USWDS compliance gap)
 - **File:** `client/src/pages/applicant/NotificationsPage.tsx:52–62`
 - **Category:** bug
@@ -68,6 +72,8 @@ iteration: 1
   ```
   USWDS `usa-alert` components require a heading element (`<h4 className="usa-alert__heading">`) inside `usa-alert__body` for correct visual hierarchy and screen-reader announcement. All other `usa-alert--info` blocks elsewhere in the codebase (e.g., `OpportunitiesIndex.tsx:75–81`, `QAManagementPage.tsx:103–108`) include `usa-alert__heading`. The `usa-alert--error` block on line 44 also omits the heading, though the same pattern appears in `IntakeQueueDetailPage.tsx:115–117` and may be an established repo exception for error alerts. The missing heading on the info alert is the more visible deviation since it is the primary informational state for applicants with no notifications.
 - **Fix direction:** Add `<h4 className="usa-alert__heading">No notifications</h4>` (or equivalent) immediately before the `<p className="usa-alert__text">` line inside `usa-alert__body`, matching the pattern used in `OpportunitiesIndex.tsx`.
+
+**Resolution:** fixed (ce12aa0) — added `<h4 className="usa-alert__heading">No notifications</h4>` before the `<p>` text inside the `usa-alert__body`, matching the codebase pattern; `tsc -b` passes.
 
 ---
 
@@ -84,4 +90,4 @@ iteration: 1
 | IDOR: `markNotificationRead` scopes UPDATE to `WHERE notification_id=$1 AND recipient_user_id=$2` | OK — ownership enforced server-side |
 | XSS: `notification.title` and `notification.body` rendered as React text nodes (not `dangerouslySetInnerHTML`) | OK — JSX string interpolation HTML-escapes output |
 | e2e mock response shape matches `{ notifications: Notification[], total: number }` expected by `NotificationsPage` shape guard | OK — mocks return `{ notifications: [...], total: N }` |
-| `markReadCalled` assertion in test 4 | **BLOCKER B1** — flag declared and set but never asserted |
+| `markReadCalled` assertion in test 4 | **FIXED (B1)** — `expect(markReadCalled).toBe(true)` added after click |
