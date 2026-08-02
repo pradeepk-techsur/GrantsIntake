@@ -155,6 +155,9 @@ test.describe('Notifications — Applicant View', () => {
     await markReadBtn.click();
     await page.waitForTimeout(500);
 
+    // Verify the PUT /read API was actually called
+    expect(markReadCalled).toBe(true);
+
     // Verify no error alert appeared
     const errorAlert = page.locator('.usa-alert--error');
     await expect(errorAlert).not.toBeVisible();
