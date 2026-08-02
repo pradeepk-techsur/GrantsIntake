@@ -151,11 +151,11 @@ Plans:
   3. When a correction window expires without resubmission, the system automatically applies an administratively rejected disposition and notifies both the applicant team and intake administrator; the administrator can override with a required reason
   4. Accepted applications are automatically routed to the review, scoring, or risk assessment workflow with a logged handoff event
   5. Grantors can view dashboards (opportunity views, application counts, validation error summaries, disposition summaries) and applicants can view their own dashboard (saved opportunities, application progress, deadlines, missing items, submission history); both sides can export intake data in CSV/Excel/JSON for audit and reporting purposes
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: Intake queue routing (F55), intake queue display (F56), administrative screening dispositions (F57)
-- [ ] 06-02: Correction and clarification requests (F58), original submission snapshot preservation on correction (F59), accepted application routing to review (F60)
+- [ ] 06-01-PLAN.md — Intake queue routing (F55), intake queue display (F56), administrative screening dispositions (F57); IntakeQueuePage + IntakeQueueDetailPage; migration 016
+- [ ] 06-02-PLAN.md — Gap closure: Applicant NotificationsPage (/applicant/notifications route + ApplicantSidebar link) consuming existing notification_records backend; closes UAT Test 7 (PRD-INTAKE-062)
 - [ ] 06-03: Grantor intake dashboards (F61), applicant dashboards (F62), intake data export (F63)
 
 ## Progress
