@@ -1,0 +1,22 @@
+{
+  "duration_secs": 2424.0,
+  "token_usage": {
+    "input": 284,
+    "output": 84389,
+    "total": 19336082,
+    "cache_read": 18507796,
+    "cache_write": 743613,
+    "cost": 9.607574549999995
+  },
+  "model": "claude-sonnet-4-6",
+  "files_changed": [
+    ".planning/phases/6-intake-queue-screening-analytics/logs/attempt-3/execution.md",
+    ".planning/phases/6-intake-queue-screening-analytics/logs/attempt-3/summary.json",
+    ".planning/phases/6-intake-queue-screening-analytics/logs/attempt-3/verification.md"
+  ],
+  "verification_status": "passed",
+  "error_message": null,
+  "attempt_number": 4,
+  "created_at": "2026-08-02T17:29:35.216739+00:00",
+  "completed_at": "2026-08-02T18:09:59.547632893+00:00"
+}
