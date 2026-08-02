@@ -25,7 +25,8 @@ export function QAManagementPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [successId, setSuccessId] = useState<string | null>(null);
 
-  const accessToken = useAuthStore((s) => s.accessToken);
+  // accessToken is used by apiClient interceptor — not needed here directly
+  useAuthStore((s) => s.accessToken);
 
   const questionsQuery = useQuery<QAItem[]>({
     queryKey: ['qa-all', opportunityId],
