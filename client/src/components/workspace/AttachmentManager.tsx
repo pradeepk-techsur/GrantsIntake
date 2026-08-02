@@ -6,9 +6,10 @@ import type { WorkspaceAttachment } from '../../types/attachment';
 interface AttachmentManagerProps {
   workspaceId: string;
   requirementId?: string;
+  isLocked?: boolean; // When true, upload and delete controls are disabled
 }
 
-export function AttachmentManager({ workspaceId, requirementId }: AttachmentManagerProps) {
+export function AttachmentManager({ workspaceId, requirementId, isLocked = false }: AttachmentManagerProps) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showVersions, setShowVersions] = useState<string | null>(null);
@@ -117,7 +118,7 @@ export function AttachmentManager({ workspaceId, requirementId }: AttachmentMana
             className="usa-button"
             data-testid="upload-attachment-btn"
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploadMutation.isPending}
+            disabled={uploadMutation.isPending || isLocked}
           >
             Upload New File
           </button>
@@ -131,6 +132,7 @@ export function AttachmentManager({ workspaceId, requirementId }: AttachmentMana
               // Library link feature — opens a note for future implementation
               alert('Org document library linking: Select a document from your organization library to attach.');
             }}
+            disabled={isLocked}
           >
             Link from Library
           </button>
@@ -146,6 +148,7 @@ export function AttachmentManager({ workspaceId, requirementId }: AttachmentMana
         onChange={handleFileUpload}
         aria-label="Upload attachment file"
         tabIndex={-1}
+        disabled={isLocked}
       />
 
       {/* Attachments table */}
@@ -197,6 +200,7 @@ export function AttachmentManager({ workspaceId, requirementId }: AttachmentMana
                         onClick={() => setConfirmDelete(att.attachment_id)}
                         style={{ fontSize: '0.875rem' }}
                         data-testid={`delete-attachment-btn-${att.attachment_id}`}
+                        disabled={isLocked}
                       >
                         Delete
                       </button>
@@ -226,14 +230,14 @@ export function AttachmentManager({ workspaceId, requirementId }: AttachmentMana
                           Are you sure? This will mark the attachment as inactive.
                         </p>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button
-                            type="button"
-                            className="usa-button usa-button--secondary usa-button--small"
-                            onClick={() => deleteMutation.mutate(att.attachment_id)}
-                            disabled={deleteMutation.isPending}
-                          >
-                            Yes, delete
-                          </button>
+                           <button
+                             type="button"
+                             className="usa-button usa-button--secondary usa-button--small"
+                             onClick={() => deleteMutation.mutate(att.attachment_id)}
+                             disabled={deleteMutation.isPending || isLocked}
+                           >
+                             Yes, delete
+                           </button>
                           <button
                             type="button"
                             className="usa-button usa-button--unstyled usa-button--small"

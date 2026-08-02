@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-13-PLAN.md
-last_updated: "2026-07-30T19:46:34.659Z"
-last_activity: "2026-07-30 — Plan 04-12 complete: UAT-OPP-002 published opportunity seeded without workspace in src/db/seed.ts"
+stopped_at: Completed 05-12-PLAN.md (gap-closure-5 wave; --gaps-only re-execution)
+last_updated: "2026-08-02T04:30:00.000Z"
+last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
 progress:
-  total_phases: 7
-  completed_phases: 4
-  total_plans: 31
-  completed_plans: 31
-  percent: 100
+  total_phases: 9
+  completed_phases: 5
+  total_plans: 43
+  completed_plans: 43
+  percent: 97
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** Grantors receive better applications and applicants submit with less burden — by replacing fragmented, document-heavy intake with a structured, guided, data-driven workflow that enforces completeness, preserves auditability, and accelerates handoff from submission to review.
-**Current focus:** Phase 4 — Application Workspace & Form Capture (COMPLETE)
+**Current focus:** Phase 5 — Q&A, Submission & Validation
 
 ## Current Position
 
-Phase: 4 of 6 (Application Workspace & Form Capture) — all gap closure plans complete
-Plan: 13 of 13 in current phase — Plan 04-13 complete (all phase 04 plans done)
-Status: Plan 04-13 Complete — opportunity title fetch in WorkspacePage header, overflow:hidden on content column, overflow-x:auto on AttachmentManager table, ReadinessDashboard loading state usa-prose removed; Playwright regression tests passing (6 pass, 1 skip)
-Last activity: 2026-07-30 — Plan 04-13 complete: workspace layout/display bug fixes (opportunity title, overflow containment, attachment table scroll)
+Phase: 5 of 7 (Q&A, Submission & Validation)
+Plan: 2 of 3 in current phase — Plan 05-02 complete
+Status: Plan 05-02 Complete — Validation engine (three-tier), certification service (SHA-256), submit gate
+Last activity: 2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate
 
-Progress: [██████████] 100%
+Progress: [█████████▒] 97%
 
 ## Performance Metrics
 
@@ -83,6 +83,17 @@ Progress: [██████████] 100%
 | Phase 04-application-workspace-form-capture P10 | 5 min | 2 tasks | 1 files |
 | Phase 04-application-workspace-form-capture P12 | 5 min | 1 tasks | 1 files |
 | Phase 04-application-workspace-form-capture P13 | 9min | 2 tasks | 5 files |
+| Phase 05-q-a-submission-validation P01 | 13 min | 2 tasks | 13 files |
+| Phase 05-q-a-submission-validation P02 | 12 min | 2 tasks | 17 files |
+| Phase 05-q-a-submission-validation P04 | 3 min | 2 tasks | 3 files |
+| Phase 05-q-a-submission-validation P05 | 3 min | 2 tasks | 2 files |
+| Phase 05-q-a-submission-validation P07 | 1 min | 2 tasks | 4 files |
+| Phase 05-q-a-submission-validation P06 | 3 min | 2 tasks | 6 files |
+| Phase 05-q-a-submission-validation P08 | 1min | 2 tasks | 3 files |
+| Phase 05-q-a-submission-validation P09 | 2min | 2 tasks | 2 files |
+| Phase 05-q-a-submission-validation P10 | 3min | 2 tasks | 6 files |
+| Phase 05-q-a-submission-validation P12 | 18 min | 1 tasks | 1 files |
+| Phase 05-q-a-submission-validation P11 | 8min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -149,6 +160,30 @@ Recent decisions affecting current work:
 - [Phase 04-application-workspace-form-capture]: No workspace row seeded for UAT-OPP-002 — absence of workspace enables Start Application CTA (PRD-INTAKE-030 UAT Test 2)
 - [Phase 04-application-workspace-form-capture]: opportunityQuery uses workspaceQuery.data?.opportunity_id as dependency (declared before loading/error guards); renders title with UUID fallback
 - [Phase 04-application-workspace-form-capture]: playwright.config.ts baseURL corrected to localhost:5173 (Vite dev server) — API server on 3000 does not serve frontend routes
+- [Phase 05-q-a-submission-validation]: audit_events column is 'payload' (not 'metadata') — aligned to existing schema from Phase 1
+- [Phase 05-q-a-submission-validation]: Notification via audit_events: NOTIFICATION_SENT per workspace with payload containing notification_type, IDs, workspace_link — Phase 6 adds real email delivery
+- [Phase 05-q-a-submission-validation]: Q&A window enforcement via opportunity.qa_config JSONB (enabled, question_window_open, question_window_close) — no extra migration needed
+- [Phase 05-q-a-submission-validation]: org_roles query uses `roles @> '["authorized_representative"]'::jsonb` (JSONB array), not role_type column
+- [Phase 05-q-a-submission-validation]: workspace_comments uses posted_by/visibility columns per migration 012 schema (not author_user_id/is_internal)
+- [Phase 05-q-a-submission-validation]: useIsAuthorizedRep hook queries GET /organizations/:org_id/roles — no new backend endpoint needed for client-side AR detection
+- [Phase 05-q-a-submission-validation]: App.tsx qa-inbox redirect left as-is — canonical path is OpportunityBuilder Q&A tab
+- [Phase 05-q-a-submission-validation]: CompletenessChecklist phaseNote field and isPhase2 render branch removed entirely — no remaining usages after Phase 2 placeholder removal
+- [Phase 05-q-a-submission-validation]: localStorage.applicant_org_id populated via useEffect in WorkspacePage — org is pre-seeded, user may never visit OrgProfilePage creation path
+- [Phase 05-q-a-submission-validation]: budget/attachments/certifications sections excluded from SECTION_FIELDS seeding — dedicated UIs (BudgetBuilder/AttachmentManager) and POST /certify handle those sections
+- [Phase 05-q-a-submission-validation]: useIsAuthorizedRep accepts orgId as prop (not localStorage) — React Query reactive, no stale-closure on first render
+- [Phase 05-q-a-submission-validation]: certify() UPDATE application_sections section_type=certifications after INSERT (PRD-INTAKE-050 — certifications section now flips to complete)
+- [Phase 05-q-a-submission-validation]: attachments section auto-marked complete when 0 requirements — idempotent WHERE status=not_started; overall_completion_pct recomputed after mutation
+- [Phase 05-q-a-submission-validation]: GET /my-questions uses authenticate only (no requireRole); submitter_user_id from JWT req.user.user_id (T-05-06-01 IDOR mitigation)
+- [Phase 05-q-a-submission-validation]: listAll() error propagates HTTP status+code; QAManagementPage distinguishes 401/403 from generic failures
+- [Phase 05-q-a-submission-validation]: titleQuery uses public /api/v1/opportunities/:id endpoint with UUID fallback (T-05-06-03 accepted risk)
+- [Phase 05-q-a-submission-validation]: Sidebar label changed from 'Q&A Inbox' to 'Q&A Management'; destination unchanged per prior decision
+- [Phase 05-q-a-submission-validation]: Q&A card links use usa-card__footer placement in OpportunitiesIndex; Opportunity Builder subtitle uses muted uppercase p tag above h1
+- [Phase 05-q-a-submission-validation]: UAT opportunities moved from 'UAT Federal Agency'/'UAT Grant Program' to 'General Grant Programs' under admin@example.gov's org — OpportunitiesIndex /programs is org-scoped so UAT opps must live in admin's org to appear
+- [Phase 05-q-a-submission-validation]: Multi-program Promise.all fetch replaces useFirstProgramId in OpportunitiesIndex — fetches all programs then parallel-fetches opportunities per program, flattened to one list
+- [Phase 05-q-a-submission-validation]: Pure prop-threading of workspace.is_locked as isLocked prop — no new context/state; WorkspacePage passes it to WorkspaceSectionPanel which threads to SectionFormPanel, BudgetBuilder, AttachmentManager
+- [Phase 05-q-a-submission-validation]: handleFieldBlur returns early when isLocked to suppress save/validate mutations in locked state — UI-layer enforcement for PRD-INTAKE-054
+- [Phase 05-q-a-submission-validation]: OrgRole[] mock shape must be array (not object) — useIsAuthorizedRep calls roles.find() which throws TypeError on non-array mock
+- [Phase 05-q-a-submission-validation]: Test 6 hard (non-advisory) assertion: UAT Community Health Innovation Grant must appear in grantor opportunities list — absence fails test outright
 
 ### Pending Todos
 
@@ -160,6 +195,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T19:46:34.658Z
-Stopped at: Completed 04-13-PLAN.md
+Last session: 2026-08-01T13:21:52.956Z
+Stopped at: Completed 05-11-PLAN.md
 Resume file: None

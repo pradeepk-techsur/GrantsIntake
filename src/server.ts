@@ -15,8 +15,11 @@ import { attachmentRequirementsRouter } from './routes/attachmentRequirements';
 import { screeningCriteriaRouter } from './routes/screeningCriteria';
 import { publicOpportunitiesRouter } from './routes/publicOpportunities';
 import { addendaRouter } from './routes/addenda';
+import { qaRouter } from './routes/qa';
 import { organizationsRouter } from './routes/organizations';
 import { workspacesRouter } from './routes/workspaces';
+import { authenticate } from './middleware/authenticate';
+import { submissionService } from './services/workspace/submissionService';
 
 const app = express();
 
@@ -56,6 +59,7 @@ app.use('/api/v1/opportunity-templates', opportunityTemplatesRouter);
 // so unauthenticated GET /opportunities and GET /opportunities/:id take priority
 app.use('/api/v1', publicOpportunitiesRouter);
 app.use('/api/v1', addendaRouter);
+app.use('/api/v1', qaRouter);
 
 // Mount opportunities and guidance routes (plan 01-03)
 // Note: opportunitiesRouter handles both /programs/:id/opportunities and /opportunities/:id patterns
@@ -76,6 +80,20 @@ app.use('/api/v1', workspacesRouter);
 app.use('/api/v1', sectionConditionsRouter);
 app.use('/api/v1', attachmentRequirementsRouter);
 app.use('/api/v1', screeningCriteriaRouter);
+
+// ─── Submission snapshot route (grantor-accessible in Phase 6) ─────────────
+// Mounted outside workspacesRouter to allow grantor access (workspacesRouter
+// blocks all grantor roles via blockGrantorOnWorkspace middleware).
+app.get('/api/v1/submissions/:snapshotId', authenticate, async (req, res) => {
+  try {
+    const snap = await submissionService.getSnapshot(req.params.snapshotId);
+    res.json(snap);
+  } catch (err: unknown) {
+    const e = err as Error & { status?: number };
+    if (e.status === 404) { res.status(404).json({ error: 'NOT_FOUND' }); return; }
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
 
 // Health check endpoint
 app.get('/health', (_req, res) => {

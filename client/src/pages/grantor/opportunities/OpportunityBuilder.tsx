@@ -19,7 +19,8 @@ type BuilderSection =
   | 'prescreening'
   | 'conditional-sections'
   | 'attachments'
-  | 'screening';
+  | 'screening'
+  | 'qa';
 
 /**
  * Main Opportunity Builder page.
@@ -227,18 +228,27 @@ export function OpportunityBuilder() {
       </nav>
 
       {/* Page header with status badge */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <h1 className="usa-prose" style={{ margin: 0 }}>
-          {opportunity.title}
-        </h1>
-        <span
-          className="usa-tag"
-          style={{ background: statusColor, color: 'white' }}
-          aria-label={`Status: ${statusLabel}`}
-          data-testid="opportunity-status-badge"
+      <div style={{ marginBottom: '1.5rem' }}>
+        <p
+          className="usa-prose"
+          style={{ margin: 0, fontSize: '0.875rem', color: '#71767a', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+          data-testid="opportunity-builder-label"
         >
-          {statusLabel}
-        </span>
+          Opportunity Builder
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <h1 className="usa-prose" style={{ margin: 0 }}>
+            {opportunity.title}
+          </h1>
+          <span
+            className="usa-tag"
+            style={{ background: statusColor, color: 'white' }}
+            aria-label={`Status: ${statusLabel}`}
+            data-testid="opportunity-status-badge"
+          >
+            {statusLabel}
+          </span>
+        </div>
       </div>
 
       {/* Section navigation tabs */}
@@ -335,6 +345,17 @@ export function OpportunityBuilder() {
               Screening Criteria
             </button>
           </li>
+          <li>
+            <button
+              type="button"
+              className={`usa-button${activeSection === 'qa' ? '' : ' usa-button--outline'}`}
+              onClick={() => setActiveSection('qa')}
+              aria-current={activeSection === 'qa' ? 'page' : undefined}
+              data-testid="tab-qa"
+            >
+              Q&amp;A Management
+            </button>
+          </li>
         </ul>
       </nav>
 
@@ -370,6 +391,23 @@ export function OpportunityBuilder() {
           )}
           {activeSection === 'screening' && (
             <ScreeningCriteriaConfig opportunityId={opportunity.opportunity_id} />
+          )}
+          {activeSection === 'qa' && id && (
+            <section aria-labelledby="qa-management-heading">
+              <h2 id="qa-management-heading" className="usa-prose" style={{ marginTop: 0 }}>
+                Q&amp;A Management
+              </h2>
+              <p className="usa-prose">
+                Manage applicant questions and publish public answers for this opportunity.
+              </p>
+              <Link
+                to={`/grantor/opportunities/${id}/qa`}
+                className="usa-button"
+                data-testid="open-qa-management-link"
+              >
+                Open Q&amp;A Management Page
+              </Link>
+            </section>
           )}
         </div>
 

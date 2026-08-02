@@ -3,9 +3,12 @@ import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { workspaceApi } from '../../api/workspaceApi';
 import { useWorkspaceStore } from '../../store/workspaceStore';
+import { useValidation } from '../../hooks/useValidation';
+import { useIsAuthorizedRep } from '../../hooks/useIsAuthorizedRep';
 import { WorkspaceSidebar } from '../../components/workspace/WorkspaceSidebar';
 import { WorkspaceSectionPanel } from '../../components/workspace/WorkspaceSectionPanel';
 import { ReadinessDashboard } from '../../components/workspace/ReadinessDashboard';
+import { CertificationPanel } from '../../components/workspace/CertificationPanel';
 
 export function WorkspacePage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -37,8 +40,24 @@ export function WorkspacePage() {
     staleTime: 5 * 60_000, // opportunity title rarely changes
   });
 
+  // Workspace-level validation trigger on field blur
+  const { triggerValidation } = useValidation(workspaceId ?? '');
+
+  // Check if current user is authorized representative
+  // Pass org_id from workspace data (React Query reactive) — avoids stale localStorage read
+  const isAuthorizedRep = useIsAuthorizedRep(workspaceQuery.data?.org_id ?? null);
+
   // Zustand: local UI state for active section
   const { activeSectionType, setActiveSectionType } = useWorkspaceStore();
+
+  // Seed localStorage.applicant_org_id from workspace data so useIsAuthorizedRep
+  // works even when the user never visited OrgProfilePage (pre-seeded org scenario).
+  // Phase 3 decision: org_id stored in localStorage key 'applicant_org_id' — non-sensitive UUID.
+  useEffect(() => {
+    if (workspaceQuery.data?.org_id) {
+      localStorage.setItem('applicant_org_id', workspaceQuery.data.org_id);
+    }
+  }, [workspaceQuery.data?.org_id]);
 
   // Initialize active section to first visible section on load
   useEffect(() => {
@@ -127,6 +146,21 @@ export function WorkspacePage() {
         )}
       </div>
 
+      {/* Locked state banner — shown after successful submission */}
+      {workspace?.is_locked && (
+        <div className="usa-alert usa-alert--info" role="status" data-testid="locked-banner">
+          <div className="usa-alert__body">
+            <h4 className="usa-alert__heading">Application Submitted and Locked</h4>
+            <p className="usa-alert__text">
+              This application has been submitted. All fields are read-only.{' '}
+              <Link to={`/applicant/workspaces/${workspaceId}/receipt`} className="usa-link">
+                View submission receipt
+              </Link>
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Three-column layout: section sidebar (3) + section content (6) + readiness panel (3) = 12 */}
       <div className="grid-row grid-gap">
         <div className="grid-col-3" data-testid="workspace-section-sidebar">
@@ -138,7 +172,21 @@ export function WorkspacePage() {
         </div>
         <div className="grid-col-6" data-testid="workspace-section-content" style={{ overflow: 'hidden' }}>
           {activeSection ? (
-            <WorkspaceSectionPanel section={activeSection} workspaceId={workspaceId!} />
+            <>
+              <WorkspaceSectionPanel
+                section={activeSection}
+                workspaceId={workspaceId!}
+                onFieldBlur={triggerValidation}
+                isLocked={workspace?.is_locked ?? false}
+              />
+              {/* Certification panel renders inline for certifications section */}
+              {activeSection.section_type === 'certifications' && (
+                <CertificationPanel
+                  workspaceId={workspaceId!}
+                  isAuthorizedRep={isAuthorizedRep}
+                />
+              )}
+            </>
           ) : (
             <div className="usa-prose">
               <p className="usa-hint">Select a section from the left sidebar to begin.</p>

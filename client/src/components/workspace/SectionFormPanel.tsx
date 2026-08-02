@@ -7,6 +7,8 @@ import type { WorkspaceSection } from '../../types/workspace';
 interface SectionFormPanelProps {
   section: WorkspaceSection;
   workspaceId: string;
+  onFieldBlur?: () => void; // Optional callback for workspace-level validation trigger
+  isLocked?: boolean; // When true, all form fields are disabled (workspace submitted)
 }
 
 /**
@@ -15,8 +17,9 @@ interface SectionFormPanelProps {
  * - Saves field responses onBlur (not on every keystroke)
  * - Triggers server-side section validation 500ms after each blur
  * - Displays inline USWDS error-message on validation failures
+ * - When isLocked=true, all inputs are disabled and saves are suppressed
  */
-export function SectionFormPanel({ section, workspaceId }: SectionFormPanelProps) {
+export function SectionFormPanel({ section, workspaceId, onFieldBlur, isLocked = false }: SectionFormPanelProps) {
   const [fieldValues, setFieldValues] = useState<Record<string, string | unknown>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -76,7 +79,9 @@ export function SectionFormPanel({ section, workspaceId }: SectionFormPanelProps
   // ─── onBlur handler: save field then validate section ────────────────────
   // Field save fires on blur (not every keystroke) per PRD-INTAKE-038.
   // Server-side validation is triggered 500ms after blur.
+  // When isLocked=true, no saves or validation calls fire (read-only state).
   const handleFieldBlur = (fieldId: string) => {
+    if (isLocked) return; // read-only — no saves in locked state
     const value = fieldValues[fieldId];
     saveMutation.mutate({ fieldId, value });
 
@@ -94,6 +99,9 @@ export function SectionFormPanel({ section, workspaceId }: SectionFormPanelProps
 
     // Trigger server-side section validation after short delay
     setTimeout(() => validateMutation.mutate(), 500);
+
+    // Also trigger workspace-level validation (for ReadinessDashboard updates)
+    if (onFieldBlur) onFieldBlur();
   };
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -124,6 +132,7 @@ export function SectionFormPanel({ section, workspaceId }: SectionFormPanelProps
               onChange={(val) => setFieldValues((prev) => ({ ...prev, [field.field_id]: val }))}
               onBlur={() => handleFieldBlur(field.field_id)}
               error={fieldErrors[field.field_id]}
+              disabled={isLocked}
               allFieldValues={fieldValues}
             />
           ))}

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 import { workspaceApi } from '../../api/workspaceApi';
+import { qaApi } from '../../api/qaApi';
 import { AddendaTimeline } from './components/AddendaTimeline';
+import type { QAItem } from '../../types/qa';
 
 type StatusBadge = 'open' | 'closing_soon' | 'closed' | 'not_yet_open';
 type WorkspaceStatus = 'start' | 'continue' | 'closed' | 'sign_in';
@@ -115,6 +117,14 @@ export function OpportunityDetailPage() {
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Q&A: load published Q&A items for this opportunity
+  const publishedQAQuery = useQuery<QAItem[]>({
+    queryKey: ['qa-published', opportunity?.opportunity_id],
+    queryFn: () => qaApi.listPublished(opportunity!.opportunity_id),
+    enabled: !!opportunity?.opportunity_id,
+    staleTime: 60_000,
+  });
 
   const createWorkspaceMutation = useMutation({
     mutationFn: () =>
@@ -476,6 +486,57 @@ export function OpportunityDetailPage() {
                   <h2 id="addenda-heading">Updates &amp; Addenda</h2>
                   <AddendaTimeline opportunityId={opportunity.opportunity_id} />
                 </section>
+
+                {/* Q&A Section */}
+                <section id="qa-section" aria-labelledby="qa-heading" style={{ marginBottom: '2rem' }} data-testid="qa-section">
+                  <h2 id="qa-heading">Questions &amp; Answers</h2>
+                  {publishedQAQuery.isLoading && <p>Loading Q&amp;A…</p>}
+                  {publishedQAQuery.isError && (
+                    <div className="usa-alert usa-alert--error usa-alert--slim" role="alert" data-testid="qa-error">
+                      <div className="usa-alert__body">
+                        <p className="usa-alert__text">Unable to load Q&amp;A. Please refresh the page.</p>
+                      </div>
+                    </div>
+                  )}
+                  {publishedQAQuery.data && publishedQAQuery.data.length === 0 && (
+                    <p style={{ color: '#565c65' }}>No public questions have been answered yet.</p>
+                  )}
+                  {publishedQAQuery.data &&
+                    publishedQAQuery.data.map((item) => (
+                      <div
+                        key={item.qa_id}
+                        className="usa-card"
+                        style={{ marginBottom: '0.75rem' }}
+                        data-testid="qa-detail-item"
+                      >
+                        <div className="usa-card__container">
+                          <div className="usa-card__body">
+                            <p style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                              Q: {item.question_text}
+                            </p>
+                            <p style={{ color: '#1b1b1b' }}>A: {item.answer_text}</p>
+                            {item.published_at && (
+                              <p style={{ fontSize: '0.8rem', color: '#71767a' }}>
+                                Answered on{' '}
+                                {new Date(item.published_at).toLocaleDateString('en-US')}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  {/* Submit a Question button — only for authenticated users */}
+                  {accessToken && (
+                    <Link
+                      to={`/applicant/opportunities/${opportunity.opportunity_id}/qa`}
+                      className="usa-button usa-button--outline"
+                      style={{ marginTop: '0.5rem' }}
+                      data-testid="submit-question-link"
+                    >
+                      Submit a Question
+                    </Link>
+                  )}
+                </section>
               </div>
 
               {/* Sidebar — 1/3 width, sticky */}
@@ -540,6 +601,13 @@ export function OpportunityDetailPage() {
                         </p>
                       </div>
                     )}
+                  </div>
+
+                  {/* Jump to Q&A */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <a href="#qa-section" className="usa-link" style={{ fontSize: '0.875rem' }} data-testid="jump-to-qa-link">
+                      ↓ Jump to Q&amp;A Section
+                    </a>
                   </div>
 
                   {/* CTA Button */}

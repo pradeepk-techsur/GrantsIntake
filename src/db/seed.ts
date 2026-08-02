@@ -75,6 +75,14 @@ async function seed() {
     }
     console.log('Seeded default program: General Grant Programs (idempotent)');
 
+    // Capture the General Grant Programs program_id for UAT opportunities
+    const mainProgramResult = await pool.query(
+      `SELECT program_id FROM programs WHERE grantor_org_id = $1 AND program_name = $2 LIMIT 1`,
+      [orgId, 'General Grant Programs'],
+    );
+    const mainProgramId = mainProgramResult.rows[0]?.program_id;
+    if (!mainProgramId) throw new Error('mainProgramId missing after upsert — General Grant Programs not found');
+
     // Seed 5 system opportunity templates (idempotent via ON CONFLICT DO NOTHING)
     const systemTemplates = [
       {
@@ -295,44 +303,10 @@ async function seed() {
     // ── UAT Scenario Seed ────────────────────────────────────────────────────
     // Creates a complete UAT scenario so Playwright tests can exercise the full
     // UI paths without manual DB setup. All inserts are idempotent.
+    // UAT opportunities are seeded under 'General Grant Programs' (admin@example.gov's org)
+    // so they appear in OpportunitiesIndex which fetches /programs scoped to the admin's org.
 
-    // 1. Grantor org for the UAT opportunity
-    const existingUatGrantorOrg = await pool.query(
-      `SELECT org_id FROM grantor_organizations WHERE org_name = $1`,
-      ['UAT Federal Agency'],
-    );
-    let uatGrantorOrgId: string;
-    if (existingUatGrantorOrg.rows.length > 0) {
-      uatGrantorOrgId = existingUatGrantorOrg.rows[0].org_id;
-    } else {
-      const uatGrantorOrgResult = await pool.query(
-        `INSERT INTO grantor_organizations (org_name, org_type)
-         VALUES ($1, $2)
-         RETURNING org_id`,
-        ['UAT Federal Agency', 'federal_agency'],
-      );
-      uatGrantorOrgId = uatGrantorOrgResult.rows[0].org_id;
-    }
-
-    // 2. Grant program for the UAT opportunity
-    const existingUatProgram = await pool.query(
-      `SELECT program_id FROM programs WHERE program_name = $1`,
-      ['UAT Grant Program'],
-    );
-    let uatProgramId: string;
-    if (existingUatProgram.rows.length > 0) {
-      uatProgramId = existingUatProgram.rows[0].program_id;
-    } else {
-      const uatProgramResult = await pool.query(
-        `INSERT INTO programs (grantor_org_id, program_name, is_federal, program_area, created_by)
-         VALUES ($1, $2, TRUE, $3, $4)
-         RETURNING program_id`,
-        [uatGrantorOrgId, 'UAT Grant Program', 'General', adminUserId],
-      );
-      uatProgramId = uatProgramResult.rows[0].program_id;
-    }
-
-    // 3. Published opportunity
+    // 3. Published opportunity (under General Grant Programs — admin@example.gov's program)
     const existingUatOpportunity = await pool.query(
       `SELECT opportunity_id FROM opportunities WHERE opportunity_number = $1`,
       ['UAT-OPP-001'],
@@ -340,6 +314,11 @@ async function seed() {
     let uatOpportunityId: string;
     if (existingUatOpportunity.rows.length > 0) {
       uatOpportunityId = existingUatOpportunity.rows[0].opportunity_id;
+      // Re-assign to correct program (idempotent migration of existing row)
+      await pool.query(
+        `UPDATE opportunities SET program_id = $1 WHERE opportunity_id = $2`,
+        [mainProgramId, uatOpportunityId],
+      );
     } else {
       const uatOpportunityResult = await pool.query(
         `INSERT INTO opportunities (
@@ -350,9 +329,9 @@ async function seed() {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING opportunity_id`,
         [
-          uatProgramId,
+          mainProgramId,
           'UAT Community Health Innovation Grant',
-          'UAT Federal Agency',
+          'Example Federal Agency',
           'Initial',
           'UAT-OPP-001',
           'Open to 501(c)(3) nonprofits in rural communities.',
@@ -368,6 +347,15 @@ async function seed() {
       uatOpportunityId = uatOpportunityResult.rows[0].opportunity_id;
     }
 
+    // Enable Q&A on UAT-OPP-001 so applicants can submit questions during UAT
+    await pool.query(
+      `UPDATE opportunities
+       SET qa_config = '{"enabled": true}'::jsonb
+       WHERE opportunity_id = $1 AND (qa_config IS NULL OR (qa_config->>'enabled')::boolean IS NOT TRUE)`,
+      [uatOpportunityId],
+    );
+    console.log('Q&A enabled on UAT-OPP-001 (idempotent)');
+
     // 3b. Second published opportunity (UAT-OPP-002) — NO workspace seeded, enables Start Application UAT Test 2
     const existingUatOpportunity2 = await pool.query(
       `SELECT opportunity_id FROM opportunities WHERE opportunity_number = $1`,
@@ -382,9 +370,9 @@ async function seed() {
          )
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
         [
-          uatProgramId,
+          mainProgramId,
           'UAT Community Health Grant 2',
-          'UAT Federal Agency',
+          'Example Federal Agency',
           'Initial',
           'UAT-OPP-002',
           'Open to 501(c)(3) nonprofits in urban communities.',
@@ -397,8 +385,14 @@ async function seed() {
           adminUserId,
         ],
       );
+    } else {
+      // Re-assign to correct program (idempotent migration of existing row)
+      await pool.query(
+        `UPDATE opportunities SET program_id = $1 WHERE opportunity_id = $2`,
+        [mainProgramId, existingUatOpportunity2.rows[0].opportunity_id],
+      );
     }
-    console.log('Seeded UAT-OPP-002 (no workspace — enables Start Application flow) (idempotent)');
+    console.log('Seeded UAT-OPP-002 under General Grant Programs (no workspace — enables Start Application flow) (idempotent)');
 
     // 4. Applicant organization for applicant@example.com
     const existingUatOrg = await pool.query(
@@ -502,7 +496,7 @@ async function seed() {
             help_text: 'Provide a comprehensive description of the project, its goals, and expected outcomes. Maximum 5,000 characters.',
             is_required: true,
             display_order: 1,
-            validation_config: { max_length: 5000 },
+            validation_config: { max_chars: 5000 },
           },
           {
             field_type: 'textarea',
@@ -511,7 +505,7 @@ async function seed() {
             help_text: 'Describe at least 3 measurable goals aligned with the opportunity priorities.',
             is_required: true,
             display_order: 2,
-            validation_config: { max_length: 2000 },
+            validation_config: { max_chars: 2000 },
           },
           {
             field_type: 'number',
@@ -553,7 +547,138 @@ async function seed() {
       }
     }
 
-    console.log('Seeded UAT scenario: UAT-OPP-001 + UAT Test Nonprofit + workspace (idempotent)');
+    // Seed form_field_definitions for remaining completable sections (idempotent)
+    const SECTION_FIELDS: Record<string, Array<{
+      field_type: string;
+      label: string;
+      placeholder: string;
+      help_text: string;
+      is_required: boolean;
+      display_order: number;
+      validation_config: object;
+    }>> = {
+      org_profile: [
+        {
+          field_type: 'text',
+          label: 'Legal Organization Name',
+          placeholder: 'Enter your organization\'s legal name…',
+          help_text: 'As registered with your state or federal authority.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_chars: 200 },
+        },
+        {
+          field_type: 'text',
+          label: 'EIN / Tax ID Number',
+          placeholder: 'XX-XXXXXXX',
+          help_text: 'Your 9-digit Employer Identification Number.',
+          is_required: true,
+          display_order: 2,
+          validation_config: { max_chars: 20 },
+        },
+      ],
+      eligibility: [
+        {
+          field_type: 'textarea',
+          label: 'Eligibility Self-Certification',
+          placeholder: 'Confirm your organization meets the eligibility criteria…',
+          help_text: 'Describe how your organization meets the eligibility requirements for this opportunity.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_chars: 2000 },
+        },
+      ],
+      workplan: [
+        {
+          field_type: 'textarea',
+          label: 'Project Timeline and Milestones',
+          placeholder: 'Describe your implementation timeline…',
+          help_text: 'Provide a timeline with key milestones, responsible parties, and expected completion dates.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_chars: 3000 },
+        },
+        {
+          field_type: 'textarea',
+          label: 'Key Personnel',
+          placeholder: 'List key staff and their roles…',
+          help_text: 'Identify the lead staff members who will implement the project.',
+          is_required: false,
+          display_order: 2,
+          validation_config: { max_chars: 1000 },
+        },
+      ],
+      performance_measures: [
+        {
+          field_type: 'textarea',
+          label: 'Outcome Measures',
+          placeholder: 'List measurable outcomes…',
+          help_text: 'Describe the specific, measurable outcomes you will track throughout the project.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_chars: 2000 },
+        },
+        {
+          field_type: 'number',
+          label: 'Number of Direct Beneficiaries',
+          placeholder: '0',
+          help_text: 'Total number of individuals directly served by this project.',
+          is_required: true,
+          display_order: 2,
+          validation_config: { min: 1, max: 10000000 },
+        },
+      ],
+      review_submit: [
+        {
+          field_type: 'textarea',
+          label: 'Application Certification Statement',
+          placeholder: 'I certify that the information provided is accurate…',
+          help_text: 'By completing this field you certify that all information in this application is accurate and complete to the best of your knowledge.',
+          is_required: true,
+          display_order: 1,
+          validation_config: { max_chars: 500 },
+        },
+      ],
+    };
+
+    for (const [sectionType, fields] of Object.entries(SECTION_FIELDS)) {
+      if (!uatWorkspaceId || !uatOpportunityId || !applicantUserId) continue;
+      const sectionResult = await pool.query(
+        `SELECT section_id FROM application_sections WHERE workspace_id = $1 AND section_type = $2 LIMIT 1`,
+        [uatWorkspaceId, sectionType],
+      );
+      const sectionId = sectionResult.rows[0]?.section_id;
+      if (!sectionId) continue;
+
+      for (const field of fields) {
+        await pool.query(
+          `INSERT INTO form_field_definitions
+             (opportunity_id, section_id, field_type, label, placeholder, help_text,
+              is_required, display_order, validation_config, created_by)
+           SELECT $1::uuid, $2::uuid, $3::varchar, $4::varchar, $5::varchar, $6::varchar,
+                  $7::boolean, $8::int, $9::jsonb, $10::uuid
+           WHERE NOT EXISTS (
+             SELECT 1 FROM form_field_definitions
+             WHERE section_id = $2::uuid AND label = $4::varchar
+           )`,
+          [
+            uatOpportunityId,
+            sectionId,
+            field.field_type,
+            field.label,
+            field.placeholder,
+            field.help_text,
+            field.is_required,
+            field.display_order,
+            JSON.stringify(field.validation_config),
+            applicantUserId,
+          ],
+        );
+      }
+      console.log(`Seeded form_field_definitions for ${sectionType} section (idempotent)`);
+    }
+
+    console.log('Seeded UAT scenario: UAT-OPP-001 + UAT-OPP-002 under General Grant Programs + UAT Test Nonprofit + workspace (idempotent)');
     // ── End UAT Scenario Seed ────────────────────────────────────────────────
 
     console.log('Seed complete — admin@example.gov / TestPassword123! | applicant@example.com / TestPass123!');

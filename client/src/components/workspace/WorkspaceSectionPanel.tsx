@@ -9,9 +9,11 @@ import type { WorkspaceSection, WorkspaceTask, WorkspaceComment } from '../../ty
 interface WorkspaceSectionPanelProps {
   section: WorkspaceSection;
   workspaceId: string;
+  onFieldBlur?: () => void;
+  isLocked?: boolean;
 }
 
-export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSectionPanelProps) {
+export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLocked = false }: WorkspaceSectionPanelProps) {
   const queryClient = useQueryClient();
   const [commentText, setCommentText] = useState('');
 
@@ -75,16 +77,25 @@ export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSection
         </div>
       </div>
 
+      {/* Read-only notice — shown when workspace is locked after submission */}
+      {isLocked && (
+        <div className="usa-alert usa-alert--info usa-alert--slim" style={{ marginBottom: '1rem' }} role="status">
+          <div className="usa-alert__body">
+            <p className="usa-alert__text">This section is read-only. The application has been submitted.</p>
+          </div>
+        </div>
+      )}
+
       {/* Section content — route by section_type */}
       {section.section_type === 'budget' && (
-        <BudgetBuilder workspaceId={workspaceId} />
+        <BudgetBuilder workspaceId={workspaceId} isLocked={isLocked} />
       )}
       {section.section_type === 'attachments' && (
-        <AttachmentManager workspaceId={workspaceId} />
+        <AttachmentManager workspaceId={workspaceId} isLocked={isLocked} />
       )}
       {/* For all other sections: SectionFormPanel handles field rendering (from Plan 04-03) */}
       {section.section_type !== 'budget' && section.section_type !== 'attachments' && (
-        <SectionFormPanel section={section} workspaceId={workspaceId} />
+        <SectionFormPanel section={section} workspaceId={workspaceId} onFieldBlur={onFieldBlur} isLocked={isLocked} />
       )}
 
       {/* Task list */}
@@ -121,7 +132,7 @@ export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSection
                       status: task.status === 'open' ? 'complete' : 'open',
                     })
                   }
-                  disabled={updateTaskMutation.isPending}
+                  disabled={updateTaskMutation.isPending || isLocked}
                 >
                   {task.status === 'open' ? 'Mark complete' : 'Reopen'}
                 </button>
@@ -178,7 +189,7 @@ export function WorkspaceSectionPanel({ section, workspaceId }: WorkspaceSection
             type="button"
             className="usa-button"
             onClick={handlePostComment}
-            disabled={!commentText.trim() || postCommentMutation.isPending}
+            disabled={!commentText.trim() || postCommentMutation.isPending || isLocked}
           >
             {postCommentMutation.isPending ? 'Posting…' : 'Post Comment'}
           </button>

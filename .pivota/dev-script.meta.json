@@ -1,21 +1,14 @@
 {
   "generator_version": "init-dev-server@1",
-  "catalog_entry": null,
-  "generated_at": "2026-07-30T21:21:03Z",
-  "inspection_inputs_hash": "cf75a6957b342c8ec1e6b4f89b16f0db374544d19a8529bddfebf05a75102292",
+  "catalog_entry": "node-express",
+  "generated_at": "2026-08-02T13:21:46Z",
+  "inspection_inputs_hash": "f5e5d9f101e711cbf4655f49586b0a253a0a6e46ca3107b05dbb67ddb744681d",
   "inspection_inputs": {
     "matched_globs": [
-      "docker-compose.yml",
       "package.json"
     ],
     "manifest_signatures": [
-      "client/package.json:dep:vite@^8.1.1",
-      "client/package.json:dev-script:vite",
-      "docker-compose.yml:services:app,db,redis",
       "package.json:dep:express@^4.18.2",
-      "package.json:dep:knex@^3.1.0",
-      "package.json:dep:pg@^8.11.3",
-      "package.json:dep:tsx@^4.7.0",
       "package.json:dev-script:tsx watch src/server.ts"
     ],
     "existing_scripts": []

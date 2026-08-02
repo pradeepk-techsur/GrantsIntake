@@ -4,6 +4,9 @@ import { authenticate } from '../middleware/authenticate';
 import { blockGrantorOnWorkspace } from '../middleware/blockGrantorOnWorkspace';
 import { workspaceService } from '../services/workspace/workspaceService';
 import { readinessService } from '../services/workspace/readinessService';
+import { validationService } from '../services/workspace/validationService';
+import { certificationService } from '../services/workspace/certificationService';
+import { submissionService } from '../services/workspace/submissionService';
 import { formFieldService } from '../services/workspace/formFieldService';
 import { budgetService } from '../services/workspace/budgetService';
 import { attachmentService } from '../services/workspace/attachmentService';
@@ -531,6 +534,7 @@ workspacesRouter.delete('/workspaces/:id/budget/line-items/:lineId', async (req,
   if (!UUID_REGEX.test(id) || !UUID_REGEX.test(lineId)) return res.status(404).json({ error: 'NOT_FOUND' });
   const workspace = await workspaceService.getWorkspace(id);
   if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });
   const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
   if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
   const deleted = await budgetService.deleteLineItem(lineId);
@@ -623,6 +627,7 @@ workspacesRouter.delete('/workspaces/:id/attachments/:attachmentId', async (req,
   if (!UUID_REGEX.test(id) || !UUID_REGEX.test(attachmentId)) return res.status(404).json({ error: 'NOT_FOUND' });
   const workspace = await workspaceService.getWorkspace(id);
   if (!workspace) return res.status(404).json({ error: 'WORKSPACE_NOT_FOUND' });
+  if (workspace.is_locked) return res.status(423).json({ error: 'WORKSPACE_LOCKED' });
   const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
   if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
   const deleted = await attachmentService.deactivate(attachmentId);
@@ -643,4 +648,134 @@ workspacesRouter.get('/workspaces/:id/preview', async (req, res) => {
   if (!isMember) return res.status(403).json({ error: 'PERMISSION_DENIED' });
   const preview = await previewService.generatePreview(id);
   return res.status(200).json(preview);
+});
+
+// ─── Validation + Certification routes (F48-F51) ──────────────────────────────
+
+// POST /api/v1/workspaces/:id/validate — continuous validation (authenticated applicant)
+workspacesRouter.post('/workspaces/:id/validate', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return sendError(res, 404, 'NOT_FOUND', 'Workspace not found');
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return sendError(res, 403, 'FORBIDDEN', 'You are not a member of this workspace\'s organization');
+  try {
+    const result = await validationService.runValidation(id);
+    return res.json(result);
+  } catch (err) {
+    console.error('POST /workspaces/:id/validate error:', err);
+    return sendError(res, 500, 'INTERNAL_ERROR');
+  }
+});
+
+// POST /api/v1/workspaces/:id/certify — AR certification (authorized_representative only)
+const certifySchema = z.object({ certification_text: z.string().min(10).max(10000) });
+
+workspacesRouter.post('/workspaces/:id/certify', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+  const parsed = certifySchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', details: parsed.error.issues });
+  }
+  try {
+    const cert = await certificationService.certify(id, req.user!.user_id, parsed.data.certification_text);
+    return res.status(200).json(cert);
+  } catch (err: unknown) {
+    const e = err as Error & { status?: number; code?: string };
+    if (e.status === 404) return res.status(404).json({ error: 'NOT_FOUND', message: e.message });
+    if (e.status === 403) return res.status(403).json({ error: 'FORBIDDEN', message: e.message, code: e.code });
+    if (e.status === 409) return res.status(409).json({ error: e.code, message: e.message });
+    console.error('Certify error:', err);
+    return sendError(res, 500, 'INTERNAL_ERROR', 'Certification failed');
+  }
+});
+
+// POST /api/v1/workspaces/:id/concern — AR concern flag (non-blocking, AR only)
+const concernSchema = z.object({ concern_text: z.string().min(1).max(5000) });
+
+workspacesRouter.post('/workspaces/:id/concern', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+  const parsed = concernSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'VALIDATION_ERROR', details: parsed.error.issues });
+  }
+  try {
+    await certificationService.recordConcernFlag(id, parsed.data.concern_text, req.user!.user_id);
+    return res.status(200).json({ message: 'Concern flag recorded' });
+  } catch (err) {
+    console.error('Concern flag error:', err);
+    return sendError(res, 500, 'INTERNAL_ERROR', 'Failed to record concern');
+  }
+});
+
+// GET /api/v1/workspaces/:id/certification — get certification status
+workspacesRouter.get('/workspaces/:id/certification', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return sendError(res, 404, 'NOT_FOUND', 'Workspace not found');
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return sendError(res, 403, 'FORBIDDEN', 'You are not a member of this workspace\'s organization');
+  const cert = await certificationService.getCertification(id);
+  return res.json({ certified: !!cert, certification: cert ?? null });
+});
+
+// ─── Submission routes (F52/F53/F54) ──────────────────────────────────────────
+
+// POST /api/v1/workspaces/:id/submit — final submission
+workspacesRouter.post('/workspaces/:id/submit', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+  // IDOR: verify membership before submit
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return sendError(res, 404, 'NOT_FOUND', 'Workspace not found');
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return sendError(res, 403, 'FORBIDDEN', 'You are not a member of this workspace\'s organization');
+
+  try {
+    const confirmation = await submissionService.submit(id, req.user!.user_id);
+    return res.status(200).json(confirmation);
+  } catch (err: unknown) {
+    const e = err as Error & { status?: number; error_code?: string; blocking_errors?: unknown[]; code?: string };
+    if (e.status === 422 && e.error_code === 'SUBMISSION_BLOCKED') {
+      return res.status(422).json({
+        error_code: 'SUBMISSION_BLOCKED',
+        message: e.message,
+        blocking_errors: e.blocking_errors,
+      });
+    }
+    if (e.status === 409) {
+      return res.status(409).json({ error: e.code, message: e.message });
+    }
+    if (e.status === 404) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: e.message });
+    }
+    console.error('Submit error:', err);
+    return sendError(res, 500, 'INTERNAL_ERROR', 'Submission failed');
+  }
+});
+
+// GET /api/v1/workspaces/:id/receipt — submission receipt (applicant team)
+workspacesRouter.get('/workspaces/:id/receipt', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!UUID_REGEX.test(id)) return sendError(res, 404, 'NOT_FOUND');
+
+  const workspace = await workspaceService.getWorkspace(id);
+  if (!workspace) return sendError(res, 404, 'NOT_FOUND', 'Workspace not found');
+  const isMember = await workspaceService.verifyWorkspaceMember(id, req.user!.user_id);
+  if (!isMember) return sendError(res, 403, 'FORBIDDEN', 'You are not a member of this workspace\'s organization');
+
+  try {
+    const receipt = await submissionService.getReceipt(id);
+    return res.json(receipt);
+  } catch (err: unknown) {
+    const e = err as Error & { status?: number };
+    if (e.status === 404) return sendError(res, 404, 'NOT_FOUND', e.message);
+    console.error('Receipt error:', err);
+    return sendError(res, 500, 'INTERNAL_ERROR');
+  }
 });

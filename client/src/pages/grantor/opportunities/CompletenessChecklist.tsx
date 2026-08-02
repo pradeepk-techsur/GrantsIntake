@@ -15,7 +15,6 @@ interface ChecklistItem {
   label: string;
   complete: boolean;
   required: boolean;
-  phaseNote?: string;
 }
 
 /**
@@ -80,24 +79,6 @@ function deriveChecklistItems(opportunity: Opportunity): ChecklistItem[] {
       required: true,
     });
   }
-
-  // Phase 2 items — greyed out
-  items.push(
-    {
-      id: 'eligibility_rules',
-      label: 'Eligibility Rules',
-      complete: false,
-      required: false,
-      phaseNote: 'Phase 2 — coming soon',
-    },
-    {
-      id: 'form_sections',
-      label: 'Form Sections',
-      complete: false,
-      required: false,
-      phaseNote: 'Phase 2 — coming soon',
-    },
-  );
 
   return items;
 }
@@ -178,50 +159,39 @@ export function CompletenessChecklist({ opportunity }: CompletenessChecklistProp
 
           {/* Checklist items */}
           <ul className="usa-list usa-list--unstyled" style={{ marginBottom: '1rem' }}>
-            {checklistItems.map((item) => {
-              const isPhase2 = !!item.phaseNote;
-              return (
-                <li
-                  key={item.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.25rem 0',
-                    color: isPhase2 ? '#919191' : undefined,
-                  }}
-                  data-testid={`checklist-item-${item.id}`}
-                >
-                  {isPhase2 ? (
-                    <span aria-hidden="true" style={{ fontSize: '1rem' }}>○</span>
-                  ) : item.complete ? (
-                    <span
-                      aria-label="Complete"
-                      style={{ color: '#2e7d32', fontSize: '1.1rem', fontWeight: 'bold' }}
-                      data-testid={`check-${item.id}`}
-                    >
-                      ✓
-                    </span>
-                  ) : (
-                    <span
-                      aria-label="Incomplete"
-                      style={{ color: '#c62828', fontSize: '1.1rem', fontWeight: 'bold' }}
-                      data-testid={`x-${item.id}`}
-                    >
-                      ✗
-                    </span>
-                  )}
-                  <span style={{ fontSize: '0.875rem' }}>
-                    {item.label}
-                    {item.phaseNote && (
-                      <span className="usa-hint" style={{ fontSize: '0.75rem', marginLeft: '0.25rem' }}>
-                        {item.phaseNote}
-                      </span>
-                    )}
+            {checklistItems.map((item) => (
+              <li
+                key={item.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.25rem 0',
+                }}
+                data-testid={`checklist-item-${item.id}`}
+              >
+                {item.complete ? (
+                  <span
+                    aria-label="Complete"
+                    style={{ color: '#2e7d32', fontSize: '1.1rem', fontWeight: 'bold' }}
+                    data-testid={`check-${item.id}`}
+                  >
+                    ✓
                   </span>
-                </li>
-              );
-            })}
+                ) : (
+                  <span
+                    aria-label="Incomplete"
+                    style={{ color: '#c62828', fontSize: '1.1rem', fontWeight: 'bold' }}
+                    data-testid={`x-${item.id}`}
+                  >
+                    ✗
+                  </span>
+                )}
+                <span style={{ fontSize: '0.875rem' }}>
+                  {item.label}
+                </span>
+              </li>
+            ))}
           </ul>
 
           {/* Server readiness result (from dry run) */}
