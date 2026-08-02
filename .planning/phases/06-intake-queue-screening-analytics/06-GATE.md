@@ -39,3 +39,15 @@ updated: 2026-08-02
 - **Client Vite build:** exit 0 ✅
 - **Integration tests:** 268/268 pass ✅
 - **gate_status: pass**
+
+## Gap Redrive (--gaps-only session 2)
+
+| Gap | Redrive Check | Result |
+|-----|--------------|--------|
+| UAT Test 7: applicant cannot see notification UI | `npx playwright test e2e/notifications.spec.ts` — 4/4 tests pass | `closed (re-driven)` |
+
+**Redrive evidence:**
+- `NotificationsPage.tsx` exists (3285 bytes) with `intakeQueueApi.getNotifications()` call at line 19
+- Route `/applicant/notifications` registered in `App.tsx:71`
+- Sidebar `data-testid="nav-notifications"` NavLink at `ApplicantSidebar.tsx:36-38`
+- Playwright tests: 4/4 pass (sidebar link visible, list renders with title/body/mark-read, empty state, mark-read API called and asserted)
