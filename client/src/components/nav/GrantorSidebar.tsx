@@ -78,32 +78,6 @@ export function GrantorSidebar({ grantor_memberships }: GrantorSidebarProps) {
           </li>
         )}
 
-        {isGrantorAdminOrOfficer && (
-          <li className="gf-sidebar__item">
-            <NavLink
-              to="/grantor/awards"
-              className={({ isActive }) =>
-                isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
-              }
-            >
-              Awards
-            </NavLink>
-          </li>
-        )}
-
-        {isGrantorAdminOrOfficer && (
-          <li className="gf-sidebar__item">
-            <NavLink
-              to="/grantor/monitoring"
-              className={({ isActive }) =>
-                isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
-              }
-            >
-              Monitoring
-            </NavLink>
-          </li>
-        )}
-
         {isQaInboxVisible && (
           <li className="gf-sidebar__item">
             <NavLink

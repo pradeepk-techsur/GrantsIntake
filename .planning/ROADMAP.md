@@ -19,6 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Q&A, Submission & Validation** - Stages 8–9: Q&A/addenda, continuous validation, authorized submission, and immutable snapshot
 - [x] **Phase 6: Intake Queue, Screening & Analytics** - Stages 10–11: intake queue routing, administrative screening, dispositions, and reporting
 - [x] **UI: GrantFlow Design System v1.0** - Full migration from USWDS to GrantFlow DS; all 51 components converted, CSS 570KB→15KB, Figma spec implemented
+- [x] **Phase 7: Navigation Cleanup** - Remove Awards and Monitoring from grantor sidebar; remove Awards from applicant sidebar
 
 ## Phase Details
 

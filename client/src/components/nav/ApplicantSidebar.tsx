@@ -42,16 +42,6 @@ export function ApplicantSidebar() {
         </li>
         <li className="gf-sidebar__item">
           <NavLink
-            to="/applicant/workspaces"
-            className={({ isActive }) =>
-              isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
-            }
-          >
-            Awards
-          </NavLink>
-        </li>
-        <li className="gf-sidebar__item">
-          <NavLink
             to="/applicant/notifications"
             className={({ isActive }) =>
               isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
