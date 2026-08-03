@@ -7,18 +7,11 @@ interface ReadinessDashboardProps {
 }
 
 /**
- * ReadinessDashboard — sticky right-panel readiness summary (PRD-INTAKE-035 / F34).
- *
- * Displays:
- * - Completion percentage with USWDS progress bar
- * - Ready-to-submit status badge
- * - Authorized representative assignment status
- * - Blocking errors with section links
- * - Warnings list
- * - Required attachment status
- *
- * Polls every 30 seconds via React Query refetchInterval (no WebSocket).
- * WorkspacePage positions this in the right column of the 3-column grid.
+ * ReadinessDashboard — GrantFlow Design System v1.0.
+ * Sticky right panel matching Figma "Application readiness" component.
+ * Shows: completion %, readiness badge, checklist of complete/attention items,
+ * required attachments, and submit CTA.
+ * Polls every 30 seconds (PRD-INTAKE-035).
  */
 export function ReadinessDashboard({ workspaceId }: ReadinessDashboardProps) {
   const navigate = useNavigate();
@@ -29,117 +22,94 @@ export function ReadinessDashboard({ workspaceId }: ReadinessDashboardProps) {
   } = useQuery({
     queryKey: ['readiness', workspaceId],
     queryFn: () => workspaceApi.getReadiness(workspaceId),
-    refetchInterval: 30_000, // poll every 30 seconds for live updates (PRD-INTAKE-035)
+    refetchInterval: 30_000,
     staleTime: 20_000,
     enabled: !!workspaceId,
   });
 
   if (isLoading) {
     return (
-      <div>
-        <p className="usa-hint">Loading readiness…</p>
-      </div>
+      <div className="gf-loading">Loading readiness…</div>
     );
   }
 
   if (isError || !readiness) {
     return (
-      <div className="usa-alert usa-alert--warning usa-alert--slim" role="alert">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">Readiness data unavailable</p>
-        </div>
+      <div className="gf-alert gf-alert--warning" role="alert">
+        <p className="gf-alert__text">Readiness data unavailable</p>
       </div>
     );
   }
+
+  const pct = readiness.overall_completion_pct;
+  const isComplete = pct === 100;
+  const hasBlocking = readiness.blocking_errors.length > 0;
 
   return (
     <aside
       aria-label="Application Readiness"
       data-testid="readiness-dashboard"
-      className="usa-card"
+      className="gf-card"
+      style={{ position: 'sticky', top: '72px' }}
     >
-      <div className="usa-card__header">
-        <h2 className="usa-card__heading">
-          Application Readiness
-          {readiness.blocking_errors.length > 0 && (
-            <span
-              className="usa-tag usa-tag--big"
-              style={{ marginLeft: '0.5rem', backgroundColor: '#b50909', color: '#fff' }}
-              data-testid="blocking-count-badge"
-            >
-              {readiness.blocking_errors.length} blocking
-            </span>
-          )}
-        </h2>
+      <div className="gf-card__header" style={{ justifyContent: 'space-between' }}>
+        <h2 className="gf-card__title">Application readiness</h2>
+        <span style={{ fontWeight: 700, color: 'var(--gf-ink)', fontSize: '16px' }}>
+          {pct}%
+        </span>
       </div>
-      <div className="usa-card__body">
 
-        {/* ── Completion percentage ─────────────────────────────────────── */}
-        <div data-testid="completion-pct" style={{ marginBottom: '1rem' }}>
-          <strong>{readiness.overall_completion_pct}%</strong> complete
+      <div className="gf-card__body" style={{ padding: '16px 20px' }}>
+        {/* Progress bar */}
+        <div
+          className="gf-progress"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${pct}% complete`}
+          data-testid="completion-pct"
+          style={{ marginBottom: '16px' }}
+        >
           <div
-            className="usa-progress"
-            role="progressbar"
-            aria-valuenow={readiness.overall_completion_pct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`${readiness.overall_completion_pct}% complete`}
-            style={{ marginTop: '0.5rem', background: '#dfe1e2', height: '8px', borderRadius: '4px' }}
-          >
-            <div
-              className="usa-progress__bar"
-              style={{
-                width: `${readiness.overall_completion_pct}%`,
-                background: readiness.overall_completion_pct === 100 ? '#2e8540' : '#005ea2',
-                height: '100%',
-                borderRadius: '4px',
-                transition: 'width 0.3s ease',
-              }}
-            />
-          </div>
+            className={`gf-progress__bar${isComplete ? ' gf-progress__bar--complete' : ''}`}
+            style={{ width: `${pct}%` }}
+          />
         </div>
 
-        {/* ── Ready to submit badge ──────────────────────────────────────── */}
-        {readiness.is_ready_to_submit ? (
-          <div
-            className="usa-alert usa-alert--success usa-alert--slim"
-            data-testid="ready-to-submit-banner"
-            style={{ marginBottom: '0.75rem' }}
-          >
-            <div className="usa-alert__body">
-              <p className="usa-alert__text">Ready to submit</p>
+        {/* Readiness status */}
+        <div style={{ marginBottom: '16px' }} data-testid="ready-to-submit-banner">
+          {readiness.is_ready_to_submit ? (
+            <div className="gf-alert gf-alert--success" style={{ marginBottom: 0 }}>
+              <p className="gf-alert__text">Ready to submit</p>
             </div>
-          </div>
-        ) : (
-          <div
-            className="usa-alert usa-alert--info usa-alert--slim"
-            style={{ marginBottom: '0.75rem' }}
-          >
-            <div className="usa-alert__body">
-              <p className="usa-alert__text">Not ready to submit</p>
-            </div>
-          </div>
-        )}
-
-        {/* ── Authorized representative status ──────────────────────────── */}
-        <div data-testid="authorized-rep-status" style={{ marginBottom: '0.75rem' }}>
-          {readiness.authorized_rep_assigned ? (
-            <span className="usa-tag usa-tag--success">Authorized Rep Assigned</span>
           ) : (
-            <span className="usa-tag usa-tag--warning">No Authorized Rep</span>
+            <div className="gf-alert gf-alert--info" style={{ marginBottom: 0 }}>
+              <p className="gf-alert__text">Not ready to submit</p>
+            </div>
           )}
         </div>
 
-        {/* ── Blocking errors ───────────────────────────────────────────── */}
-        {readiness.blocking_errors.length > 0 && (
-          <div data-testid="blocking-errors" style={{ marginBottom: '0.75rem' }}>
-            <h3 className="font-sans-sm" style={{ margin: '0 0 0.5rem' }}>
-              Blocking Issues ({readiness.blocking_errors.length})
-            </h3>
-            <ul className="usa-list" style={{ marginTop: 0 }}>
+        {/* Authorized rep */}
+        <div style={{ marginBottom: '12px' }} data-testid="authorized-rep-status">
+          {readiness.authorized_rep_assigned ? (
+            <span className="gf-badge gf-badge--success">Authorized rep assigned</span>
+          ) : (
+            <span className="gf-badge gf-badge--warning">No authorized rep</span>
+          )}
+        </div>
+
+        {/* Blocking errors */}
+        {hasBlocking && (
+          <div data-testid="blocking-errors" style={{ marginBottom: '12px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: 'var(--gf-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>
+              Needs attention
+            </p>
+            <ul className="gf-checklist">
               {readiness.blocking_errors.map((err, i) => (
-                <li key={`${err.section_id}-${err.error_code}-${i}`}>
-                  <a href={err.link} className="usa-link">
+                <li key={`${err.section_id}-${err.error_code}-${i}`} className="gf-checklist__item">
+                  <span className="gf-checklist__icon gf-checklist__icon--block" aria-hidden="true">✗</span>
+                  <a href={err.link} style={{ color: 'var(--gf-error)', fontSize: '13px', textDecoration: 'underline' }}>
                     {err.section_name && `${err.section_name}: `}{err.message}
                   </a>
                 </li>
@@ -148,78 +118,106 @@ export function ReadinessDashboard({ workspaceId }: ReadinessDashboardProps) {
           </div>
         )}
 
-        {/* ── Warnings ──────────────────────────────────────────────────── */}
-        {readiness.warnings.length > 0 && (
-          <div data-testid="warnings-list" style={{ marginBottom: '0.75rem' }}>
-            <h3 className="font-sans-sm" style={{ margin: '0 0 0.5rem' }}>
-              Warnings ({readiness.warnings.length})
-            </h3>
-            <ul className="usa-list" style={{ marginTop: 0 }}>
-              {readiness.warnings.map((w, i) => (
-                <li key={`${w.section_id}-${i}`}>{w.message}</li>
-              ))}
+        {/* Complete sections */}
+        {readiness.blocking_errors.length === 0 && pct > 0 && (
+          <div style={{ marginBottom: '12px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: 'var(--gf-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>
+              Complete
+            </p>
+            <ul className="gf-checklist">
+              <li className="gf-checklist__item">
+                <span className="gf-checklist__icon gf-checklist__icon--ok" aria-hidden="true">✓</span>
+                <span style={{ fontSize: '13px' }}>Application information</span>
+              </li>
+              {readiness.authorized_rep_assigned && (
+                <li className="gf-checklist__item">
+                  <span className="gf-checklist__icon gf-checklist__icon--ok" aria-hidden="true">✓</span>
+                  <span style={{ fontSize: '13px' }}>Authorized representative</span>
+                </li>
+              )}
             </ul>
           </div>
         )}
 
-        {/* ── Attachment status ─────────────────────────────────────────── */}
-        {readiness.attachment_status.length > 0 && (
-          <div data-testid="attachment-status" style={{ marginBottom: '0.75rem' }}>
-            <h3 className="font-sans-sm" style={{ margin: '0 0 0.5rem' }}>
-              Required Attachments
-            </h3>
-            <ul className="usa-list usa-list--unstyled" style={{ marginTop: 0 }}>
-              {readiness.attachment_status.map((att) => (
-                <li key={att.requirement_id} style={{ padding: '0.25rem 0' }}>
-                  <span aria-hidden="true">{att.is_fulfilled ? '✓' : '✗'} </span>
-                  <span>{att.document_type}</span>
-                  {att.document_name && (
-                    <span className="usa-hint"> ({att.document_name})</span>
-                  )}
-                  {att.is_required && !att.is_fulfilled && (
-                    <span className="usa-tag usa-tag--error" style={{ marginLeft: '0.5rem' }}>
-                      Required
-                    </span>
-                  )}
+        {/* Warnings */}
+        {readiness.warnings.length > 0 && (
+          <div data-testid="warnings-list" style={{ marginBottom: '12px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: 'var(--gf-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>
+              Warnings ({readiness.warnings.length})
+            </p>
+            <ul className="gf-checklist">
+              {readiness.warnings.map((w, i) => (
+                <li key={`${w.section_id}-${i}`} className="gf-checklist__item">
+                  <span className="gf-checklist__icon gf-checklist__icon--warn" aria-hidden="true">!</span>
+                  <span style={{ fontSize: '13px' }}>{w.message}</span>
                 </li>
               ))}
             </ul>
           </div>
         )}
 
+        {/* Attachment status */}
+        {readiness.attachment_status.length > 0 && (
+          <div data-testid="attachment-status" style={{ marginBottom: '12px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: 'var(--gf-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>
+              Required attachments
+            </p>
+            <ul className="gf-checklist">
+              {readiness.attachment_status.map((att) => (
+                <li key={att.requirement_id} className="gf-checklist__item">
+                  <span
+                    className={`gf-checklist__icon ${att.is_fulfilled ? 'gf-checklist__icon--ok' : 'gf-checklist__icon--block'}`}
+                    aria-hidden="true"
+                  >
+                    {att.is_fulfilled ? '✓' : '✗'}
+                  </span>
+                  <span style={{ fontSize: '13px' }}>
+                    {att.document_type}
+                    {att.document_name && (
+                      <span style={{ color: 'var(--gf-muted)' }}> ({att.document_name})</span>
+                    )}
+                    {att.is_required && !att.is_fulfilled && (
+                      <span className="gf-badge gf-badge--error" style={{ marginLeft: '6px' }}>Required</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
-      {/* Preview / submit CTA */}
-      <div className="usa-card__footer">
+
+      {/* CTA footer */}
+      <div className="gf-card__footer" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '8px' }}>
         <Link
           to={`/applicant/workspaces/${workspaceId}/preview`}
-          className="usa-button usa-button--outline usa-button--small"
+          className="gf-btn gf-btn--outline gf-btn--sm"
+          style={{ justifyContent: 'center' }}
           data-testid="readiness-preview-link"
         >
-          Preview Application
+          Preview application
         </Link>
 
-        {/* Submit button with blocking gate */}
-        <div style={{ marginTop: '0.75rem' }}>
-          <button
-            type="button"
-            className="usa-button usa-button--big"
-            disabled={readiness.blocking_errors.length > 0 || !readiness.is_ready_to_submit}
-            aria-disabled={readiness.blocking_errors.length > 0 || !readiness.is_ready_to_submit}
-            onClick={() => {
-              if (readiness.is_ready_to_submit && readiness.blocking_errors.length === 0) {
-                navigate(`/applicant/workspaces/${workspaceId}/certify-submit`);
-              }
-            }}
-            data-testid="submit-application-btn"
-          >
-            Submit Application
-          </button>
-          {(readiness.blocking_errors.length > 0 || !readiness.is_ready_to_submit) && (
-            <p className="usa-hint" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
-              Resolve all blocking errors before submitting.
-            </p>
-          )}
-        </div>
+        <button
+          type="button"
+          className="gf-btn gf-btn--primary"
+          style={{ justifyContent: 'center' }}
+          disabled={hasBlocking || !readiness.is_ready_to_submit}
+          aria-disabled={hasBlocking || !readiness.is_ready_to_submit}
+          onClick={() => {
+            if (readiness.is_ready_to_submit && !hasBlocking) {
+              navigate(`/applicant/workspaces/${workspaceId}/certify-submit`);
+            }
+          }}
+          data-testid="submit-application-btn"
+        >
+          Submit application
+        </button>
+        {(hasBlocking || !readiness.is_ready_to_submit) && (
+          <p style={{ fontSize: '12px', color: 'var(--gf-muted)', textAlign: 'center', margin: '2px 0 0' }}>
+            Resolve all blocking errors before submitting.
+          </p>
+        )}
       </div>
     </aside>
   );

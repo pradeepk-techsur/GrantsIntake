@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import type { GrantorMembership } from '../../hooks/useCurrentUser';
 
 interface GrantorSidebarProps {
@@ -12,16 +12,8 @@ function hasRole(memberships: GrantorMembership[], ...roles: GrantorRole[]): boo
 }
 
 /**
- * Role-restricted sidebar navigation per US-1.0 acceptance criteria.
- *
- * Role visibility rules:
- * - Opportunities: grantor_admin, program_officer
- * - Create New Opportunity: grantor_admin, program_officer (NOT intake_administrator)
- * - Intake Queue: all grantor roles
- * - Program Dashboard: all grantor roles
- * - Q&A Inbox: grantor_admin, program_officer, intake_administrator
- * - Settings: grantor_admin only
- *
+ * Sidebar for the grantor portal — GrantFlow Design System v1.0.
+ * Role-restricted nav per US-1.0 acceptance criteria.
  * T-02-06: UI hiding is defense-in-depth; backend enforces roles independently.
  */
 export function GrantorSidebar({ grantor_memberships }: GrantorSidebarProps) {
@@ -35,52 +27,89 @@ export function GrantorSidebar({ grantor_memberships }: GrantorSidebarProps) {
   );
 
   return (
-    <nav aria-label="Grantor portal navigation" className="usa-sidenav">
-      <ul className="usa-sidenav__list">
+    <nav aria-label="Grantor portal navigation" className="gf-sidebar">
+      <ul className="gf-sidebar__list" role="list">
+        <li className="gf-sidebar__item">
+          <NavLink
+            to="/grantor/dashboard"
+            className={({ isActive }) =>
+              isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+            }
+          >
+            Home
+          </NavLink>
+        </li>
+
         {isGrantorAdminOrOfficer && (
-          <li className="usa-sidenav__item">
+          <li className="gf-sidebar__item">
             <NavLink
               to="/grantor/opportunities"
               className={({ isActive }) =>
-                isActive ? 'usa-current' : ''
+                isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
               }
-              aria-current={undefined}
             >
               Opportunities
             </NavLink>
           </li>
         )}
 
+        <li className="gf-sidebar__item">
+          <NavLink
+            to="/grantor/intake-queue"
+            className={({ isActive }) =>
+              isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+            }
+          >
+            Applications
+          </NavLink>
+        </li>
+
         {isGrantorAdminOrOfficer && (
-          <li className="usa-sidenav__item">
+          <li className="gf-sidebar__item">
             <NavLink
               to="/grantor/dashboard"
+              end={false}
               className={({ isActive }) =>
-                isActive ? 'usa-current' : ''
+                isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
               }
             >
-              Program Dashboard
+              Reviews
             </NavLink>
           </li>
         )}
 
-        <li className="usa-sidenav__item">
-          <NavLink
-            to="/grantor/intake-queue"
-            className={({ isActive }) =>
-              isActive ? 'usa-current' : ''
-            }
-          >
-            Intake Queue
-          </NavLink>
-        </li>
+        {isGrantorAdminOrOfficer && (
+          <li className="gf-sidebar__item">
+            <NavLink
+              to="/grantor/awards"
+              className={({ isActive }) =>
+                isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+              }
+            >
+              Awards
+            </NavLink>
+          </li>
+        )}
+
+        {isGrantorAdminOrOfficer && (
+          <li className="gf-sidebar__item">
+            <NavLink
+              to="/grantor/monitoring"
+              className={({ isActive }) =>
+                isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+              }
+            >
+              Monitoring
+            </NavLink>
+          </li>
+        )}
 
         {isQaInboxVisible && (
-          <li className="usa-sidenav__item">
+          <li className="gf-sidebar__item">
             <NavLink
               to="/grantor/qa-inbox"
               className={({ isActive }) =>
-                isActive ? 'usa-current' : ''
+                isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
               }
               data-testid="nav-qa-management"
             >
@@ -90,11 +119,11 @@ export function GrantorSidebar({ grantor_memberships }: GrantorSidebarProps) {
         )}
 
         {isGrantorAdmin && (
-          <li className="usa-sidenav__item">
+          <li className="gf-sidebar__item">
             <NavLink
               to="/grantor/settings"
               className={({ isActive }) =>
-                isActive ? 'usa-current' : ''
+                isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
               }
             >
               Settings
@@ -103,17 +132,37 @@ export function GrantorSidebar({ grantor_memberships }: GrantorSidebarProps) {
         )}
 
         {isGrantorAdminOrOfficer && (
-          <li className="usa-sidenav__item usa-sidenav__item--cta">
+          <li className="gf-sidebar__item">
             <NavLink
-              to="/grantor/opportunities/new"
-              className="usa-button usa-button--outline"
-              aria-label="Create New Opportunity"
+              to="/grantor/reports"
+              className={({ isActive }) =>
+                isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+              }
             >
-              Create New Opportunity
+              Reports
             </NavLink>
           </li>
         )}
       </ul>
+
+      {isGrantorAdminOrOfficer && (
+        <div className="gf-sidebar__cta">
+          <Link
+            to="/grantor/opportunities/new"
+            className="gf-btn gf-btn--outline"
+            style={{
+              display: 'block',
+              textAlign: 'center',
+              color: '#fff',
+              borderColor: 'rgba(255,255,255,0.5)',
+              fontSize: '13px',
+            }}
+            aria-label="Create New Opportunity"
+          >
+            + New Opportunity
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }

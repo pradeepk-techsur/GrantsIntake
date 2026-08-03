@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 /**
- * Login page using USWDS form components.
- * On success: redirects to /grantor/dashboard.
+ * Login page — GrantFlow Design System v1.0.
+ * Clean centered form with primary dark branding.
+ * WCAG 2.1 AA: aria-live error, autocomplete, focus management.
  */
 export function LoginPage() {
   const { login } = useAuth();
@@ -21,7 +22,6 @@ export function LoginPage() {
 
     try {
       const result = await login({ email, password });
-      // Route based on role: grantor admins → grantor dashboard, applicants → applicant portal
       const isGrantorAdmin = result.user?.roles?.includes('grantor_admin');
       navigate(isGrantorAdmin ? '/grantor/dashboard' : '/applicant/applications', { replace: true });
     } catch {
@@ -32,71 +32,107 @@ export function LoginPage() {
   }
 
   return (
-    <main id="main-content" className="usa-section">
-      <div className="grid-container">
-        <div className="grid-row grid-gap">
-          <div className="tablet:grid-col-8 desktop:grid-col-6">
-            <h1 className="usa-prose">Sign in to GrantsIntake</h1>
-            <p className="usa-prose">Grantor Portal — Use your agency credentials to sign in.</p>
+    <main
+      id="main-content"
+      style={{
+        minHeight: '100vh',
+        background: 'var(--gf-page-bg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '400px',
+        }}
+      >
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <span
+            style={{
+              fontSize: '28px',
+              fontWeight: 800,
+              color: 'var(--gf-primary-dark)',
+              letterSpacing: '-0.5px',
+            }}
+          >
+            GrantFlow
+          </span>
+          <p
+            style={{
+              fontSize: 'var(--gf-font-compact)',
+              color: 'var(--gf-muted)',
+              margin: '6px 0 0',
+            }}
+          >
+            Sign in to your account
+          </p>
+        </div>
 
-            {error && (
-              <div
-                className="usa-alert usa-alert--error usa-alert--slim"
-                role="alert"
-                aria-live="assertive"
-              >
-                <div className="usa-alert__body">
-                  <p className="usa-alert__text">{error}</p>
-                </div>
-              </div>
-            )}
+        {/* Card */}
+        <div
+          className="gf-card"
+          style={{ padding: '32px' }}
+        >
+          {error && (
+            <div
+              className="gf-alert gf-alert--error"
+              role="alert"
+              aria-live="assertive"
+              style={{ marginBottom: '20px' }}
+            >
+              <p className="gf-alert__text">{error}</p>
+            </div>
+          )}
 
-            <form className="usa-form usa-form--large" onSubmit={handleSubmit} noValidate>
-              <fieldset className="usa-fieldset">
-                <div className="usa-form-group">
-                  <label className="usa-label" htmlFor="email">
-                    Email address
-                  </label>
-                  <input
-                    className="usa-input"
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="username"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    aria-describedby={error ? 'login-error' : undefined}
-                  />
-                </div>
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="gf-form-group">
+              <label className="gf-label" htmlFor="email">
+                Email address
+              </label>
+              <input
+                className="gf-input"
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="username"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@agency.gov"
+              />
+            </div>
 
-                <div className="usa-form-group">
-                  <label className="usa-label" htmlFor="password">
-                    Password
-                  </label>
-                  <input
-                    className="usa-input"
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
+            <div className="gf-form-group">
+              <label className="gf-label" htmlFor="password">
+                Password
+              </label>
+              <input
+                className="gf-input"
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+            </div>
 
-                <button
-                  className="usa-button"
-                  type="submit"
-                  disabled={isSubmitting}
-                  aria-busy={isSubmitting}
-                >
-                  {isSubmitting ? 'Signing in...' : 'Sign in'}
-                </button>
-              </fieldset>
-            </form>
-          </div>
+            <button
+              className="gf-btn gf-btn--primary"
+              type="submit"
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
+              style={{ width: '100%', justifyContent: 'center', marginTop: '8px', padding: '10px 16px' }}
+            >
+              {isSubmitting ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
         </div>
       </div>
     </main>

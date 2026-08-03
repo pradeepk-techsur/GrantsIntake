@@ -16,18 +16,27 @@ interface OpportunityListItem {
   updated_at: string;
 }
 
+function statusBadgeClass(status: string): string {
+  switch (status) {
+    case 'published': return 'gf-badge gf-badge--success';
+    case 'draft':     return 'gf-badge gf-badge--neutral';
+    case 'closed':    return 'gf-badge gf-badge--closed';
+    default:          return 'gf-badge gf-badge--pending';
+  }
+}
+
 /**
- * Opportunities index page.
- * Fetches and renders existing opportunities, with a "Create New Opportunity" CTA.
+ * Opportunities index — GrantFlow Design System v1.0.
+ * Lists all opportunities as a clean table with status badges.
+ * Route: /grantor/opportunities
  */
 export function OpportunitiesIndex() {
   const { grantor_memberships } = useCurrentUser();
   const allRoles = grantor_memberships.flatMap((m) => m.roles);
   const canCreate = hasRole(allRoles, 'grantor_admin', 'program_officer');
-  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
-  // programId is kept for the TemplateLibrary modal (create new opportunity flow uses first program)
-  const [programId, setProgramId] = useState<string | null>(null);
 
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
+  const [programId, setProgramId] = useState<string | null>(null);
   const [opportunities, setOpportunities] = useState<OpportunityListItem[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -38,13 +47,8 @@ export function OpportunitiesIndex() {
       .get<{ program_id: string }[]>('/programs', { signal: controller.signal })
       .then(async (res) => {
         const programs = res.data;
-        if (programs.length === 0) {
-          setOpportunities([]);
-          return;
-        }
-        // Set programId for create modal (first program)
+        if (programs.length === 0) { setOpportunities([]); return; }
         if (programs[0]) setProgramId(programs[0].program_id);
-        // Fetch all opportunities across all programs
         const oppArrays = await Promise.all(
           programs.map((p) =>
             apiClient
@@ -62,23 +66,34 @@ export function OpportunitiesIndex() {
 
   return (
     <div>
-      <div className="usa-prose">
-        <h1>Opportunities</h1>
+      {/* ── Page header ──────────────────────────────────────────── */}
+      <div className="gf-action-bar">
+        <div className="gf-page-header" style={{ marginBottom: 0 }}>
+          <h1 className="gf-page-title">Opportunities</h1>
+          <p className="gf-page-subtitle">Manage your funding opportunities.</p>
+        </div>
+        {canCreate && (
+          <button
+            type="button"
+            className="gf-btn gf-btn--primary"
+            aria-label="Create New Opportunity"
+            data-testid="create-opportunity-btn"
+            onClick={() => setShowTemplateLibrary(true)}
+          >
+            + New Opportunity
+          </button>
+        )}
       </div>
 
       {loading && (
-        <p aria-live="polite">Loading...</p>
+        <div className="gf-loading" aria-live="polite">Loading…</div>
       )}
 
       {!loading && opportunities.length === 0 && (
-        <div
-          className="usa-alert usa-alert--info"
-          role="status"
-          aria-label="No opportunities available"
-        >
-          <div className="usa-alert__body">
-            <h4 className="usa-alert__heading">No opportunities yet</h4>
-            <p className="usa-alert__text">
+        <div className="gf-alert gf-alert--info" role="status" aria-label="No opportunities available">
+          <div>
+            <p className="gf-alert__title">No opportunities yet</p>
+            <p className="gf-alert__text">
               No funding opportunities have been created for your organization.
             </p>
           </div>
@@ -86,54 +101,51 @@ export function OpportunitiesIndex() {
       )}
 
       {!loading && opportunities.length > 0 && (
-        <ul className="usa-card-group" style={{ listStyle: 'none', padding: 0 }}>
-          {opportunities.map((opp) => (
-            <li key={opp.opportunity_id} className="usa-card">
-              <div className="usa-card__container">
-                <div className="usa-card__header">
-                  <h2 className="usa-card__heading">
-                    <Link to={`/grantor/opportunities/${opp.opportunity_id}`}>
-                      {opp.title}
-                    </Link>
-                  </h2>
-                </div>
-                <div className="usa-card__body">
-                  <p>
-                    <span className="usa-tag">{opp.status}</span>
-                    {' '}
-                    <span>{opp.announcement_type}</span>
-                  </p>
-                  <p>
-                    <small>Updated: {new Date(opp.updated_at).toLocaleDateString()}</small>
-                  </p>
-                </div>
-                <div className="usa-card__footer">
-                  <Link
-                    to={`/grantor/opportunities/${opp.opportunity_id}/qa`}
-                    className="usa-link"
-                    data-testid={`qa-link-${opp.opportunity_id}`}
-                    aria-label={`Manage Q&A for ${opp.title}`}
-                  >
-                    Manage Q&amp;A
-                  </Link>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {canCreate && (
-        <div style={{ marginTop: '1.5rem' }}>
-          <button
-            type="button"
-            className="usa-button"
-            aria-label="Create New Opportunity"
-            data-testid="create-opportunity-btn"
-            onClick={() => setShowTemplateLibrary(true)}
-          >
-            Create New Opportunity
-          </button>
+        <div className="gf-card">
+          <div className="gf-table-wrap">
+            <table className="gf-table">
+              <thead>
+                <tr>
+                  <th scope="col">Title</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Updated</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {opportunities.map((opp) => (
+                  <tr key={opp.opportunity_id}>
+                    <td>
+                      <Link
+                        to={`/grantor/opportunities/${opp.opportunity_id}`}
+                        style={{ color: 'var(--gf-primary)', fontWeight: 500, textDecoration: 'none' }}
+                      >
+                        {opp.title}
+                      </Link>
+                    </td>
+                    <td>
+                      <span className={statusBadgeClass(opp.status)}>{opp.status}</span>
+                    </td>
+                    <td style={{ color: 'var(--gf-muted)' }}>{opp.announcement_type}</td>
+                    <td style={{ color: 'var(--gf-muted)' }}>
+                      {new Date(opp.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td>
+                      <Link
+                        to={`/grantor/opportunities/${opp.opportunity_id}/qa`}
+                        className="gf-btn gf-btn--ghost gf-btn--sm"
+                        data-testid={`qa-link-${opp.opportunity_id}`}
+                        aria-label={`Manage Q&A for ${opp.title}`}
+                      >
+                        Manage Q&amp;A
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -146,17 +158,12 @@ export function OpportunitiesIndex() {
       )}
 
       {showTemplateLibrary && !programId && (
-        <div
-          className="usa-alert usa-alert--warning"
-          role="alert"
-          data-testid="no-programs-warning"
-        >
-          <div className="usa-alert__body">
-            <h4 className="usa-alert__heading">No programs configured</h4>
-            <p className="usa-alert__text">
-              Your organization has no programs set up yet. A program is required before
-              you can create a funding opportunity. Please contact your system administrator
-              to configure a program for your organization.
+        <div className="gf-alert gf-alert--warning" role="alert" data-testid="no-programs-warning">
+          <div>
+            <p className="gf-alert__title">No programs configured</p>
+            <p className="gf-alert__text">
+              Your organization has no programs set up yet. Contact your system administrator
+              to configure a program before creating a funding opportunity.
             </p>
           </div>
         </div>

@@ -2,17 +2,16 @@ import type { ValidationResult } from '../../types/validation';
 
 interface Props {
   validation: ValidationResult | null;
-  sectionId?: string; // If provided, only show errors for this section
+  sectionId?: string;
 }
 
 /**
- * ValidationBanner — three-tier USWDS alert display for inline section validation.
- *
- * Renders:
- * - usa-alert--error (red) for blocking errors with link to field anchor
- * - usa-alert--warning (yellow) for warnings with link
- * - usa-alert--info (blue) for informational items
- * - null if no errors/warnings/info
+ * ValidationBanner — GrantFlow Design System v1.0.
+ * Left-border colored alert panels for inline validation feedback.
+ * Matches Figma "Alerts and status" component:
+ * - error (red left border) for blocking errors
+ * - warning (amber left border) for warnings
+ * - info (teal left border) for informational items
  */
 export function ValidationBanner({ validation, sectionId }: Props) {
   if (!validation) return null;
@@ -30,10 +29,18 @@ export function ValidationBanner({ validation, sectionId }: Props) {
   return (
     <div className="validation-banner" data-testid="validation-banner">
       {blocking.map((err, i) => (
-        <div key={`blocking-${i}`} className="usa-alert usa-alert--error usa-alert--slim" role="alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">
-              <a href={err.link} className="usa-link">
+        <div
+          key={`blocking-${i}`}
+          className="gf-alert gf-alert--error"
+          role="alert"
+        >
+          <div>
+            <p className="gf-alert__title">Submission blocked</p>
+            <p className="gf-alert__text">
+              <a
+                href={err.link}
+                style={{ color: 'inherit', fontWeight: 500 }}
+              >
                 {err.field_label ? `${err.field_label}: ` : ''}{err.message}
               </a>
             </p>
@@ -41,10 +48,18 @@ export function ValidationBanner({ validation, sectionId }: Props) {
         </div>
       ))}
       {warnings.map((w, i) => (
-        <div key={`warning-${i}`} className="usa-alert usa-alert--warning usa-alert--slim" role="alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">
-              <a href={w.link} className="usa-link">
+        <div
+          key={`warning-${i}`}
+          className="gf-alert gf-alert--warning"
+          role="alert"
+        >
+          <div>
+            <p className="gf-alert__title">Budget needs attention</p>
+            <p className="gf-alert__text">
+              <a
+                href={w.link}
+                style={{ color: 'inherit', fontWeight: 500 }}
+              >
                 {w.field_label ? `${w.field_label}: ` : ''}{w.message}
               </a>
             </p>
@@ -52,9 +67,14 @@ export function ValidationBanner({ validation, sectionId }: Props) {
         </div>
       ))}
       {informational.map((info, i) => (
-        <div key={`info-${i}`} className="usa-alert usa-alert--info usa-alert--slim" role="alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">{info.message}</p>
+        <div
+          key={`info-${i}`}
+          className="gf-alert gf-alert--info"
+          role="status"
+        >
+          <div>
+            <p className="gf-alert__title">Program update</p>
+            <p className="gf-alert__text">{info.message}</p>
           </div>
         </div>
       ))}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { OpportunityCard } from './components/OpportunityCard';
 import type { OpportunityListItem } from './components/OpportunityCard';
 import { SearchFilters } from './components/SearchFilters';
@@ -45,14 +46,10 @@ function buildSearchUrl(params: OpportunitySearchParams): string {
 }
 
 /**
- * Applicant-facing opportunity search and listing page.
- *
- * Implements PRD-INTAKE-014 (F14) search and filter:
- * - Two-column layout: SearchFilters (1/3) + card results (2/3)
- * - USWDS usa-card-group with OpportunityCard components
- * - Pagination with USWDS usa-pagination
- * - Empty state with usa-alert
- * - No auth required — publicly accessible
+ * Opportunity search/listing — GrantFlow Design System v1.0.
+ * Standalone page (no auth required).
+ * Two-column: filter panel left + results right.
+ * WCAG 2.1 AA: skip nav, aria labels, role="status" on results count.
  */
 export function OpportunityListPage() {
   const [params, setParams] = useState<OpportunitySearchParams>({ page: 1, page_size: 20 });
@@ -85,183 +82,152 @@ export function OpportunityListPage() {
 
   const handleFilterChange = (newParams: OpportunitySearchParams) => {
     setParams(newParams);
-    // Scroll to top of results
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const totalPages = result ? Math.ceil(result.total / (params.page_size ?? 20)) : 0;
   const currentPage = params.page ?? 1;
+  const pageSize = params.page_size ?? 20;
 
   return (
-    <div className="usa-layout-docs">
-      {/* Skip to main content */}
-      <a className="usa-skipnav" href="#main-content">
-        Skip to main content
-      </a>
+    <div className="gf-shell">
+      <a className="gf-skipnav" href="#main-content">Skip to main content</a>
 
-      {/* App header with nav */}
-      <header className="usa-header usa-header--basic" role="banner">
-        <div className="usa-nav-container">
-          <div className="usa-navbar">
-            <div className="usa-logo">
-              <em className="usa-logo__text">GrantsIntake</em>
-            </div>
-          </div>
-          <nav aria-label="Primary navigation" className="usa-nav">
-            <ul className="usa-nav__primary usa-accordion">
-              <li className="usa-nav__primary-item">
-                <a href="/opportunities" className="usa-nav__link usa-current" aria-current="page">
-                  <span>Find Opportunities</span>
-                </a>
-              </li>
-              <li className="usa-nav__primary-item">
-                <a href="/login" className="usa-nav__link">
-                  <span>Sign In</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
+      {/* ── Header ──────────────────────────────────────────────── */}
+      <header className="gf-header" role="banner">
+        <span className="gf-header__logo">GrantFlow</span>
+        <span className="gf-header__spacer" />
+        <nav aria-label="Primary navigation" style={{ display: 'flex', gap: '8px' }}>
+          <a
+            href="/opportunities"
+            className="gf-btn gf-btn--ghost gf-btn--sm"
+            aria-current="page"
+            style={{ color: 'var(--gf-primary-dark)', fontWeight: 600 }}
+          >
+            Find Opportunities
+          </a>
+          <Link to="/login" className="gf-btn gf-btn--outline gf-btn--sm">
+            Sign in
+          </Link>
+        </nav>
       </header>
 
-      <main id="main-content" tabIndex={-1}>
-        <div className="usa-section">
-          <div className="grid-container">
-            {/* Page heading */}
-            <div className="usa-prose" style={{ marginBottom: '1.5rem' }}>
-              <h1>Funding Opportunities</h1>
+      {/* ── Main content ────────────────────────────────────────── */}
+      <main id="main-content" tabIndex={-1} style={{ flex: 1 }}>
+        <div style={{ display: 'flex', gap: 0, height: '100%' }}>
+
+          {/* ── Filters sidebar ───────────────────────────────── */}
+          <aside
+            aria-label="Search filters"
+            style={{
+              width: '280px',
+              flexShrink: 0,
+              borderRight: '1px solid var(--gf-border)',
+              padding: '24px',
+              background: 'var(--gf-white)',
+            }}
+          >
+            <SearchFilters params={params} onChange={handleFilterChange} />
+          </aside>
+
+          {/* ── Results area ──────────────────────────────────── */}
+          <div style={{ flex: 1, padding: '24px', minWidth: 0 }}>
+            {/* Page header */}
+            <div className="gf-page-header">
+              <h1 className="gf-page-title">Funding Opportunities</h1>
+              {result && !loading && (
+                <p className="gf-page-subtitle" role="status" aria-live="polite">
+                  Showing {((currentPage - 1) * pageSize) + 1}–
+                  {Math.min(currentPage * pageSize, result.total)} of {result.total} result
+                  {result.total !== 1 ? 's' : ''}
+                </p>
+              )}
             </div>
 
-            <div className="grid-row grid-gap">
-              {/* Filters sidebar — 1/3 width */}
-              <div
-                className="desktop:grid-col-4"
-                style={{
-                  borderRight: '1px solid #dfe1e2',
-                  paddingRight: '1.5rem',
-                }}
-              >
-                <SearchFilters params={params} onChange={handleFilterChange} />
+            {/* Loading */}
+            {loading && (
+              <div className="gf-loading" aria-busy="true" aria-label="Loading opportunities">
+                <span className="gf-sr-only">Loading opportunities…</span>
+                Loading opportunities…
               </div>
+            )}
 
-              {/* Results area — 2/3 width */}
-              <div className="desktop:grid-col-8">
-                {/* Results count + sort info */}
-                {result && !loading && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '1rem',
-                    }}
-                  >
-                    <p className="usa-prose" style={{ margin: 0 }}>
-                      Showing {((currentPage - 1) * (params.page_size ?? 20)) + 1}–
-                      {Math.min(currentPage * (params.page_size ?? 20), result.total)} of{' '}
-                      {result.total} result{result.total !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                )}
-
-                {/* Loading state */}
-                {loading && (
-                  <div
-                    aria-busy="true"
-                    aria-label="Loading opportunities"
-                    style={{ textAlign: 'center', padding: '3rem', color: '#565c65' }}
-                  >
-                    <span className="usa-sr-only">Loading opportunities…</span>
-                    <div>Loading opportunities…</div>
-                  </div>
-                )}
-
-                {/* Error state */}
-                {error && !loading && (
-                  <div className="usa-alert usa-alert--error" role="alert">
-                    <div className="usa-alert__body">
-                      <h4 className="usa-alert__heading">Error loading opportunities</h4>
-                      <p className="usa-alert__text">{error}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Empty state */}
-                {!loading && !error && result && result.opportunities.length === 0 && (
-                  <div className="usa-alert usa-alert--info" role="status">
-                    <div className="usa-alert__body">
-                      <h4 className="usa-alert__heading">No opportunities found</h4>
-                      <p className="usa-alert__text">
-                        No opportunities match your current filters. Try broadening your search.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Card grid */}
-                {!loading && !error && result && result.opportunities.length > 0 && (
-                  <ul className="usa-card-group">
-                    {result.opportunities.map((opp) => (
-                      <OpportunityCard key={opp.opportunity_id} opportunity={opp} />
-                    ))}
-                  </ul>
-                )}
-
-                {/* Pagination */}
-                {!loading && totalPages > 1 && (
-                  <nav aria-label="Pagination" className="usa-pagination" style={{ marginTop: '2rem' }}>
-                    <ul className="usa-pagination__list">
-                      {currentPage > 1 && (
-                        <li className="usa-pagination__item usa-pagination__arrow">
-                          <button
-                            type="button"
-                            className="usa-pagination__link usa-pagination__previous-page"
-                            aria-label="Previous page"
-                            onClick={() =>
-                              handleFilterChange({ ...params, page: currentPage - 1 })
-                            }
-                          >
-                            ‹ Previous
-                          </button>
-                        </li>
-                      )}
-                      {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                        const pageNum = i + 1;
-                        return (
-                          <li key={pageNum} className="usa-pagination__item">
-                            <button
-                              type="button"
-                              className={`usa-pagination__button${currentPage === pageNum ? ' usa-current' : ''}`}
-                              aria-label={`Page ${pageNum}`}
-                              aria-current={currentPage === pageNum ? 'page' : undefined}
-                              onClick={() =>
-                                handleFilterChange({ ...params, page: pageNum })
-                              }
-                            >
-                              {pageNum}
-                            </button>
-                          </li>
-                        );
-                      })}
-                      {currentPage < totalPages && (
-                        <li className="usa-pagination__item usa-pagination__arrow">
-                          <button
-                            type="button"
-                            className="usa-pagination__link usa-pagination__next-page"
-                            aria-label="Next page"
-                            onClick={() =>
-                              handleFilterChange({ ...params, page: currentPage + 1 })
-                            }
-                          >
-                            Next ›
-                          </button>
-                        </li>
-                      )}
-                    </ul>
-                  </nav>
-                )}
+            {/* Error */}
+            {error && !loading && (
+              <div className="gf-alert gf-alert--error" role="alert">
+                <div>
+                  <p className="gf-alert__title">Error loading opportunities</p>
+                  <p className="gf-alert__text">{error}</p>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Empty state */}
+            {!loading && !error && result && result.opportunities.length === 0 && (
+              <div className="gf-alert gf-alert--info" role="status">
+                <div>
+                  <p className="gf-alert__title">No opportunities found</p>
+                  <p className="gf-alert__text">
+                    No opportunities match your current filters. Try broadening your search.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Opportunity cards */}
+            {!loading && !error && result && result.opportunities.length > 0 && (
+              <ul className="gf-opp-cards-grid" style={{ padding: 0, margin: 0 }}>
+                {result.opportunities.map((opp) => (
+                  <OpportunityCard key={opp.opportunity_id} opportunity={opp} />
+                ))}
+              </ul>
+            )}
+
+            {/* Pagination */}
+            {!loading && totalPages > 1 && (
+              <nav aria-label="Pagination">
+                <ul className="gf-pagination">
+                  <li>
+                    <button
+                      type="button"
+                      className="gf-pagination__btn"
+                      aria-label="Previous page"
+                      disabled={currentPage === 1}
+                      onClick={() => handleFilterChange({ ...params, page: currentPage - 1 })}
+                    >
+                      ← Previous
+                    </button>
+                  </li>
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <li key={pageNum}>
+                        <button
+                          type="button"
+                          className={`gf-pagination__btn${currentPage === pageNum ? ' current' : ''}`}
+                          aria-label={`Page ${pageNum}`}
+                          aria-current={currentPage === pageNum ? 'page' : undefined}
+                          onClick={() => handleFilterChange({ ...params, page: pageNum })}
+                        >
+                          {pageNum}
+                        </button>
+                      </li>
+                    );
+                  })}
+                  <li>
+                    <button
+                      type="button"
+                      className="gf-pagination__btn"
+                      aria-label="Next page"
+                      disabled={currentPage >= totalPages}
+                      onClick={() => handleFilterChange({ ...params, page: currentPage + 1 })}
+                    >
+                      Next →
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            )}
           </div>
         </div>
       </main>

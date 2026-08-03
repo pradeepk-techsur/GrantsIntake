@@ -6,48 +6,46 @@ interface WorkspaceSidebarProps {
   onSectionSelect: (type: SectionType) => void;
 }
 
-// Status badge helper
-const STATUS_LABELS: Record<SectionStatus, { label: string; className: string }> = {
-  not_started: { label: 'Not Started', className: 'usa-tag' },
-  in_progress: { label: 'In Progress', className: 'usa-tag usa-tag--info' },
-  complete: { label: 'Complete', className: 'usa-tag usa-tag--success' },
-  error: { label: 'Error', className: 'usa-tag usa-tag--error' },
-  locked: { label: 'Locked', className: 'usa-tag' },
-};
+function statusIndicator(status: SectionStatus): { icon: string; color: string } {
+  switch (status) {
+    case 'complete':    return { icon: '✓', color: 'var(--gf-success)' };
+    case 'error':       return { icon: '✗', color: 'var(--gf-error)' };
+    case 'in_progress': return { icon: '·', color: 'var(--gf-warning)' };
+    default:            return { icon: '·', color: 'var(--gf-border)' };
+  }
+}
 
+/**
+ * WorkspaceSidebar — GrantFlow Design System v1.0.
+ * Section navigation list with status indicators.
+ * Matches Figma left-nav pattern with active highlight.
+ */
 export function WorkspaceSidebar({ sections, activeSectionType, onSectionSelect }: WorkspaceSidebarProps) {
   const visibleSections = sections.filter((s) => s.is_visible);
 
   return (
-    <nav aria-label="Application sections" className="usa-sidenav">
-      <ul className="usa-sidenav__list">
+    <nav aria-label="Application sections">
+      <ul className="gf-section-nav" role="list">
         {visibleSections.map((section) => {
           const isActive = section.section_type === activeSectionType;
-          const statusInfo = STATUS_LABELS[section.status] ?? STATUS_LABELS.not_started;
+          const { icon, color } = statusIndicator(section.status);
 
           return (
-            <li key={section.section_id} className="usa-sidenav__item">
+            <li key={section.section_id} className="gf-section-nav__item">
               <button
                 type="button"
-                role="button"
-                className={isActive ? 'usa-current' : undefined}
+                className={`gf-section-nav__btn${isActive ? ' active' : ''}`}
                 onClick={() => onSectionSelect(section.section_type)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '0.5rem 1rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.25rem',
-                }}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <span>{section.section_name}</span>
-                <span className={statusInfo.className} style={{ fontSize: '0.75rem' }}>
-                  {statusInfo.label}
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    aria-hidden="true"
+                    style={{ color, fontSize: '14px', fontWeight: 700, flexShrink: 0, width: '14px', textAlign: 'center' }}
+                  >
+                    {icon}
+                  </span>
+                  <span style={{ fontSize: '13px' }}>{section.section_name}</span>
                 </span>
               </button>
             </li>

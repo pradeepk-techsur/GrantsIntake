@@ -1,43 +1,64 @@
 import { NavLink } from 'react-router-dom';
 
 /**
- * Sidebar navigation for the applicant portal.
- * USWDS usa-sidenav component with three nav items:
- * - My Profile → /applicant/profile
- * - Find Opportunities → /opportunities
- * - My Applications → /applicant/applications
+ * Sidebar navigation for the applicant portal — GrantFlow Design System v1.0.
+ * Dark navy sidebar with active state highlight.
+ * WCAG 2.1 AA: aria-label, aria-current via NavLink.
  */
 export function ApplicantSidebar() {
   return (
-    <nav aria-label="Applicant portal navigation" className="usa-sidenav">
-      <ul className="usa-sidenav__list">
-        <li className="usa-sidenav__item">
+    <nav aria-label="Applicant portal navigation" className="gf-sidebar">
+      <ul className="gf-sidebar__list" role="list">
+        <li className="gf-sidebar__item">
           <NavLink
             to="/applicant/profile"
-            className={({ isActive }) => (isActive ? 'usa-current' : undefined)}
+            className={({ isActive }) =>
+              isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+            }
           >
-            My Profile
+            Home
           </NavLink>
         </li>
-        <li className="usa-sidenav__item">
-          <NavLink to="/opportunities">Find Opportunities</NavLink>
+        <li className="gf-sidebar__item">
+          <NavLink
+            to="/opportunities"
+            className={({ isActive }) =>
+              isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+            }
+          >
+            Find funding
+          </NavLink>
         </li>
-        <li className="usa-sidenav__item">
+        <li className="gf-sidebar__item">
           <NavLink
             to="/applicant/applications"
-            className={({ isActive }) => (isActive ? 'usa-current' : undefined)}
+            className={({ isActive }) =>
+              isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+            }
             data-testid="nav-my-applications"
           >
-            My Applications
+            Applications
           </NavLink>
         </li>
-        <li className="usa-sidenav__item">
+        <li className="gf-sidebar__item">
+          <NavLink
+            to="/applicant/workspaces"
+            className={({ isActive }) =>
+              isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+            }
+          >
+            Awards
+          </NavLink>
+        </li>
+        <li className="gf-sidebar__item">
           <NavLink
             to="/applicant/notifications"
-            className={({ isActive }) => (isActive ? 'usa-current' : undefined)}
+            className={({ isActive }) =>
+              isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+            }
             data-testid="nav-notifications"
           >
-            Notifications
+            Messages
           </NavLink>
         </li>
       </ul>
