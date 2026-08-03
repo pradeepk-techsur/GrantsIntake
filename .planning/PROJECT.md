@@ -117,7 +117,7 @@ Grantors receive better applications and applicants submit with less burden — 
 
 **Regulatory Environment:** The system must align with U.S. federal grant regulations including 2 CFR 200.204 (Notices of Funding Opportunities), 2 CFR 200.205 (Merit Review), 2 CFR 200.206 (Risk Assessment). Federal opportunities require specific structured metadata including agency name, opportunity title, announcement type, FON, Assistance Listing number, funding details, key dates, executive summary, and contact information.
 
-**Design Standards:** The platform uses USWDS (U.S. Web Design System) design standards for accessibility, usability, and plain language — aligned with https://designsystem.digital.gov/. This ensures applicants with varying levels of grant-writing maturity can navigate the system.
+**Design Standards:** The platform uses the **GrantFlow Design System v1.0** — a grants-specific design system built on USWDS accessibility foundations with Carbon-inspired operational patterns and a restrained visual identity. It replaces the raw USWDS component library with a purpose-built token system (`grantflow.css`) using navy sidebar (`#003558`), clean white headers, and a light page background (`#F7F9FC`). WCAG 2.1 AA compliance is maintained throughout. The `@uswds/uswds` package has been removed from the client; all styles are defined via GrantFlow CSS custom properties and component classes (`gf-*`).
 
 **Market Context:** The Simpler.Grants.gov modernization initiative establishes the direction: reduce applicant burden, improve application experience, move toward simpler and more accessible grant interactions. Candid's "Demographics via Candid" initiative reflects the broader sector need to reduce repeated data collection.
 
@@ -130,7 +130,7 @@ Grantors receive better applications and applicants submit with less burden — 
 ## Constraints
 
 - **Regulatory**: Must support 2 CFR 200 compliance requirements for federal grant programs — eligibility logic, audit trail, and structured intake are mandatory, not optional
-- **Accessibility**: USWDS design standards required — Section 508 / WCAG 2.1 AA compliance for all applicant-facing interfaces
+- **Accessibility**: Section 508 / WCAG 2.1 AA compliance required for all applicant-facing interfaces — enforced via GrantFlow Design System v1.0 (skip nav, aria labels, focus management, color contrast)
 - **Privacy**: Draft application content must remain grantee-private until submission — strict data visibility boundaries between grantor-private, grantee-private, and shared zones
 - **Auditability**: All final submissions must generate immutable snapshots with timestamps, confirmation numbers, and full audit trails — 100% coverage required
 - **AI Guardrails**: AI may assist (summarize, suggest, extract) but final certifications and submissions require human action — AI decisions must be labeled and non-binding
@@ -140,11 +140,12 @@ Grantors receive better applications and applicants submit with less burden — 
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| USWDS design system | Federal accessibility standards, plain language, and usability alignment with grants.gov ecosystem | — Pending |
-| MVP scope = Stages 1-11 (MVP requirements only) | Deliver complete intake boundary before Phase 2 advanced features | — Pending |
-| Phase 2 deferred items | Advanced eligibility exceptions, private Q&A, internal applicant approval, applicant opportunity comparison, SAM API integration, analytics depth | — Pending |
-| Structured data over document-only | Capture grant data in forms/fields/tables wherever possible — reduces review burden and enables downstream analytics | — Pending |
-| Single application workspace per org per opportunity | Prevents duplicates and establishes clear ownership; configurable exception for multi-track programs | — Pending |
+| GrantFlow Design System v1.0 (replaces raw USWDS) | USWDS provides accessibility foundations but lacks grants-specific operational patterns. GrantFlow DS v1.0 builds on top: purpose-built `gf-*` CSS tokens, navy sidebar, stat cards, work queue tables, readiness checklist, lifecycle tracker, and color-coded badge system. `@uswds/uswds` package removed; CSS bundle reduced from 570 KB to 15 KB. | Implemented 2026-08-03 |
+| Figma design spec (GrantFlow Design System v1.0) | Design spec defines color tokens (`#003558` primary dark, `#005EA6` primary, `#F7F9FC` page bg), typography scale (Display 40 → Compact 14), and all component patterns. Both applicant and grantor portals use the same token system. | Implemented 2026-08-03 |
+| MVP scope = Stages 1-11 (MVP requirements only) | Deliver complete intake boundary before Phase 2 advanced features | Implemented |
+| Phase 2 deferred items | Advanced eligibility exceptions, private Q&A, internal applicant approval, applicant opportunity comparison, SAM API integration, analytics depth | Deferred |
+| Structured data over document-only | Capture grant data in forms/fields/tables wherever possible — reduces review burden and enables downstream analytics | Implemented |
+| Single application workspace per org per opportunity | Prevents duplicates and establishes clear ownership; configurable exception for multi-track programs | Implemented |
 
 ---
-*Last updated: 2026-07-24 after initialization*
+*Last updated: 2026-08-03 — GrantFlow Design System v1.0 migration complete*

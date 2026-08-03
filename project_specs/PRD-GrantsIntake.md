@@ -6,7 +6,7 @@
 **Version:** 1.0 Draft  
 **Date:** July 24, 2026  
 **Scope Boundary:** Opportunity setup through validated application intake and handoff to review  
-**Design Standard:** USWDS (https://designsystem.digital.gov/)  
+**Design Standard:** GrantFlow Design System v1.0 (built on USWDS accessibility foundations)  
 **Reference PRD:** `project_specs/ref_docs/grants_intake.pdf` (v1.0 Draft, July 2026)
 
 ---
@@ -61,7 +61,7 @@ Create a low-burden, rules-driven, auditable grants intake experience that allow
 - Private work must stay private — draft application content remains grantee-private until submission
 - Shared transactions must be immutable — final submissions, receipts, and official communications are preserved
 - Grantors need configuration with guardrails — program-specific flexibility with strong defaults
-- Accessibility and plain language matter — USWDS standards, Section 508 / WCAG 2.1 AA compliance
+- Accessibility and plain language matter — WCAG 2.1 AA standards, Section 508 / WCAG 2.1 AA compliance
 - AI should assist, not decide — AI may summarize, extract, or suggest, but final certifications and submissions require human action
 
 ---
@@ -70,7 +70,7 @@ Create a low-burden, rules-driven, auditable grants intake experience that allow
 
 | Layer | Technology / Approach |
 |---|---|
-| Design System | USWDS (U.S. Web Design System) — https://designsystem.digital.gov/ |
+| Design System | GrantFlow Design System v1.0 — purpose-built for grants workflows |
 | Accessibility | Section 508 / WCAG 2.1 AA compliance for all applicant-facing interfaces |
 | Data Visibility Zones | Grantor-private, Grantee-private, Shared transaction — strict boundary enforcement |
 | Regulatory Alignment | 2 CFR 200.204 (NOFO), 2 CFR 200.205 (Merit Review), 2 CFR 200.206 (Risk Assessment) |
@@ -146,12 +146,12 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 #### F2: Plain-Language Guidance Prompts
 *Maps to: PRD-INTAKE-003*
 
-**Description:** The system surfaces plain-language guidance prompts to grantors when writing opportunity descriptions and applicant instructions, aligned with USWDS plain language standards and the Simpler.Grants.gov modernization direction.
+**Description:** The system surfaces plain-language guidance prompts to grantors when writing opportunity descriptions and applicant instructions, aligned with plain language standards and the Simpler.Grants.gov modernization direction.
 
 **Capabilities:**
 - In-line guidance prompts during opportunity description authoring
 - Plain-language suggestions for applicant instructions
-- USWDS-aligned readability indicators
+- GrantFlow-aligned readability indicators
 
 **Priority:** P0 — MVP
 
@@ -309,11 +309,11 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 #### F13: Applicant-Facing Opportunity Portal Publication
 *Maps to: PRD-INTAKE-014*
 
-**Description:** Approved opportunities are published to an applicant-facing portal where they are discoverable by the public or by authenticated applicants, depending on opportunity configuration. The portal is built to USWDS standards.
+**Description:** Approved opportunities are published to an applicant-facing portal where they are discoverable by the public or by authenticated applicants, depending on opportunity configuration. The portal is built to WCAG 2.1 AA standards.
 
 **Capabilities:**
 - Publish approved opportunities to public or authenticated portal
-- USWDS-compliant opportunity listing and detail pages
+- GrantFlow-compliant opportunity listing and detail pages
 - Opportunity preview for grantor before publication
 
 **Priority:** P0 — MVP
@@ -491,7 +491,7 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 
 **Capabilities:**
 - Four-state result display: Eligible, Likely Eligible, Needs Attention, Ineligible
-- Distinct visual treatment per state using USWDS alert components: Eligible = green (success), Likely Eligible = blue/teal (info), Needs Attention = yellow (warning), Ineligible = red (error)
+- Distinct visual treatment per state using GrantFlow alert components (`gf-alert`): Eligible = green (success), Likely Eligible = blue/teal (info), Needs Attention = yellow (warning), Ineligible = red (error)
 - Guidance on next steps for each result state
 
 **Priority:** P0 — MVP
@@ -740,7 +740,7 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 **Capabilities:**
 - Generate preview of full submission package before submit
 - Preview includes all sections, form data, budget, and attachments
-- Preview rendered in human-readable format (USWDS-styled)
+- Preview rendered in human-readable format (GrantFlow-styled)
 - Preview does not initiate submission
 
 **Priority:** P0 — MVP
@@ -907,7 +907,7 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 **Description:** The submission snapshot preserves both a human-readable application package (formatted for review) and a machine-readable structured data package (JSON/XML). This supports downstream review tooling, analytics, and interoperability.
 
 **Capabilities:**
-- Human-readable package (PDF or USWDS-formatted HTML)
+- Human-readable package (PDF or GrantFlow-styled HTML)
 - Machine-readable structured data package (JSON or XML)
 - Both formats generated and stored at time of submission
 - Both accessible in grantor intake queue
@@ -1106,7 +1106,7 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 
 | Category | Requirement |
 |---|---|
-| **Accessibility** | USWDS design system required across all interfaces; Section 508 / WCAG 2.1 AA compliance for all applicant-facing pages |
+| **Accessibility** | GrantFlow Design System v1.0 required across all interfaces; Section 508 / WCAG 2.1 AA compliance for all applicant-facing pages |
 | **Privacy / Data Visibility** | Strict three-zone data boundary: Grantor-private, Grantee-private, Shared transaction — enforced at data and UI layers |
 | **Auditability** | 100% of final submissions generate immutable snapshots with UTC timestamps, confirmation numbers, and full audit trails; all intake events attributed to user and timestamp |
 | **Regulatory Compliance** | Opportunity metadata structures must satisfy 2 CFR 200.204 (NOFO); intake must capture data to support 2 CFR 200.205 (merit review) and 2 CFR 200.206 (risk assessment) |

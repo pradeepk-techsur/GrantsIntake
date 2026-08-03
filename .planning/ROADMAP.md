@@ -12,12 +12,13 @@ GrantsIntake delivers the complete "front door" of the grants lifecycle — from
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Platform Foundation & Opportunity Setup** - Auth, RBAC, grantor portal shell, and Stage 1 opportunity creation tools
-- [ ] **Phase 2: Eligibility & Intake Rules Configuration** - Stage 2 eligibility rule builder and Stage 3 opportunity publication and discovery
-- [ ] **Phase 3: Organization Profile & Eligibility Pre-Screening** - Stages 4–5: reusable applicant org profile, credentials, roles, and eligibility pre-screen workflow
-- [ ] **Phase 4: Application Workspace & Form Capture** - Stages 6–7: workspace creation, structured sections, forms, budget, and attachments
-- [ ] **Phase 5: Q&A, Submission & Validation** - Stages 8–9: Q&A/addenda, continuous validation, authorized submission, and immutable snapshot
-- [ ] **Phase 6: Intake Queue, Screening & Analytics** - Stages 10–11: intake queue routing, administrative screening, dispositions, and reporting
+- [x] **Phase 1: Platform Foundation & Opportunity Setup** - Auth, RBAC, grantor portal shell, and Stage 1 opportunity creation tools
+- [x] **Phase 2: Eligibility & Intake Rules Configuration** - Stage 2 eligibility rule builder and Stage 3 opportunity publication and discovery
+- [x] **Phase 3: Organization Profile & Eligibility Pre-Screening** - Stages 4–5: reusable applicant org profile, credentials, roles, and eligibility pre-screen workflow
+- [x] **Phase 4: Application Workspace & Form Capture** - Stages 6–7: workspace creation, structured sections, forms, budget, and attachments
+- [x] **Phase 5: Q&A, Submission & Validation** - Stages 8–9: Q&A/addenda, continuous validation, authorized submission, and immutable snapshot
+- [x] **Phase 6: Intake Queue, Screening & Analytics** - Stages 10–11: intake queue routing, administrative screening, dispositions, and reporting
+- [x] **UI: GrantFlow Design System v1.0** - Full migration from USWDS to GrantFlow DS; all 51 components converted, CSS 570KB→15KB, Figma spec implemented
 
 ## Phase Details
 
@@ -167,12 +168,14 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Platform Foundation & Opportunity Setup | 0/4 | Not started | - |
 | 2. Eligibility & Intake Rules Configuration | 0/3 | Not started | - |
-| 3. Organization Profile & Eligibility Pre-Screening | 0/3 | Not started | - |
-| 4. Application Workspace & Form Capture | 0/4 | Not started | - |
-| 5. Q&A, Submission & Validation | 0/3 | Not started | - |
-| 6. Intake Queue, Screening & Analytics | 0/3 | Not started | - |
+| 3. Organization Profile & Eligibility Pre-Screening | completed | passed | 2026-07-28 |
+| 4. Application Workspace & Form Capture | completed | passed | 2026-07-31 |
+| 5. Q&A, Submission & Validation | completed | passed | 2026-08-01 |
+| 6. Intake Queue, Screening & Analytics | completed | passed | 2026-08-02 |
+| UI: GrantFlow Design System v1.0 | completed | passed | 2026-08-03 |
 
 ---
 *Roadmap created: 2026-07-24*
-*Granularity: standard (6 phases, 20 plans)*
+*Last updated: 2026-08-03 — all phases complete including GrantFlow DS v1.0 UI upgrade*
+*Granularity: standard (6 phases + 1 UI upgrade, 20 plans)*
 *Coverage: 61/61 v1 requirements mapped*

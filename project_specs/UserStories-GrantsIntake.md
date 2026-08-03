@@ -48,7 +48,7 @@
 - [ ] The primary navigation includes at minimum: Opportunities (for Program Officers), Intake Queue (for Intake Administrators), Program Dashboard, Q&A Inbox, and Settings
 - [ ] Navigation items are role-restricted: Intake Administrators do not see the Opportunity Builder create action; Program Officers see intake queue in read-only summary only
 - [ ] A "Create New Opportunity" action is accessible from the grantor landing page and the Opportunities section for users with create permission
-- [ ] The grantor portal is WCAG 2.1 AA compliant and uses USWDS components throughout
+- [ ] The grantor portal is WCAG 2.1 AA compliant and uses GrantFlow Design System v1.0 components throughout
 - [ ] A `GRANTOR_LOGIN` audit event is logged with timestamp and user attribution on each authenticated session
 
 **Priority:** P0 | **Feature Ref:** Supports F0–F63 (grantor-side entry shell)
@@ -92,7 +92,7 @@
 
 **Acceptance Criteria:**
 - [ ] A collapsible guidance panel is displayed adjacent to narrative text fields (executive summary, eligibility summary, applicant instructions, program description)
-- [ ] Each guidance panel shows a plain-language prompt, an example of good content, and USWDS plain language tips
+- [ ] Each guidance panel shows a plain-language prompt, an example of good content, and plain language tips
 - [ ] A readability grade-level indicator is displayed below narrative fields as the grantor types
 - [ ] The readability indicator is clearly labeled as advisory and does not block save or publication
 - [ ] Grantors can toggle guidance prompts on or off; the preference is persisted per session
@@ -180,7 +180,7 @@
 - [ ] Each eligibility rule must have severity set to either `hard_blocker` or `advisory`
 - [ ] Hard Blocker rules require an enforcement point: `pre_workspace` (blocks workspace creation) or `pre_submission` (blocks submission)
 - [ ] Advisory rules display a USWDS Warning (yellow) alert but do not block workspace creation or submission
-- [ ] Hard Blocker rules display a USWDS Error (red) alert prominently when triggered
+- [ ] Hard Blocker rules display a error alert (`gf-alert--error`, red border) alert prominently when triggered
 - [ ] When multiple hard blockers are triggered, all are displayed — not just the first
 - [ ] Hard blockers with `enforcement_point = pre_workspace` disable the workspace creation button
 - [ ] Hard blockers with `enforcement_point = pre_submission` appear as blocking errors in the readiness dashboard
@@ -279,7 +279,7 @@
 - [ ] Full-text keyword search operates across opportunity title, executive summary, eligibility summary, program area, and funder name
 - [ ] Faceted filters are available for: funder, program area, geography, eligibility type, funding amount range, due date range, and application stage
 - [ ] Results can be sorted by relevance (when keyword is active), deadline (ascending), or newest posted
-- [ ] Results display as USWDS card components showing title, funder, program area, deadline, funding range, and status badge
+- [ ] Results display as GrantFlow card components (`gf-opp-card`) showing title, funder, program area, deadline, funding range, and status badge
 - [ ] Active filters are displayed as removable chips; results update in real time
 - [ ] Restricted-visibility opportunities do not appear in unauthenticated search results
 - [ ] Results default to open opportunities sorted by deadline; closed opportunities are shown only when explicitly filtered
@@ -437,7 +437,7 @@
 
 **Acceptance Criteria:**
 - [ ] Eligibility results are displayed in one of four states: Eligible, Likely Eligible, Needs Attention, or Ineligible
-- [ ] Each state has a visually distinct treatment using USWDS alert components: Eligible = green (success), Likely Eligible = blue/teal (info — positive advisory), Needs Attention = yellow (warning — requires awareness), Ineligible = red (error — blocked)
+- [ ] Each state has a visually distinct treatment using GrantFlow alert components (`gf-alert`): Eligible = green (success), Likely Eligible = blue/teal (info — positive advisory), Needs Attention = yellow (warning — requires awareness), Ineligible = red (error — blocked)
 - [ ] Each result state includes guidance text on the recommended next steps
 - [ ] The result screen is presented immediately after the final questionnaire question is answered
 - [ ] Hard Blocker violations result in an Ineligible state; Advisory violations with no hard blockers result in Needs Attention; no violations result in Eligible; minor advisory-only concerns with no triggered warnings result in Likely Eligible
@@ -657,7 +657,7 @@
 
 **Acceptance Criteria:**
 - [ ] A "Preview Submission Package" action generates a human-readable view of the complete package: all sections, form data, budget, and attachments
-- [ ] The preview is rendered in USWDS-styled format and is printable
+- [ ] The preview is rendered in GrantFlow-styled format and is printable
 - [ ] The preview does not initiate submission — it is a read-only view
 - [ ] Generating a preview does not lock the application or change its status
 - [ ] The preview shows only content that will appear in the grantor's intake view (grantee-private internal comments are excluded)
@@ -754,7 +754,7 @@
 **Acceptance Criteria:**
 - [ ] Validation messages are classified into three tiers: Blocking (red), Warning (yellow), Informational (blue)
 - [ ] Blocking messages prevent submission; warnings and informational messages do not
-- [ ] Each tier has a distinct visual treatment using USWDS alert components
+- [ ] Each tier has a distinct visual treatment using GrantFlow alert components (`gf-alert`)
 - [ ] All three tiers are displayed in the readiness dashboard
 - [ ] Blocking messages include a direct link to the field or section with the error
 
@@ -811,7 +811,7 @@
 **As a** Diana Reyes (Grant Intake Administrator), **I want to** access submitted applications in both a human-readable format and a structured data format, **so that** I can review applications directly and downstream systems can process the data.
 
 **Acceptance Criteria:**
-- [ ] A human-readable package (PDF or USWDS-formatted HTML) is generated and stored at the time of submission
+- [ ] A human-readable package (PDF or GrantFlow-styled HTML) is generated and stored at the time of submission
 - [ ] A machine-readable structured data package (JSON or XML) is generated and stored at the time of submission
 - [ ] Both formats are accessible in the grantor intake queue for each submitted application
 - [ ] Both formats are generated simultaneously at submission — there is no delay between them

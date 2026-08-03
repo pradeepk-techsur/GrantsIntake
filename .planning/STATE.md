@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: completed
 stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-08-02T17:54:04.247Z"
-last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
+last_updated: "2026-08-03T03:00:00.000Z"
+last_activity: "2026-08-03 — GrantFlow Design System v1.0 migration complete: all 51 TSX files converted from usa-* to gf-* classes, @uswds/uswds removed, CSS 570KB→15KB"
 progress:
   total_phases: 11
   completed_phases: 5
@@ -110,7 +110,10 @@ Recent decisions affecting current work:
 - [Phase 01-platform-foundation-opportunity-setup]: jose 5 over jsonwebtoken for JWT (ESM-native, Edge-compatible)
 - [Phase 01-platform-foundation-opportunity-setup]: Redis refresh token storage: refresh:{userId}:{jti} keys with TTL for fast invalidation
 - [Phase 01-platform-foundation-opportunity-setup]: audit_events immutability enforced via PostgreSQL trigger (not application layer)
-- [Phase 01-platform-foundation-opportunity-setup]: USWDS CSS imported via vite alias — Vite 8 rolldown exports map does not expose CSS under browser/import conditions
+- [UI Migration 2026-08-03]: GrantFlow Design System v1.0 adopted — replaces @uswds/uswds with purpose-built grantflow.css (15KB vs 570KB USWDS). All usa-* classes replaced with gf-* across 51 TSX files. Color tokens: primary-dark #003558, primary #005EA6, page-bg #F7F9FC. Components: gf-sidebar, gf-header, gf-card, gf-table, gf-btn, gf-badge, gf-alert, gf-stat-card, gf-form-group, gf-input, gf-select, gf-pagination, gf-progress, gf-checklist.
+- [UI Migration 2026-08-03]: @uswds/uswds package uninstalled from client/package.json — no longer a dependency. vite.config.ts alias for USWDS CSS removed. main.tsx imports only ./grantflow.css.
+- [UI Migration 2026-08-03]: Figma GrantFlow DS v1.0 spec implemented — applicant dashboard matches "Good afternoon, Priya" layout (greeting + 3 stat cards + applications table); grantor dashboard matches "Program operations" layout (3 stat cards + work queue table). Login page is centered card. All pages use dark navy sidebar (#003558) with active highlight (#005EA6).
+- [Phase 01-platform-foundation-opportunity-setup]: USWDS CSS was imported via vite alias — superseded by GrantFlow DS v1.0 migration on 2026-08-03
 - [Phase 01-platform-foundation-opportunity-setup]: Access token in Zustand memory only (not localStorage) — XSS mitigation per T-02-04; refresh token in httpOnly cookie from server
 - [Phase 01-platform-foundation-opportunity-setup]: getGrantorOrgIdForUser() pattern: grantor_org_id derived at runtime from grantor_roles WHERE user_id (never from request body) — T-02-01 IDOR mitigation
 - [Phase 01-platform-foundation-opportunity-setup]: audit_events entity_type/entity_id column names (not resource_type/resource_id)

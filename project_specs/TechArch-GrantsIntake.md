@@ -3,9 +3,9 @@
 **Product:** GrantsIntake — Dual-Sided Grants Lifecycle Management Platform  
 **Module:** Grants Intake  
 **Document Type:** Technical Architecture Document (TechArch)  
-**Version:** 1.0 Draft  
-**Date:** July 24, 2026  
-**Design Standard:** USWDS (https://designsystem.digital.gov/)  
+**Version:** 1.1  
+**Date:** August 3, 2026  
+**Design Standard:** GrantFlow Design System v1.0 (USWDS accessibility foundations + Carbon-inspired operational patterns)  
 **Regulatory Alignment:** 2 CFR 200.204, 2 CFR 200.205, 2 CFR 200.206
 
 ---
@@ -27,7 +27,7 @@ GrantsIntake uses a **layered monolith with service boundaries** architecture. T
 │                        CLIENTS                                    │
 │  ┌───────────────────────┐   ┌──────────────────────────────┐    │
 │  │  Grantor Portal       │   │  Applicant Portal            │    │
-│  │  (React + USWDS)      │   │  (React + USWDS)             │    │
+│  │  (React + GrantFlow)  │   │  (React + GrantFlow)         │    │
 │  │  - Opportunity Builder│   │  - Opportunity Discovery     │    │
 │  │  - Intake Queue       │   │  - Application Workspace     │    │
 │  │  - Analytics Dashboard│   │  - Org Profile               │    │
@@ -159,7 +159,7 @@ Internal opportunity     Org profile (live)        Intake dispositions
 | Background workers for heavy ops | PDF generation, export jobs, and notification delivery are queued to avoid blocking API responses |
 | Three-zone visibility at middleware | Enforced at HTTP middleware layer before any business logic; prevents data leakage from service-level bugs |
 | Immutable audit table (no UPDATE/DELETE) | `audit_events` and `submission_snapshots` have DB-level triggers that reject UPDATE/DELETE; application cannot bypass this |
-| USWDS design tokens in React | All UI components built on USWDS component library; ensures Section 508 / WCAG 2.1 AA compliance by default |
+| GrantFlow Design System v1.0 | All UI components use purpose-built `gf-*` CSS classes and CSS custom property tokens; Section 508 / WCAG 2.1 AA compliance via skip nav, aria labels, and focus management; replaces `@uswds/uswds` package entirely |
 ---
 
 ## 3. Component Architecture
@@ -275,11 +275,11 @@ WebSocket event pushed to active workspace clients (real-time update)
 
 **Validation message classification:**
 
-| Level | Severity | Blocks Submission | USWDS Component |
-|-------|----------|-------------------|-----------------|
-| Informational | `info` | No | Info alert (blue) |
-| Warning | `warning` | No | Warning alert (yellow) |
-| Blocking | `blocking` | Yes | Error alert (red) |
+| Level | Severity | Blocks Submission | GrantFlow Component |
+|-------|----------|-------------------|---------------------|
+| Informational | `info` | No | `gf-alert gf-alert--info` (teal left border) |
+| Warning | `warning` | No | `gf-alert gf-alert--warning` (amber left border) |
+| Blocking | `blocking` | Yes | `gf-alert gf-alert--error` (red left border) |
 
 ---
 
@@ -365,12 +365,12 @@ The frontend is a **React SPA** served from CDN, structured as two portals shari
 ```
 frontend/
 ├── packages/
-│   ├── uswds-components/       # USWDS React wrapper components
-│   │   ├── Alert/              # Blocking, warning, info alerts (USWDS Alert)
-│   │   ├── Button/             # USWDS Button
-│   │   ├── Form/               # USWDS Form inputs, labels, error messages
-│   │   ├── Table/              # USWDS Table
-│   │   └── StepIndicator/      # USWDS Step Indicator (submission progress)
+│   ├── grantflow-components/   # GrantFlow DS v1.0 component classes (gf-*)
+│   │   ├── Alert/              # Blocking, warning, info, success alerts (gf-alert)
+│   │   ├── Button/             # gf-btn variants: primary, outline, ghost, danger
+│   │   ├── Form/               # gf-input, gf-select, gf-textarea, gf-label, gf-error-msg
+│   │   ├── Table/              # gf-table with gf-table-wrap overflow container
+│   │   └── Lifecycle/          # gf-lifecycle tracker (step dots + connectors)
 │   └── shared-api-client/      # Generated TypeScript API client
 ├── apps/
 │   ├── grantor-portal/         # Grantor-facing React app
@@ -390,13 +390,12 @@ frontend/
 │       └── Dashboard/          # F62 applicant dashboard
 ```
 
-**USWDS Integration:**
-- USWDS design tokens loaded globally via CSS custom properties
-- All form validation errors surface via USWDS Error Message component (`usa-error-message`)
-- Eligibility blockers use USWDS Error Alert (`usa-alert--error`)
-- Advisory indicators use USWDS Warning Alert (`usa-alert--warning`)
-- Step Indicator tracks application section completion
-- Section 508 / WCAG 2.1 AA compliance enforced via USWDS component defaults + accessibility linting in CI
+**GrantFlow Design System v1.0 Integration:**
+- Design tokens loaded globally via `client/src/grantflow.css` CSS custom properties (`--gf-*`)
+- All form validation errors surface via `gf-error-msg` class and `gf-alert gf-alert--error` component
+- Eligibility blockers use error alert (`gf-alert gf-alert--error`, red left border)
+- Advisory indicators use warning alert (`gf-alert gf-alert--warning`, amber left border)
+- Section 508 / WCAG 2.1 AA compliance enforced via skip nav (`gf-skipnav`), aria labels, role attributes, and focus management + accessibility linting in CI
 
 **State management:**
 - React Query for server state (API data fetching, caching, background refetch)
@@ -2240,7 +2239,7 @@ Per product principles, AI assistance features are:
 
 | Layer | Technology | Version | Purpose |
 |-------|------------|---------|---------|
-| **Design System** | USWDS (U.S. Web Design System) | 3.x | All applicant-facing UI components, accessibility compliance |
+| **Design System** | GrantFlow Design System v1.0 | 1.0 | All UI components via `grantflow.css`; WCAG 2.1 AA; replaces `@uswds/uswds` |
 | **Frontend Framework** | React | 18.x | SPA for grantor and applicant portals |
 | **Frontend Routing** | React Router | 6.x | Client-side routing within SPAs |
 | **Frontend State — Server** | React Query (TanStack Query) | 5.x | API data fetching, caching, background refetch |
@@ -2284,7 +2283,7 @@ Per product principles, AI assistance features are:
 | BullMQ over simple cron | PDF generation and export jobs are CPU-intensive and should not block API responses; BullMQ provides retry, priority queuing, and job progress tracking |
 | React Query over Redux for server state | Grants intake is read-heavy with many derived views; React Query's cache + background refetch eliminates most boilerplate state management |
 | Prisma/Drizzle ORM (not raw SQL) | Parameterized queries prevent SQL injection by construction; TypeScript inference from schema reduces runtime type errors |
-| USWDS over custom component library | Federal standard; pre-built Section 508 / WCAG 2.1 AA compliance; consistent with grants.gov ecosystem direction |
+| GrantFlow Design System v1.0 over raw USWDS | USWDS provides accessibility foundations but lacks grants-specific operational patterns (work queues, stat cards, readiness dashboards, lifecycle trackers). GrantFlow DS v1.0 builds grants-specific patterns on top of USWDS accessibility principles. CSS bundle reduced 97% (570KB → 15KB). All `usa-*` classes replaced with `gf-*` across 51 components. |
 | PostgreSQL full-text search (not Elasticsearch) | MVP scale does not require distributed search; Postgres FTS handles keyword search adequately; eliminates operational overhead |
 ---
 

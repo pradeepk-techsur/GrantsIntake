@@ -44,7 +44,7 @@ Requirements for the initial release. All items are from the reference PRD marke
 ### Stage 5 — Eligibility Pre-Screening
 
 - [ ] **PRD-INTAKE-025**: System provides an eligibility pre-screen workflow before application workspace creation or before full submission, depending on opportunity configuration
-- [ ] **PRD-INTAKE-026**: System shows applicants eligibility results as eligible, likely eligible, needs attention, or ineligible, with four distinct USWDS visual treatments
+- [ ] **PRD-INTAKE-026**: System shows applicants eligibility results as eligible, likely eligible, needs attention, or ineligible, with four distinct GrantFlow visual treatments (`gf-badge` variants)
 - [ ] **PRD-INTAKE-027**: System explains which eligibility responses caused a blocker or warning
 - [ ] **PRD-INTAKE-029**: System stores eligibility responses as part of the intake record and carries them into administrative screening
 
