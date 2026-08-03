@@ -1,3 +1,4 @@
+// GrantFlow Design System v1.0 — migrated 2026-08-03
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './grantflow.css';
