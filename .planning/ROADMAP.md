@@ -160,23 +160,40 @@ Plans:
 - [ ] 06-02-PLAN.md — Gap closure: Applicant NotificationsPage (/applicant/notifications route + ApplicantSidebar link) consuming existing notification_records backend; closes UAT Test 7 (PRD-INTAKE-062)
 - [ ] 06-03-PLAN.md — Review handoff auto-creation on accepted_for_review (PRD-INTAKE-061); grantor intake analytics dashboard with /intake-analytics endpoint + 3 analytics cards in Dashboard.tsx (PRD-INTAKE-062); ApplicantDashboard page + route + sidebar wiring (PRD-INTAKE-063); synchronous CSV export via /intake-queue/export + Export button (PRD-INTAKE-064)
 
+### Phase 7: Navigation Cleanup
+**Status**: passed
+**Completed**: 2026-08-03
+**Goal**: Remove post-award navigation items (Awards, Monitoring) that are outside the intake module scope, and correct a mislabeled nav item in the applicant portal
+**Depends on**: UI: GrantFlow Design System v1.0
+**Requirements**: N/A — UX cleanup; no new functional requirements
+**Success Criteria** (what must be TRUE):
+  1. The grantor sidebar no longer shows Awards or Monitoring nav items
+  2. The applicant sidebar no longer shows an Awards nav item (workspaces are applications, not post-award grants)
+  3. All removed routes remain intact and accessible via direct URL — nav removal only, no route deletion
+  4. Build passes with no errors
+**Plans:** 1 plan
+
+Plans:
+- [x] 07-01-PLAN.md — Remove Awards and Monitoring from GrantorSidebar; remove Awards from ApplicantSidebar; UI-only, no backend changes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Platform Foundation & Opportunity Setup | 0/4 | Not started | - |
-| 2. Eligibility & Intake Rules Configuration | 0/3 | Not started | - |
-| 3. Organization Profile & Eligibility Pre-Screening | completed | passed | 2026-07-28 |
-| 4. Application Workspace & Form Capture | completed | passed | 2026-07-31 |
-| 5. Q&A, Submission & Validation | completed | passed | 2026-08-01 |
-| 6. Intake Queue, Screening & Analytics | completed | passed | 2026-08-02 |
-| UI: GrantFlow Design System v1.0 | completed | passed | 2026-08-03 |
+| Phase | Plans | Status | Completed |
+|-------|-------|--------|-----------|
+| 1. Platform Foundation & Opportunity Setup | 6/6 | passed | 2026-07-25 |
+| 2. Eligibility & Intake Rules Configuration | 5/5 | passed | 2026-07-25 |
+| 3. Organization Profile & Eligibility Pre-Screening | 5/5 | passed | 2026-07-28 |
+| 4. Application Workspace & Form Capture | 13/13 | passed | 2026-07-31 |
+| 5. Q&A, Submission & Validation | 12/12 | passed | 2026-08-01 |
+| 6. Intake Queue, Screening & Analytics | 3/3 | passed | 2026-08-02 |
+| UI: GrantFlow Design System v1.0 | 1/1 | passed | 2026-08-03 |
+| 7. Navigation Cleanup | 1/1 | passed | 2026-08-03 |
 
 ---
 *Roadmap created: 2026-07-24*
-*Last updated: 2026-08-03 — all phases complete including GrantFlow DS v1.0 UI upgrade*
-*Granularity: standard (6 phases + 1 UI upgrade, 20 plans)*
+*Last updated: 2026-08-03 — Phase 7 Navigation Cleanup complete; all 7 phases passed*
+*Granularity: standard (7 phases + 1 UI upgrade, 46 plans)*
 *Coverage: 61/61 v1 requirements mapped*
