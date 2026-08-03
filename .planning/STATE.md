@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-08-03T04:00:00.000Z"
-last_activity: "2026-08-03 — Phase 7 complete: removed Awards and Monitoring nav items from grantor sidebar; removed Awards nav item from applicant sidebar"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-08-03T15:30:52.407Z"
+last_activity: "2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate"
 progress:
-  total_phases: 7
-  completed_phases: 7
+  total_phases: 13
+  completed_phases: 6
   total_plans: 47
-  completed_plans: 47
-  percent: 100
+  completed_plans: 46
+  percent: 97
 ---
 
 # Project State
@@ -96,6 +96,7 @@ Progress: [█████████▒] 97%
 | Phase 05-q-a-submission-validation P11 | 8min | 1 tasks | 1 files |
 | Phase 06-intake-queue-screening-analytics P01 | 20 min | 2 tasks | 13 files |
 | Phase 06-intake-queue-screening-analytics P02 | 11 min | 2 tasks | 4 files |
+| Phase 07-navigation-cleanup P01 | 2 min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -193,6 +194,7 @@ Recent decisions affecting current work:
 - [Phase 06-intake-queue-screening-analytics]: grantorOrgId server-derived via grantor_roles JOIN (not grantor_memberships — actual table name in migration 001), consistent with T-02-01 IDOR pattern
 - [Phase 06-intake-queue-screening-analytics]: Array.isArray shape guard in NotificationsPage handles both raw array and { notifications: [] } API response shapes
 - [Phase 06-intake-queue-screening-analytics]: Single Playwright route handler dispatches on method+URL for notifications tests to handle GET list and PUT mark-read in one handler
+- [Phase 07-navigation-cleanup]: Navigation scoped to intake module: Awards and Monitoring removed from grantor sidebar, Awards removed from applicant sidebar — routes retained in App.tsx, no backend changes
 
 ### Pending Todos
 
@@ -204,6 +206,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-02T17:54:04.245Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-08-03T15:30:52.406Z
+Stopped at: Completed 07-01-PLAN.md
 Resume file: None
