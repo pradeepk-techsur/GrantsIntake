@@ -188,7 +188,7 @@ export function OpportunityDetailPage() {
   if (loading) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: '#565c65' }}>
-        <span className="usa-sr-only">Loading opportunity details…</span>
+        <span className="gf-sr-only">Loading opportunity details…</span>
         <div aria-busy="true" aria-label="Loading">Loading opportunity details…</div>
       </div>
     );
@@ -196,12 +196,12 @@ export function OpportunityDetailPage() {
 
   if (error || !opportunity) {
     return (
-      <div className="grid-container" style={{ paddingTop: '2rem' }}>
-        <div className="usa-alert usa-alert--error" role="alert">
-          <div className="usa-alert__body">
-            <h4 className="usa-alert__heading">Opportunity Not Found</h4>
-            <p className="usa-alert__text">{error ?? 'This opportunity could not be loaded.'}</p>
-            <Link to="/opportunities" className="usa-link">
+      <div  style={{ paddingTop: '2rem' }}>
+        <div className="gf-alert gf-alert gf-alert--error" role="alert">
+          <div >
+            <h4 className="gf-alert__title">Opportunity Not Found</h4>
+            <p className="gf-alert__text">{error ?? 'This opportunity could not be loaded.'}</p>
+            <Link to="/opportunities" >
               ← Back to Funding Opportunities
             </Link>
           </div>
@@ -237,7 +237,7 @@ export function OpportunityDetailPage() {
       return (
         <a
           href={`/login?redirect=${encodeURIComponent(redirectPath)}`}
-          className="usa-button usa-button--big"
+          className="gf-btn gf-btn--primary gf-btn gf-btn--primary"
           style={{ width: '100%', textAlign: 'center' }}
         >
           Sign In to Apply
@@ -249,7 +249,7 @@ export function OpportunityDetailPage() {
       return (
         <button
           type="button"
-          className="usa-button usa-button--big"
+          className="gf-btn gf-btn--primary gf-btn gf-btn--primary"
           disabled
           style={{ width: '100%', backgroundColor: '#71767a', cursor: 'not-allowed' }}
           aria-disabled="true"
@@ -263,7 +263,7 @@ export function OpportunityDetailPage() {
       return (
         <a
           href={`/applicant/workspaces/${workspaceId}`}
-          className="usa-button usa-button--big"
+          className="gf-btn gf-btn--primary gf-btn gf-btn--primary"
           style={{ width: '100%', textAlign: 'center' }}
         >
           Continue Application
@@ -275,7 +275,7 @@ export function OpportunityDetailPage() {
     return (
       <button
         type="button"
-        className="usa-button usa-button--big"
+        className="gf-btn gf-btn--primary gf-btn gf-btn--primary"
         style={{ width: '100%' }}
         onClick={() => createWorkspaceMutation.mutate()}
         disabled={createWorkspaceMutation.isPending}
@@ -289,27 +289,27 @@ export function OpportunityDetailPage() {
   return (
     <>
       {/* App header */}
-      <header className="usa-header usa-header--basic" role="banner">
-        <div className="usa-nav-container">
-          <div className="usa-navbar">
-            <div className="usa-logo">
-              <em className="usa-logo__text">GrantsIntake</em>
+      <header className="gf-header gf-header" role="banner">
+        <div >
+          <div >
+            <div >
+              <em className="gf-header__logo">GrantsIntake</em>
             </div>
           </div>
-          <nav aria-label="Primary navigation" className="usa-nav">
-            <ul className="usa-nav__primary usa-accordion">
-              <li className="usa-nav__primary-item">
-                <Link to="/opportunities" className="usa-nav__link">
+          <nav aria-label="Primary navigation" >
+            <ul >
+              <li >
+                <Link to="/opportunities" >
                   <span>Find Opportunities</span>
                 </Link>
               </li>
-              <li className="usa-nav__primary-item">
+              <li >
                 {accessToken ? (
-                  <Link to="/grantor/dashboard" className="usa-nav__link">
+                  <Link to="/grantor/dashboard" >
                     <span>Dashboard</span>
                   </Link>
                 ) : (
-                  <a href="/login" className="usa-nav__link">
+                  <a href="/login" >
                     <span>Sign In</span>
                   </a>
                 )}
@@ -320,23 +320,23 @@ export function OpportunityDetailPage() {
       </header>
 
       <main id="main-content" tabIndex={-1}>
-        <div className="usa-section">
-          <div className="grid-container">
+        <div >
+          <div >
             {/* Breadcrumbs — WCAG 2.1 AA */}
-            <nav aria-label="Breadcrumb" className="usa-breadcrumb">
-              <ol className="usa-breadcrumb__list">
-                <li className="usa-breadcrumb__list-item">
-                  <a href="/" className="usa-breadcrumb__link">
+            <nav aria-label="Breadcrumb" >
+              <ol >
+                <li className="-item">
+                  <a href="/" >
                     Home
                   </a>
                 </li>
-                <li className="usa-breadcrumb__list-item">
-                  <Link to="/opportunities" className="usa-breadcrumb__link">
+                <li className="-item">
+                  <Link to="/opportunities" >
                     Funding Opportunities
                   </Link>
                 </li>
                 <li
-                  className="usa-breadcrumb__list-item usa-current"
+                  className="-item active"
                   aria-current="page"
                 >
                   {opportunity.title}
@@ -346,7 +346,7 @@ export function OpportunityDetailPage() {
 
             {/* Page title + status badge */}
             <div
-              className="usa-prose"
+              
               style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.5rem' }}
             >
               <div>
@@ -368,13 +368,13 @@ export function OpportunityDetailPage() {
             </div>
 
             {/* Two-column layout */}
-            <div className="grid-row grid-gap">
+            <div >
               {/* Main content — 2/3 width */}
               <div className="desktop:grid-col-8">
                 {/* Overview */}
                 <section aria-labelledby="overview-heading" style={{ marginBottom: '2rem' }}>
                   <h2 id="overview-heading">Overview</h2>
-                  <div className="usa-prose">
+                  <div >
                     <p>{opportunity.executive_summary}</p>
                     {opportunity.funder_name && (
                       <p>
@@ -392,7 +392,7 @@ export function OpportunityDetailPage() {
                   <h2 id="eligibility-heading">Eligibility</h2>
 
                   {opportunity.eligibility_rules.length === 0 ? (
-                    <div className="usa-prose">
+                    <div >
                       <p>{opportunity.eligibility_summary}</p>
                     </div>
                   ) : (
@@ -403,7 +403,7 @@ export function OpportunityDetailPage() {
                           <h3 style={{ fontSize: '1rem', color: '#b50909' }}>
                             ⚠ Hard Requirements
                           </h3>
-                          <ul className="usa-list">
+                          <ul >
                             {hardBlockers.map((rule) => (
                               <li key={rule.rule_id}>
                                 <span aria-label="Hard requirement" style={{ marginRight: '0.5rem' }}>🚫</span>
@@ -420,7 +420,7 @@ export function OpportunityDetailPage() {
                           <h3 style={{ fontSize: '1rem', color: '#e5a000' }}>
                             Advisory Requirements
                           </h3>
-                          <ul className="usa-list">
+                          <ul >
                             {advisory.map((rule) => (
                               <li key={rule.rule_id}>
                                 <span aria-label="Advisory requirement" style={{ marginRight: '0.5rem' }}>⚠</span>
@@ -445,7 +445,7 @@ export function OpportunityDetailPage() {
                           <h3 style={{ fontSize: '1rem' }}>
                             {stageScopeLabels[stage] ?? stage}
                           </h3>
-                          <table className="usa-table usa-table--borderless" style={{ width: '100%' }}>
+                          <table className="gf-table gf-table" style={{ width: '100%' }}>
                             <thead>
                               <tr>
                                 <th scope="col">Document</th>
@@ -492,9 +492,9 @@ export function OpportunityDetailPage() {
                   <h2 id="qa-heading">Questions &amp; Answers</h2>
                   {publishedQAQuery.isLoading && <p>Loading Q&amp;A…</p>}
                   {publishedQAQuery.isError && (
-                    <div className="usa-alert usa-alert--error usa-alert--slim" role="alert" data-testid="qa-error">
-                      <div className="usa-alert__body">
-                        <p className="usa-alert__text">Unable to load Q&amp;A. Please refresh the page.</p>
+                    <div className="gf-alert gf-alert gf-alert--error" role="alert" data-testid="qa-error">
+                      <div >
+                        <p className="gf-alert__text">Unable to load Q&amp;A. Please refresh the page.</p>
                       </div>
                     </div>
                   )}
@@ -505,12 +505,12 @@ export function OpportunityDetailPage() {
                     publishedQAQuery.data.map((item) => (
                       <div
                         key={item.qa_id}
-                        className="usa-card"
+                        className="gf-card"
                         style={{ marginBottom: '0.75rem' }}
                         data-testid="qa-detail-item"
                       >
-                        <div className="usa-card__container">
-                          <div className="usa-card__body">
+                        <div >
+                          <div className="gf-card__body">
                             <p style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
                               Q: {item.question_text}
                             </p>
@@ -529,7 +529,7 @@ export function OpportunityDetailPage() {
                   {accessToken && (
                     <Link
                       to={`/applicant/opportunities/${opportunity.opportunity_id}/qa`}
-                      className="usa-button usa-button--outline"
+                      className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
                       style={{ marginTop: '0.5rem' }}
                       data-testid="submit-question-link"
                     >
@@ -605,7 +605,7 @@ export function OpportunityDetailPage() {
 
                   {/* Jump to Q&A */}
                   <div style={{ marginBottom: '1rem' }}>
-                    <a href="#qa-section" className="usa-link" style={{ fontSize: '0.875rem' }} data-testid="jump-to-qa-link">
+                    <a href="#qa-section"  style={{ fontSize: '0.875rem' }} data-testid="jump-to-qa-link">
                       ↓ Jump to Q&amp;A Section
                     </a>
                   </div>
@@ -618,7 +618,7 @@ export function OpportunityDetailPage() {
                     <div style={{ marginBottom: '1rem' }}>
                       <Link
                         to={`/applicant/opportunities/${opportunity.opportunity_id}/prescreen`}
-                        className="usa-button usa-button--outline"
+                        className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
                         style={{ width: '100%', textAlign: 'center', display: 'block' }}
                         data-testid="check-eligibility-link"
                       >
@@ -637,7 +637,7 @@ export function OpportunityDetailPage() {
                   >
                     <p style={{ margin: '0 0 0.25rem', fontWeight: 'bold' }}>Contact</p>
                     <p style={{ margin: '0 0 0.25rem' }}>{opportunity.contact_name}</p>
-                    <a href={`mailto:${opportunity.contact_email}`} className="usa-link">
+                    <a href={`mailto:${opportunity.contact_email}`} >
                       {opportunity.contact_email}
                     </a>
                   </div>

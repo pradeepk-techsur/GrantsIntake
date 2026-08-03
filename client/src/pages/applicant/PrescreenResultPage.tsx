@@ -14,19 +14,19 @@ const alertConfig: Record<
   { className: string; heading: string }
 > = {
   eligible: {
-    className: 'usa-alert--success',
+    className: 'gf-alert gf-alert--success',
     heading: 'Eligible',
   },
   likely_eligible: {
-    className: 'usa-alert--info',
+    className: 'gf-alert gf-alert--info',
     heading: 'Likely Eligible',
   },
   needs_attention: {
-    className: 'usa-alert--warning',
+    className: 'gf-alert gf-alert--warning',
     heading: 'Needs Attention',
   },
   ineligible: {
-    className: 'usa-alert--error',
+    className: 'gf-alert gf-alert--error',
     heading: 'Ineligible',
   },
 };
@@ -73,8 +73,8 @@ export function PrescreenResultPage() {
   if (fetching) {
     return (
       <main id="main-content" tabIndex={-1}>
-        <div className="usa-section">
-          <div className="grid-container">
+        <div >
+          <div >
             <div aria-busy="true" aria-label="Loading result">Loading your eligibility result…</div>
           </div>
         </div>
@@ -85,18 +85,18 @@ export function PrescreenResultPage() {
   if (fetchError || !result || !result.overall_result) {
     return (
       <main id="main-content" tabIndex={-1}>
-        <div className="usa-section">
-          <div className="grid-container">
-            <div className="usa-alert usa-alert--error" role="alert">
-              <div className="usa-alert__body">
-                <h2 className="usa-alert__heading">Result not available</h2>
-                <p className="usa-alert__text">
+        <div >
+          <div >
+            <div className="gf-alert gf-alert gf-alert--error" role="alert">
+              <div >
+                <h2 className="gf-alert__title">Result not available</h2>
+                <p className="gf-alert__text">
                   {fetchError ?? 'Your eligibility result could not be loaded. Please return to the opportunities list and try again.'}
                 </p>
               </div>
             </div>
             <div style={{ marginTop: '1.5rem' }}>
-              <Link to="/opportunities" className="usa-button usa-button--outline">
+              <Link to="/opportunities" className="gf-btn gf-btn--primary gf-btn gf-btn--outline">
                 ← Return to Opportunities
               </Link>
             </div>
@@ -112,19 +112,19 @@ export function PrescreenResultPage() {
 
   return (
     <main id="main-content" tabIndex={-1}>
-      <div className="usa-section">
-        <div className="grid-container">
-          <h1 className="usa-prose">Eligibility Pre-Screen Result</h1>
+      <div >
+        <div >
+          <h1 >Eligibility Pre-Screen Result</h1>
 
           {/* Main status alert — PRD-INTAKE-026 */}
           <div
-            className={`usa-alert ${config.className}`}
+            className={`gf-alert ${config.className}`}
             role="alert"
             data-testid="prescreen-result-alert"
           >
-            <div className="usa-alert__body">
-              <h2 className="usa-alert__heading">{config.heading}</h2>
-              <p className="usa-alert__text">{result.next_step}</p>
+            <div >
+              <h2 className="gf-alert__title">{config.heading}</h2>
+              <p className="gf-alert__text">{result.next_step}</p>
             </div>
           </div>
 
@@ -135,15 +135,15 @@ export function PrescreenResultPage() {
               data-testid="blocker-section"
               style={{ marginTop: '2rem' }}
             >
-              <h3 className="usa-prose">Issues Preventing Eligibility</h3>
-              <ul className="usa-list">
+              <h3 >Issues Preventing Eligibility</h3>
+              <ul >
                 {hardBlockers.map((rule) => (
                   <li key={rule.rule_id}>
                     <strong>Blocker:</strong> {rule.explanation_text}
                     {rule.opportunity_section_link && (
                       <>
                         {' '}
-                        <a href={rule.opportunity_section_link} className="usa-link">
+                        <a href={rule.opportunity_section_link} >
                           See opportunity section
                         </a>
                       </>
@@ -161,11 +161,11 @@ export function PrescreenResultPage() {
               data-testid="advisory-section"
               style={{ marginTop: '1.5rem' }}
             >
-              <h3 className="usa-prose">Advisory Notes</h3>
-              <p className="usa-prose" style={{ color: '#565c65', fontSize: '0.9rem' }}>
+              <h3 >Advisory Notes</h3>
+              <p  style={{ color: '#565c65', fontSize: '0.9rem' }}>
                 These items are not hard requirements but may affect your application.
               </p>
-              <ul className="usa-list">
+              <ul >
                 {advisories.map((rule) => (
                   <li key={rule.rule_id}>{rule.explanation_text}</li>
                 ))}
@@ -179,17 +179,17 @@ export function PrescreenResultPage() {
               <>
                 <Link
                   to="/applicant/applications"
-                  className="usa-button"
+                  className="gf-btn gf-btn--primary"
                   data-testid="start-application-link"
                 >
                   Start Application →
                 </Link>
-                <Link to="/opportunities" className="usa-button usa-button--outline">
+                <Link to="/opportunities" className="gf-btn gf-btn--primary gf-btn gf-btn--outline">
                   Return to Opportunities
                 </Link>
               </>
             ) : (
-              <Link to="/opportunities" className="usa-button usa-button--outline">
+              <Link to="/opportunities" className="gf-btn gf-btn--primary gf-btn gf-btn--outline">
                 Return to Opportunities
               </Link>
             )}

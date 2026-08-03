@@ -1,6 +1,5 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import '@uswds/uswds/dist/css/uswds.min.css';
 import './grantflow.css';
 import App from './App.tsx';
 

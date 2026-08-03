@@ -67,21 +67,21 @@ export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLoc
       <div style={{ marginBottom: '1.5rem' }}>
         <h2>{section.section_name}</h2>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span className="usa-tag">{section.status.replace('_', ' ')}</span>
+          <span className="gf-badge gf-badge--neutral">{section.status.replace('_', ' ')}</span>
           {section.owner_id && (
-            <span className="usa-hint">Owner: {section.owner_id}</span>
+            <span className="gf-hint">Owner: {section.owner_id}</span>
           )}
           {section.internal_due_date && (
-            <span className="usa-hint">Due: {section.internal_due_date}</span>
+            <span className="gf-hint">Due: {section.internal_due_date}</span>
           )}
         </div>
       </div>
 
       {/* Read-only notice — shown when workspace is locked after submission */}
       {isLocked && (
-        <div className="usa-alert usa-alert--info usa-alert--slim" style={{ marginBottom: '1rem' }} role="status">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">This section is read-only. The application has been submitted.</p>
+        <div className="gf-alert gf-alert gf-alert--info" style={{ marginBottom: '1rem' }} role="status">
+          <div >
+            <p className="gf-alert__text">This section is read-only. The application has been submitted.</p>
           </div>
         </div>
       )}
@@ -102,22 +102,22 @@ export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLoc
       <section aria-label="Section tasks" style={{ marginBottom: '1.5rem' }}>
         <h3>Tasks</h3>
         {tasksQuery.isLoading ? (
-          <p className="usa-hint">Loading tasks…</p>
+          <p className="gf-hint">Loading tasks…</p>
         ) : sectionTasks.length === 0 ? (
-          <p className="usa-hint">No tasks assigned to this section.</p>
+          <p className="gf-hint">No tasks assigned to this section.</p>
         ) : (
-          <ul className="usa-list">
+          <ul >
             {sectionTasks.map((task: WorkspaceTask) => (
               <li key={task.task_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <strong>{task.task_title}</strong>
                   {task.task_due_date && (
-                    <span className="usa-hint" style={{ marginLeft: '0.5rem' }}>
+                    <span className="gf-hint" style={{ marginLeft: '0.5rem' }}>
                       Due: {task.task_due_date}
                     </span>
                   )}
                   <span
-                    className={task.status === 'complete' ? 'usa-tag usa-tag--success' : 'usa-tag'}
+                    className={task.status === 'complete' ? 'gf-badge gf-badge--neutral gf-badge gf-badge--success' : 'gf-badge gf-badge--neutral'}
                     style={{ marginLeft: '0.5rem' }}
                   >
                     {task.status}
@@ -125,7 +125,7 @@ export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLoc
                 </div>
                 <button
                   type="button"
-                  className="usa-button usa-button--unstyled"
+                  className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                   onClick={() =>
                     updateTaskMutation.mutate({
                       taskId: task.task_id,
@@ -146,11 +146,11 @@ export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLoc
       <section aria-label="Internal comments">
         <h3>Internal Comments</h3>
         {commentsQuery.isLoading ? (
-          <p className="usa-hint">Loading comments…</p>
+          <p className="gf-hint">Loading comments…</p>
         ) : sectionComments.length === 0 ? (
-          <p className="usa-hint">No comments yet.</p>
+          <p className="gf-hint">No comments yet.</p>
         ) : (
-          <ul className="usa-list usa-list--unstyled" style={{ marginBottom: '1rem' }}>
+          <ul  style={{ marginBottom: '1rem' }}>
             {sectionComments.map((comment: WorkspaceComment) => (
               <li
                 key={comment.comment_id}
@@ -162,7 +162,7 @@ export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLoc
                 }}
               >
                 <p style={{ margin: 0 }}>{comment.comment_text}</p>
-                <span className="usa-hint" style={{ fontSize: '0.8rem' }}>
+                <span className="gf-hint" style={{ fontSize: '0.8rem' }}>
                   {new Date(comment.posted_at).toLocaleDateString()}
                 </span>
               </li>
@@ -172,12 +172,12 @@ export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLoc
 
         {/* Comment input form */}
         <div>
-          <label className="usa-label" htmlFor={`comment-input-${section.section_id}`}>
+          <label className="gf-label" htmlFor={`comment-input-${section.section_id}`}>
             Add a comment
           </label>
           <textarea
             id={`comment-input-${section.section_id}`}
-            className="usa-textarea"
+            className="gf-textarea"
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             maxLength={5000}
@@ -187,7 +187,7 @@ export function WorkspaceSectionPanel({ section, workspaceId, onFieldBlur, isLoc
           />
           <button
             type="button"
-            className="usa-button"
+            className="gf-btn gf-btn--primary"
             onClick={handlePostComment}
             disabled={!commentText.trim() || postCommentMutation.isPending || isLocked}
           >

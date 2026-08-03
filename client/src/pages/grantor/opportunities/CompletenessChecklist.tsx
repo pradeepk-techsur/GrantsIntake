@@ -135,30 +135,30 @@ export function CompletenessChecklist({ opportunity }: CompletenessChecklistProp
 
   return (
     <div
-      className="usa-card"
+      className="gf-card"
       style={{ position: 'sticky', top: '1rem' }}
       data-testid="completeness-checklist"
     >
-      <div className="usa-card__container">
-        <div className="usa-card__header">
-          <h3 className="usa-card__heading">Publication Readiness</h3>
+      <div >
+        <div className="gf-card__header">
+          <h3 className="gf-card__title">Publication Readiness</h3>
         </div>
-        <div className="usa-card__body">
+        <div className="gf-card__body">
           {/* Status badge for published opportunities */}
           {isPublished && publishSuccess && (
             <div
-              className="usa-alert usa-alert--success usa-alert--slim"
+              className="gf-alert gf-alert gf-alert--success"
               role="alert"
               data-testid="publish-success-alert"
             >
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">Opportunity published successfully</p>
+              <div >
+                <p className="gf-alert__text">Opportunity published successfully</p>
               </div>
             </div>
           )}
 
           {/* Checklist items */}
-          <ul className="usa-list usa-list--unstyled" style={{ marginBottom: '1rem' }}>
+          <ul  style={{ marginBottom: '1rem' }}>
             {checklistItems.map((item) => (
               <li
                 key={item.id}
@@ -197,15 +197,15 @@ export function CompletenessChecklist({ opportunity }: CompletenessChecklistProp
           {/* Server readiness result (from dry run) */}
           {serverResult && !serverResult.is_ready && (
             <div
-              className="usa-alert usa-alert--error usa-alert--slim"
+              className="gf-alert gf-alert gf-alert--error"
               role="alert"
               data-testid="readiness-blockers-alert"
             >
-              <div className="usa-alert__body">
-                <h4 className="usa-alert__heading" style={{ fontSize: '0.875rem' }}>
+              <div >
+                <h4 className="gf-alert__title" style={{ fontSize: '0.875rem' }}>
                   Publication Blocked
                 </h4>
-                <ul className="usa-list" style={{ fontSize: '0.8rem', margin: 0 }}>
+                <ul  style={{ fontSize: '0.8rem', margin: 0 }}>
                   {serverResult.blockers.map((blocker, i) => (
                     <li key={i}>
                       <strong>{blocker.section}:</strong> {blocker.message}
@@ -218,24 +218,24 @@ export function CompletenessChecklist({ opportunity }: CompletenessChecklistProp
 
           {serverResult && serverResult.is_ready && (
             <div
-              className="usa-alert usa-alert--success usa-alert--slim"
+              className="gf-alert gf-alert gf-alert--success"
               role="alert"
               data-testid="readiness-ready-alert"
             >
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">Ready to publish</p>
+              <div >
+                <p className="gf-alert__text">Ready to publish</p>
               </div>
             </div>
           )}
 
           {publishError && (
             <div
-              className="usa-alert usa-alert--error usa-alert--slim"
+              className="gf-alert gf-alert gf-alert--error"
               role="alert"
               data-testid="publish-error-alert"
             >
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">{publishError}</p>
+              <div >
+                <p className="gf-alert__text">{publishError}</p>
               </div>
             </div>
           )}
@@ -246,7 +246,7 @@ export function CompletenessChecklist({ opportunity }: CompletenessChecklistProp
               <>
                 <button
                   type="button"
-                  className="usa-button usa-button--outline"
+                  className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
                   onClick={handleCheckReadiness}
                   disabled={checkReadiness.isPending}
                   data-testid="check-readiness-button"
@@ -256,7 +256,7 @@ export function CompletenessChecklist({ opportunity }: CompletenessChecklistProp
 
                 <button
                   type="button"
-                  className="usa-button"
+                  className="gf-btn gf-btn--primary"
                   onClick={handlePublish}
                   disabled={!allRequiredComplete || publishOpportunity.isPending}
                   aria-disabled={!allRequiredComplete}
@@ -269,7 +269,7 @@ export function CompletenessChecklist({ opportunity }: CompletenessChecklistProp
 
             {isPublished && (
               <div
-                className="usa-tag"
+                className="gf-badge gf-badge--neutral"
                 style={{ background: '#2e7d32', color: 'white', textAlign: 'center', padding: '0.5rem' }}
                 data-testid="published-badge"
               >

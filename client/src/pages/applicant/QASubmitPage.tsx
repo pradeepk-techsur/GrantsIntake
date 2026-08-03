@@ -77,42 +77,42 @@ export function QASubmitPage() {
   };
 
   return (
-    <div className="grid-container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+    <div  style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="usa-breadcrumb">
-        <ol className="usa-breadcrumb__list">
-          <li className="usa-breadcrumb__list-item">
-            <Link to="/opportunities" className="usa-breadcrumb__link">
+      <nav aria-label="Breadcrumb" >
+        <ol >
+          <li className="-item">
+            <Link to="/opportunities" >
               Opportunities
             </Link>
           </li>
-          <li className="usa-breadcrumb__list-item">
-            <Link to={`/opportunities/${opportunityId}`} className="usa-breadcrumb__link">
+          <li className="-item">
+            <Link to={`/opportunities/${opportunityId}`} >
               Opportunity
             </Link>
           </li>
-          <li className="usa-breadcrumb__list-item usa-current" aria-current="page">
+          <li className="-item active" aria-current="page">
             Submit a Question
           </li>
         </ol>
       </nav>
 
-      <div className="usa-prose">
+      <div >
         <h1>Submit a Question</h1>
       </div>
 
       {/* Back link */}
       <p style={{ marginBottom: '1.5rem' }}>
-        <Link to={`/opportunities/${opportunityId}`} className="usa-link">
+        <Link to={`/opportunities/${opportunityId}`} >
           ← Back to Opportunity Details
         </Link>
       </p>
 
       {/* Success alert */}
       {successMessage && (
-        <div className="usa-alert usa-alert--success" role="alert" data-testid="qa-success-alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">{successMessage}</p>
+        <div className="gf-alert gf-alert gf-alert--success" role="alert" data-testid="qa-success-alert">
+          <div >
+            <p className="gf-alert__text">{successMessage}</p>
           </div>
         </div>
       )}
@@ -120,14 +120,14 @@ export function QASubmitPage() {
       {/* Error alert */}
       {errorMessage && (
         <div
-          className={`usa-alert ${
-            errorMessage.includes('window') ? 'usa-alert--warning' : 'usa-alert--error'
-          }`}
+          className={`gf-alert ${
+ errorMessage.includes('window') ? 'gf-alert gf-alert--warning' : 'gf-alert gf-alert--error'
+ }`}
           role="alert"
           data-testid="qa-error-alert"
         >
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">{errorMessage}</p>
+          <div >
+            <p className="gf-alert__text">{errorMessage}</p>
           </div>
         </div>
       )}
@@ -135,12 +135,12 @@ export function QASubmitPage() {
       {/* Question form */}
       {accessToken ? (
         <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
-          <label className="usa-label" htmlFor="question-text">
+          <label className="gf-label" htmlFor="question-text">
             Your Question
           </label>
           <textarea
             id="question-text"
-            className="usa-textarea"
+            className="gf-textarea"
             name="question_text"
             rows={5}
             maxLength={MAX_CHARS}
@@ -154,7 +154,7 @@ export function QASubmitPage() {
           </p>
           <button
             type="submit"
-            className="usa-button"
+            className="gf-btn gf-btn--primary"
             disabled={submitMutation.isPending || !questionText.trim()}
             data-testid="qa-submit-btn"
           >
@@ -162,10 +162,10 @@ export function QASubmitPage() {
           </button>
         </form>
       ) : (
-        <div className="usa-alert usa-alert--info" role="alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">
-              <a href="/login" className="usa-link">
+        <div className="gf-alert gf-alert gf-alert--info" role="alert">
+          <div >
+            <p className="gf-alert__text">
+              <a href="/login" >
                 Sign in
               </a>{' '}
               to submit a question.
@@ -186,12 +186,12 @@ export function QASubmitPage() {
             myQuestionsQuery.data.map((item) => (
               <div
                 key={item.qa_id}
-                className="usa-card"
+                className="gf-card"
                 style={{ marginBottom: '0.75rem' }}
                 data-testid="qa-my-question-item"
               >
-                <div className="usa-card__container">
-                  <div className="usa-card__body">
+                <div >
+                  <div className="gf-card__body">
                     <p style={{ marginBottom: '0.25rem' }}>
                       <strong>Q:</strong> {item.question_text}
                     </p>
@@ -236,12 +236,12 @@ export function QASubmitPage() {
           publishedQuery.data.map((item) => (
             <div
               key={item.qa_id}
-              className="usa-card"
+              className="gf-card"
               style={{ marginBottom: '1rem' }}
               data-testid="qa-published-item"
             >
-              <div className="usa-card__container">
-                <div className="usa-card__body">
+              <div >
+                <div className="gf-card__body">
                   <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
                     Q: {item.question_text}
                   </p>

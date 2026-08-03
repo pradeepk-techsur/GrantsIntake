@@ -118,14 +118,14 @@ export function OrgRolesPage() {
 
   if (isLoading) {
     return (
-      <div className="usa-prose">
+      <div >
         <p>Loading team roles...</p>
       </div>
     );
   }
 
   return (
-    <div className="usa-prose">
+    <div >
       <h1>Team Roles</h1>
       <p>
         Manage team members and their roles for your organization.
@@ -134,7 +134,7 @@ export function OrgRolesPage() {
       {/* Add Team Member form */}
       <div style={{ marginBottom: '1.5rem' }}>
         <button
-          className="usa-button usa-button--outline"
+          className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
           onClick={() => setShowAddForm((v) => !v)}
           type="button"
         >
@@ -143,24 +143,24 @@ export function OrgRolesPage() {
       </div>
 
       {showAddForm && (
-        <div className="usa-accordion" style={{ marginBottom: '2rem' }}>
-          <form className="usa-form" onSubmit={handleAssignSubmit} style={{ maxWidth: '32rem' }}>
+        <div  style={{ marginBottom: '2rem' }}>
+          <form  onSubmit={handleAssignSubmit} style={{ maxWidth: '32rem' }}>
             <h2 style={{ fontSize: '1.25rem' }}>Add Team Member</h2>
 
             {formError && (
-              <div className="usa-alert usa-alert--error" role="alert">
-                <div className="usa-alert__body">
-                  <p className="usa-alert__text">{formError}</p>
+              <div className="gf-alert gf-alert gf-alert--error" role="alert">
+                <div >
+                  <p className="gf-alert__text">{formError}</p>
                 </div>
               </div>
             )}
 
-            <div className="usa-form-group">
-              <label className="usa-label" htmlFor="new_user_id">
+            <div className="gf-form-group">
+              <label className="gf-label" htmlFor="new_user_id">
                 User ID (UUID)
               </label>
               <input
-                className="usa-input"
+                className="gf-input"
                 id="new_user_id"
                 name="new_user_id"
                 type="text"
@@ -170,19 +170,19 @@ export function OrgRolesPage() {
               />
             </div>
 
-            <fieldset className="usa-fieldset">
-              <legend className="usa-legend">Roles</legend>
+            <fieldset >
+              <legend >Roles</legend>
               {ALL_ROLES.map((role) => (
-                <div key={role} className="usa-checkbox">
+                <div key={role} className="gf-form-group">
                   <input
-                    className="usa-checkbox__input"
+                    
                     id={`role_${role}`}
                     name={`role_${role}`}
                     type="checkbox"
                     checked={selectedRoles.includes(role)}
                     onChange={(e) => handleRoleCheckbox(role, e.target.checked)}
                   />
-                  <label className="usa-checkbox__label" htmlFor={`role_${role}`}>
+                  <label className="gf-label" htmlFor={`role_${role}`}>
                     {role.replace(/_/g, ' ')}
                   </label>
                 </div>
@@ -190,7 +190,7 @@ export function OrgRolesPage() {
             </fieldset>
 
             <button
-              className="usa-button"
+              className="gf-btn gf-btn--primary"
               type="submit"
               disabled={assignMutation.isPending}
             >
@@ -202,14 +202,14 @@ export function OrgRolesPage() {
 
       {/* Team members table */}
       {roles.length === 0 ? (
-        <div className="usa-alert usa-alert--info">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">No team members yet. Add your first team member above.</p>
+        <div className="gf-alert gf-alert gf-alert--info">
+          <div >
+            <p className="gf-alert__text">No team members yet. Add your first team member above.</p>
           </div>
         </div>
       ) : (
-        <table className="usa-table usa-table--borderless" style={{ width: '100%' }}>
-          <caption className="usa-sr-only">Team members and their roles</caption>
+        <table className="gf-table gf-table" style={{ width: '100%' }}>
+          <caption className="gf-sr-only">Team members and their roles</caption>
           <thead>
             <tr>
               <th scope="col">User ID</th>
@@ -227,15 +227,15 @@ export function OrgRolesPage() {
                 <td>{role.roles.join(', ')}</td>
                 <td>
                   {role.revoked_at ? (
-                    <span className="usa-tag usa-tag--error">Revoked</span>
+                    <span className="gf-badge gf-badge--neutral gf-badge gf-badge--error">Revoked</span>
                   ) : (
-                    <span className="usa-tag usa-tag--success">Active</span>
+                    <span className="gf-badge gf-badge--neutral gf-badge gf-badge--success">Active</span>
                   )}
                 </td>
                 <td>
                   {!role.revoked_at && (
                     <button
-                      className="usa-button usa-button--secondary usa-button--unstyled"
+                      className="gf-btn gf-btn--primary gf-btn gf-btn--outline gf-btn gf-btn--ghost"
                       onClick={() => handleRevoke(role.role_id)}
                       type="button"
                       disabled={revokeMutation.isPending}

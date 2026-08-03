@@ -50,7 +50,7 @@ export function SubmissionReceiptPage() {
 
   if (receiptQuery.isLoading && !navConfirmation) {
     return (
-      <div className="usa-prose">
+      <div >
         <p>Loading submission receipt…</p>
       </div>
     );
@@ -58,10 +58,10 @@ export function SubmissionReceiptPage() {
 
   if (receiptQuery.error && !navConfirmation) {
     return (
-      <div className="usa-alert usa-alert--error" role="alert">
-        <div className="usa-alert__body">
-          <h4 className="usa-alert__heading">Receipt Not Found</h4>
-          <p className="usa-alert__text">
+      <div className="gf-alert gf-alert gf-alert--error" role="alert">
+        <div >
+          <h4 className="gf-alert__title">Receipt Not Found</h4>
+          <p className="gf-alert__text">
             No submission receipt was found for this workspace. The application
             may not have been submitted yet.
           </p>
@@ -71,7 +71,7 @@ export function SubmissionReceiptPage() {
   }
 
   return (
-    <div className="usa-prose" data-testid="submission-receipt-page">
+    <div  data-testid="submission-receipt-page">
       <h1>
         <span aria-hidden="true" style={{ marginRight: '0.5rem' }}>
           ✓
@@ -81,18 +81,18 @@ export function SubmissionReceiptPage() {
 
       {/* Confirmation number */}
       <div
-        className="usa-alert usa-alert--success"
+        className="gf-alert gf-alert gf-alert--success"
         data-testid="confirmation-alert"
       >
-        <div className="usa-alert__body">
+        <div >
           <h2
-            className="usa-alert__heading"
+            className="gf-alert__title"
             data-testid="confirmation-number"
             style={{ fontSize: '1.5rem' }}
           >
             {confirmationNumber}
           </h2>
-          <p className="usa-alert__text">
+          <p className="gf-alert__text">
             Your application confirmation number. Save this for your records.
           </p>
         </div>
@@ -100,14 +100,14 @@ export function SubmissionReceiptPage() {
 
       {/* Submission details */}
       <div
-        className="usa-card"
+        className="gf-card"
         style={{ marginTop: '1.5rem' }}
         data-testid="receipt-details"
       >
-        <div className="usa-card__header">
-          <h3 className="usa-card__heading">Submission Details</h3>
+        <div className="gf-card__header">
+          <h3 className="gf-card__title">Submission Details</h3>
         </div>
-        <div className="usa-card__body">
+        <div className="gf-card__body">
           <dl>
             <dt>
               <strong>Submitted At</strong>
@@ -128,26 +128,26 @@ export function SubmissionReceiptPage() {
       </div>
 
       {/* Download section */}
-      <div className="usa-card" style={{ marginTop: '1rem' }}>
-        <div className="usa-card__header">
-          <h3 className="usa-card__heading">Application Packages</h3>
+      <div className="gf-card" style={{ marginTop: '1rem' }}>
+        <div className="gf-card__header">
+          <h3 className="gf-card__title">Application Packages</h3>
         </div>
-        <div className="usa-card__body">
+        <div className="gf-card__body">
           {receipt?.human_readable_pdf_path ? (
             <a
               href={receipt.human_readable_pdf_path}
-              className="usa-button usa-button--outline"
+              className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
               data-testid="download-human-readable"
             >
               Human-Readable Application Package
             </a>
           ) : (
-            <p className="usa-hint">
+            <p className="gf-hint">
               Human-readable package: Generating…
             </p>
           )}
           <p
-            className="usa-hint"
+            className="gf-hint"
             style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}
           >
             Machine-readable JSON package: Available to intake administrators.
@@ -157,12 +157,12 @@ export function SubmissionReceiptPage() {
 
       {/* Locked workspace notice */}
       <div
-        className="usa-alert usa-alert--info"
+        className="gf-alert gf-alert gf-alert--info"
         style={{ marginTop: '1rem' }}
         data-testid="locked-notice"
       >
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">
+        <div >
+          <p className="gf-alert__text">
             Your application workspace is now locked. Contact the grantor for
             modifications.
           </p>
@@ -173,7 +173,7 @@ export function SubmissionReceiptPage() {
       <div style={{ marginTop: '1.5rem' }}>
         <Link
           to="/applicant/applications"
-          className="usa-button"
+          className="gf-btn gf-btn--primary"
           data-testid="return-to-applications"
         >
           Return to My Applications

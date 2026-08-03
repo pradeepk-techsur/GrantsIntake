@@ -105,10 +105,10 @@ export function OpportunityBuilder() {
 
   if (error || !opportunity) {
     return (
-      <div className="usa-alert usa-alert--error" role="alert">
-        <div className="usa-alert__body">
-          <h4 className="usa-alert__heading">Opportunity Not Found</h4>
-          <p className="usa-alert__text">
+      <div className="gf-alert gf-alert gf-alert--error" role="alert">
+        <div >
+          <h4 className="gf-alert__title">Opportunity Not Found</h4>
+          <p className="gf-alert__text">
             This opportunity could not be loaded.{' '}
             <Link to="/grantor/opportunities">Return to Opportunities</Link>
           </p>
@@ -139,7 +139,7 @@ export function OpportunityBuilder() {
       {/* Modification reason modal */}
       {modReasonModal.open && (
         <div
-          className="usa-modal-wrapper is-visible"
+          className="is-visible"
           role="dialog"
           aria-modal="true"
           aria-labelledby="mod-reason-heading"
@@ -155,28 +155,28 @@ export function OpportunityBuilder() {
           }}
         >
           <div
-            className="usa-modal"
+            
             style={{ background: 'white', padding: '2rem', maxWidth: '480px', width: '100%', borderRadius: '4px' }}
           >
-            <h2 id="mod-reason-heading" className="usa-modal__heading">
+            <h2 id="mod-reason-heading" className="gf-card__title">
               Modification Reason Required
             </h2>
             <p>
               This opportunity is published. Please explain why you are making this change.
             </p>
-            <div className={`usa-form-group${modReasonError ? ' usa-form-group--error' : ''}`}>
-              <label className="usa-label" htmlFor="mod-reason-input">
-                Reason for modification <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+            <div className={`gf-form-group${modReasonError ? ' gf-form-group' : ''}`}>
+              <label className="gf-label" htmlFor="mod-reason-input">
+                Reason for modification <abbr title="required" className="gf-hint">*</abbr>
               </label>
               {modReasonError && (
-                <span className="usa-error-message" role="alert" data-testid="mod-reason-error">
+                <span className="gf-error-msg" role="alert" data-testid="mod-reason-error">
                   {modReasonError}
                 </span>
               )}
               <textarea
                 id="mod-reason-input"
                 name="modification_reason"
-                className={`usa-textarea${modReasonError ? ' usa-input--error' : ''}`}
+                className={`gf-textarea${modReasonError ? ' gf-input--error' : ''}`}
                 rows={3}
                 value={modReasonInput}
                 onChange={(e) => {
@@ -189,7 +189,7 @@ export function OpportunityBuilder() {
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
               <button
                 type="button"
-                className="usa-button"
+                className="gf-btn gf-btn--primary"
                 onClick={handleModReasonSubmit}
                 disabled={updateOpportunity.isPending}
                 data-testid="mod-reason-submit"
@@ -198,7 +198,7 @@ export function OpportunityBuilder() {
               </button>
               <button
                 type="button"
-                className="usa-button usa-button--unstyled"
+                className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                 onClick={() => {
                   setModReasonModal({ open: false, pendingPatch: null });
                   setModReasonInput('');
@@ -214,14 +214,14 @@ export function OpportunityBuilder() {
       )}
 
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="usa-breadcrumb">
-        <ol className="usa-breadcrumb__list">
-          <li className="usa-breadcrumb__list-item">
-            <Link to="/grantor/opportunities" className="usa-breadcrumb__link">
+      <nav aria-label="Breadcrumb" >
+        <ol >
+          <li className="-item">
+            <Link to="/grantor/opportunities" >
               Opportunities
             </Link>
           </li>
-          <li className="usa-breadcrumb__list-item usa-current" aria-current="page">
+          <li className="-item active" aria-current="page">
             <span>{opportunity.title}</span>
           </li>
         </ol>
@@ -230,18 +230,18 @@ export function OpportunityBuilder() {
       {/* Page header with status badge */}
       <div style={{ marginBottom: '1.5rem' }}>
         <p
-          className="usa-prose"
+          
           style={{ margin: 0, fontSize: '0.875rem', color: '#71767a', textTransform: 'uppercase', letterSpacing: '0.05em' }}
           data-testid="opportunity-builder-label"
         >
           Opportunity Builder
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h1 className="usa-prose" style={{ margin: 0 }}>
+          <h1  style={{ margin: 0 }}>
             {opportunity.title}
           </h1>
           <span
-            className="usa-tag"
+            className="gf-badge gf-badge--neutral"
             style={{ background: statusColor, color: 'white' }}
             aria-label={`Status: ${statusLabel}`}
             data-testid="opportunity-status-badge"
@@ -254,13 +254,13 @@ export function OpportunityBuilder() {
       {/* Section navigation tabs */}
       <nav aria-label="Opportunity builder sections" style={{ marginBottom: '1.5rem' }}>
         <ul
-          className="usa-sidenav"
+          
           style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', padding: 0, listStyle: 'none', margin: 0 }}
         >
           <li>
             <button
               type="button"
-              className={`usa-button${activeSection === 'metadata' ? '' : ' usa-button--outline'}`}
+              className={`gf-btn gf-btn--primary${activeSection === 'metadata' ? '' : ' gf-btn gf-btn--outline'}`}
               onClick={() => setActiveSection('metadata')}
               aria-current={activeSection === 'metadata' ? 'page' : undefined}
               data-testid="tab-metadata"
@@ -271,7 +271,7 @@ export function OpportunityBuilder() {
           <li>
             <button
               type="button"
-              className={`usa-button${activeSection === 'deadlines' ? '' : ' usa-button--outline'}`}
+              className={`gf-btn gf-btn--primary${activeSection === 'deadlines' ? '' : ' gf-btn gf-btn--outline'}`}
               onClick={() => setActiveSection('deadlines')}
               aria-current={activeSection === 'deadlines' ? 'page' : undefined}
               data-testid="tab-deadlines"
@@ -282,7 +282,7 @@ export function OpportunityBuilder() {
           <li>
             <button
               type="button"
-              className={`usa-button${activeSection === 'versions' ? '' : ' usa-button--outline'}`}
+              className={`gf-btn gf-btn--primary${activeSection === 'versions' ? '' : ' gf-btn gf-btn--outline'}`}
               onClick={() => setActiveSection('versions')}
               aria-current={activeSection === 'versions' ? 'page' : undefined}
               data-testid="tab-versions"
@@ -293,7 +293,7 @@ export function OpportunityBuilder() {
           <li>
             <button
               type="button"
-              className={`usa-button${activeSection === 'eligibility-rules' ? '' : ' usa-button--outline'}`}
+              className={`gf-btn gf-btn--primary${activeSection === 'eligibility-rules' ? '' : ' gf-btn gf-btn--outline'}`}
               onClick={() => setActiveSection('eligibility-rules')}
               aria-current={activeSection === 'eligibility-rules' ? 'page' : undefined}
               data-testid="tab-eligibility-rules"
@@ -304,7 +304,7 @@ export function OpportunityBuilder() {
           <li>
             <button
               type="button"
-              className={`usa-button${activeSection === 'prescreening' ? '' : ' usa-button--outline'}`}
+              className={`gf-btn gf-btn--primary${activeSection === 'prescreening' ? '' : ' gf-btn gf-btn--outline'}`}
               onClick={() => setActiveSection('prescreening')}
               aria-current={activeSection === 'prescreening' ? 'page' : undefined}
               data-testid="tab-prescreening"
@@ -315,7 +315,7 @@ export function OpportunityBuilder() {
           <li>
             <button
               type="button"
-              className={`usa-button${activeSection === 'conditional-sections' ? '' : ' usa-button--outline'}`}
+              className={`gf-btn gf-btn--primary${activeSection === 'conditional-sections' ? '' : ' gf-btn gf-btn--outline'}`}
               onClick={() => setActiveSection('conditional-sections')}
               aria-current={activeSection === 'conditional-sections' ? 'page' : undefined}
               data-testid="tab-conditional-sections"
@@ -326,7 +326,7 @@ export function OpportunityBuilder() {
           <li>
             <button
               type="button"
-              className={`usa-button${activeSection === 'attachments' ? '' : ' usa-button--outline'}`}
+              className={`gf-btn gf-btn--primary${activeSection === 'attachments' ? '' : ' gf-btn gf-btn--outline'}`}
               onClick={() => setActiveSection('attachments')}
               aria-current={activeSection === 'attachments' ? 'page' : undefined}
               data-testid="tab-attachments"
@@ -337,7 +337,7 @@ export function OpportunityBuilder() {
           <li>
             <button
               type="button"
-              className={`usa-button${activeSection === 'screening' ? '' : ' usa-button--outline'}`}
+              className={`gf-btn gf-btn--primary${activeSection === 'screening' ? '' : ' gf-btn gf-btn--outline'}`}
               onClick={() => setActiveSection('screening')}
               aria-current={activeSection === 'screening' ? 'page' : undefined}
               data-testid="tab-screening"
@@ -348,7 +348,7 @@ export function OpportunityBuilder() {
           <li>
             <button
               type="button"
-              className={`usa-button${activeSection === 'qa' ? '' : ' usa-button--outline'}`}
+              className={`gf-btn gf-btn--primary${activeSection === 'qa' ? '' : ' gf-btn gf-btn--outline'}`}
               onClick={() => setActiveSection('qa')}
               aria-current={activeSection === 'qa' ? 'page' : undefined}
               data-testid="tab-qa"
@@ -360,7 +360,7 @@ export function OpportunityBuilder() {
       </nav>
 
       {/* Two-column layout: form + sidebar */}
-      <div className="grid-row grid-gap">
+      <div >
         {/* Main form area */}
         <div className="desktop:grid-col-9">
           {activeSection === 'metadata' && (
@@ -371,7 +371,7 @@ export function OpportunityBuilder() {
           )}
           {activeSection === 'versions' && (
             <section aria-labelledby="version-history-heading">
-              <h2 id="version-history-heading" className="usa-prose" style={{ marginTop: 0 }}>
+              <h2 id="version-history-heading"  style={{ marginTop: 0 }}>
                 Version History
               </h2>
               <VersionHistory opportunityId={opportunity.opportunity_id} />
@@ -394,15 +394,15 @@ export function OpportunityBuilder() {
           )}
           {activeSection === 'qa' && id && (
             <section aria-labelledby="qa-management-heading">
-              <h2 id="qa-management-heading" className="usa-prose" style={{ marginTop: 0 }}>
+              <h2 id="qa-management-heading"  style={{ marginTop: 0 }}>
                 Q&amp;A Management
               </h2>
-              <p className="usa-prose">
+              <p >
                 Manage applicant questions and publish public answers for this opportunity.
               </p>
               <Link
                 to={`/grantor/opportunities/${id}/qa`}
-                className="usa-button"
+                className="gf-btn gf-btn--primary"
                 data-testid="open-qa-management-link"
               >
                 Open Q&amp;A Management Page

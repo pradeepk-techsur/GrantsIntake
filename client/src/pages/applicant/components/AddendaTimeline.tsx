@@ -69,7 +69,7 @@ interface AddendaTimelineProps {
  * - "Required Change" warning for is_required_change=true entries
  * - "Updated" badge for entries published within 14 days
  * - date_change type shows before/after deadline values
- * - Addendum type badge (usa-tag)
+ * - Addendum type badge (gf-badge gf-badge--neutral)
  */
 export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
   const [addenda, setAddenda] = useState<Addendum[]>([]);
@@ -96,7 +96,7 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
   if (loading) {
     return (
       <div aria-busy="true" aria-label="Loading updates">
-        <span className="usa-sr-only">Loading updates…</span>
+        <span className="gf-sr-only">Loading updates…</span>
         <div style={{ color: '#565c65', fontStyle: 'italic' }}>Loading updates…</div>
       </div>
     );
@@ -104,9 +104,9 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
 
   if (error) {
     return (
-      <div className="usa-alert usa-alert--error" role="alert">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">Could not load updates: {error}</p>
+      <div className="gf-alert gf-alert gf-alert--error" role="alert">
+        <div >
+          <p className="gf-alert__text">Could not load updates: {error}</p>
         </div>
       </div>
     );
@@ -114,14 +114,14 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
 
   if (addenda.length === 0) {
     return (
-      <p className="usa-prose" style={{ color: '#565c65', fontStyle: 'italic' }}>
+      <p  style={{ color: '#565c65', fontStyle: 'italic' }}>
         No updates posted yet.
       </p>
     );
   }
 
   return (
-    <ol className="usa-process-list" style={{ listStyle: 'none', paddingLeft: 0 }}>
+    <ol  style={{ listStyle: 'none', paddingLeft: 0 }}>
       {addenda.map((addendum) => {
         const dateChangeParsed =
           addendum.addendum_type === 'date_change'
@@ -132,7 +132,7 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
         return (
           <li
             key={addendum.addendum_id}
-            className="usa-process-list__item"
+            
             style={{
               borderLeft: '4px solid #005ea2',
               paddingLeft: '1rem',
@@ -142,12 +142,12 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
             {/* Required Change warning */}
             {addendum.is_required_change && (
               <div
-                className="usa-alert usa-alert--warning usa-alert--slim"
+                className="gf-alert gf-alert gf-alert--warning"
                 role="alert"
                 style={{ marginBottom: '0.75rem' }}
               >
-                <div className="usa-alert__body">
-                  <p className="usa-alert__text">Required Change</p>
+                <div >
+                  <p className="gf-alert__text">Required Change</p>
                 </div>
               </div>
             )}
@@ -169,7 +169,7 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
                 {formatDate(addendum.published_at)}
               </time>
               <span
-                className="usa-tag"
+                className="gf-badge gf-badge--neutral"
                 style={{
                   backgroundColor: '#005ea2',
                   color: 'white',
@@ -182,7 +182,7 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
               </span>
               {recent && (
                 <span
-                  className="usa-tag usa-tag--new"
+                  className="gf-badge gf-badge--neutral gf-badge gf-badge--pending"
                   style={{
                     backgroundColor: '#00a91c',
                     color: 'white',
@@ -198,7 +198,7 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
 
             {/* Title */}
             <h4
-              className="usa-process-list__heading"
+              className="gf-card__title"
               style={{ marginTop: 0, marginBottom: '0.5rem' }}
             >
               {addendum.title}
@@ -206,7 +206,7 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
 
             {/* Date change: show before/after values */}
             {dateChangeParsed && (addendum.addendum_type === 'date_change') ? (
-              <div className="usa-prose">
+              <div >
                 {dateChangeParsed.previous && (
                   <p style={{ marginBottom: '0.25rem' }}>
                     <strong>Previous deadline:</strong>{' '}
@@ -224,7 +224,7 @@ export function AddendaTimeline({ opportunityId }: AddendaTimelineProps) {
                 )}
               </div>
             ) : (
-              <div className="usa-prose">
+              <div >
                 <p>{addendum.body}</p>
               </div>
             )}

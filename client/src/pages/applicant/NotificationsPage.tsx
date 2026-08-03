@@ -31,34 +31,34 @@ export function NotificationsPage() {
   const notifications: Notification[] = data?.data?.notifications ?? [];
 
   return (
-    <div className="grid-container">
+    <div >
       <h1>Notifications</h1>
 
       {isLoading && <p>Loading notifications…</p>}
 
       {isError && (
-        <div className="usa-alert usa-alert--error" role="alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">Failed to load notifications.</p>
+        <div className="gf-alert gf-alert gf-alert--error" role="alert">
+          <div >
+            <p className="gf-alert__text">Failed to load notifications.</p>
           </div>
         </div>
       )}
 
       {!isLoading && !isError && notifications.length === 0 && (
         <div
-          className="usa-alert usa-alert--info"
+          className="gf-alert gf-alert gf-alert--info"
           role="status"
           data-testid="notifications-empty"
         >
-          <div className="usa-alert__body">
-            <h4 className="usa-alert__heading">No notifications</h4>
-            <p className="usa-alert__text">You have no notifications yet.</p>
+          <div >
+            <h4 className="gf-alert__title">No notifications</h4>
+            <p className="gf-alert__text">You have no notifications yet.</p>
           </div>
         </div>
       )}
 
       {!isLoading && !isError && notifications.length > 0 && (
-        <ul className="usa-list usa-list--unstyled">
+        <ul >
           {notifications.map((notification) => (
             <li
               key={notification.notification_id}
@@ -71,12 +71,12 @@ export function NotificationsPage() {
             >
               <strong data-testid="notification-title">{notification.title}</strong>
               <p data-testid="notification-body">{notification.body}</p>
-              <p className="text-base-dark font-sans-3xs">
+              <p className="text-base-dark">
                 {new Date(notification.created_at).toLocaleString()}
               </p>
               {!notification.is_read && (
                 <button
-                  className="usa-button usa-button--unstyled"
+                  className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                   data-testid="mark-read-button"
                   onClick={() => markReadMutation.mutate(notification.notification_id)}
                 >

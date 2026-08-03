@@ -240,17 +240,17 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
 
   return (
     <section aria-labelledby="attachments-heading">
-      <h2 id="attachments-heading" className="usa-prose" style={{ marginTop: 0 }}>
+      <h2 id="attachments-heading"  style={{ marginTop: 0 }}>
         Required Documents
       </h2>
-      <p className="usa-prose">
+      <p >
         Specify what applicants must attach based on entity type and application stage.
       </p>
 
       {!showForm && (
         <button
           type="button"
-          className="usa-button"
+          className="gf-btn gf-btn--primary"
           onClick={() => { setShowForm(true); setEditingId(null); setSaveError(null); }}
           data-testid="add-requirement-btn"
           style={{ marginBottom: '1.5rem' }}
@@ -262,20 +262,20 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
       {/* Inline form */}
       {showForm && (
         <div
-          className="usa-card"
+          className="gf-card"
           style={{ marginBottom: '1.5rem', padding: '1.5rem', border: '1px solid #dfe1e2' }}
           data-testid="attachment-form"
         >
-          <h3 className="usa-prose" style={{ marginTop: 0 }}>
+          <h3  style={{ marginTop: 0 }}>
             {editingId ? 'Edit Document Requirement' : 'Add Document Requirement'}
           </h3>
 
           {/* Document Type */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="document-type">Document Type</label>
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="document-type">Document Type</label>
             <select
               id="document-type"
-              className="usa-select"
+              className="gf-select"
               value={formData.document_type}
               onChange={(e) => setFormData((p) => ({ ...p, document_type: e.target.value }))}
               data-testid="document-type-select"
@@ -287,11 +287,11 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
           </div>
 
           {formData.document_type === 'custom' && (
-            <div className="usa-form-group">
-              <label className="usa-label" htmlFor="custom-document-name">Custom Document Name</label>
+            <div className="gf-form-group">
+              <label className="gf-label" htmlFor="custom-document-name">Custom Document Name</label>
               <input
                 id="custom-document-name"
-                className="usa-input"
+                className="gf-input"
                 type="text"
                 maxLength={250}
                 value={formData.custom_document_name}
@@ -302,11 +302,11 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
           )}
 
           {/* Stage */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="stage-scope">Stage</label>
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="stage-scope">Stage</label>
             <select
               id="stage-scope"
-              className="usa-select"
+              className="gf-select"
               value={formData.stage_scope}
               onChange={(e) =>
                 setFormData((p) => ({
@@ -323,20 +323,20 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
           </div>
 
           {/* Applicant Type Scope */}
-          <fieldset className="usa-fieldset">
-            <legend className="usa-legend">Applicant Type Scope</legend>
-            <span className="usa-hint">Leave unchecked to apply to all applicant types</span>
+          <fieldset >
+            <legend >Applicant Type Scope</legend>
+            <span className="gf-hint">Leave unchecked to apply to all applicant types</span>
             {APPLICANT_TYPE_OPTIONS.map((opt) => (
-              <div key={opt.value} className="usa-checkbox">
+              <div key={opt.value} className="gf-form-group">
                 <input
-                  className="usa-checkbox__input"
+                  
                   id={`applicant-type-${opt.value}`}
                   type="checkbox"
                   checked={formData.applicant_type_scope.includes(opt.value)}
                   onChange={() => handleApplicantTypeToggle(opt.value)}
                   data-testid={`applicant-type-${opt.value}`}
                 />
-                <label className="usa-checkbox__label" htmlFor={`applicant-type-${opt.value}`}>
+                <label className="gf-label" htmlFor={`applicant-type-${opt.value}`}>
                   {opt.label}
                 </label>
               </div>
@@ -344,12 +344,12 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
           </fieldset>
 
           {/* Required vs Recommended */}
-          <fieldset className="usa-fieldset">
-            <legend className="usa-legend">Requirement Level</legend>
-            <div className="usa-radio" style={{ display: 'flex', gap: '1.5rem' }}>
+          <fieldset >
+            <legend >Requirement Level</legend>
+            <div className="gf-form-group" style={{ display: 'flex', gap: '1.5rem' }}>
               <div>
                 <input
-                  className="usa-radio__input"
+                  
                   id="is-required-yes"
                   type="radio"
                   name="is-required"
@@ -357,11 +357,11 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
                   onChange={() => setFormData((p) => ({ ...p, is_required: true }))}
                   data-testid="is-required-yes"
                 />
-                <label className="usa-radio__label" htmlFor="is-required-yes">Required</label>
+                <label className="gf-label" htmlFor="is-required-yes">Required</label>
               </div>
               <div>
                 <input
-                  className="usa-radio__input"
+                  
                   id="is-required-no"
                   type="radio"
                   name="is-required"
@@ -369,17 +369,17 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
                   onChange={() => setFormData((p) => ({ ...p, is_required: false }))}
                   data-testid="is-required-no"
                 />
-                <label className="usa-radio__label" htmlFor="is-required-no">Recommended</label>
+                <label className="gf-label" htmlFor="is-required-no">Recommended</label>
               </div>
             </div>
           </fieldset>
 
           {/* Instructions */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="instructions">Instructions (optional)</label>
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="instructions">Instructions (optional)</label>
             <textarea
               id="instructions"
-              className="usa-textarea"
+              className="gf-textarea"
               rows={3}
               value={formData.instructions}
               onChange={(e) => setFormData((p) => ({ ...p, instructions: e.target.value }))}
@@ -388,12 +388,12 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
           </div>
 
           {/* File Formats */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="file-formats">File Formats (comma-separated)</label>
-            <span className="usa-hint">e.g., .pdf, .docx, .xlsx</span>
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="file-formats">File Formats (comma-separated)</label>
+            <span className="gf-hint">e.g., .pdf, .docx, .xlsx</span>
             <input
               id="file-formats"
-              className="usa-input"
+              className="gf-input"
               type="text"
               value={formData.file_format_restrictions}
               onChange={(e) =>
@@ -405,11 +405,11 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
           </div>
 
           {/* Max File Size */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="max-file-size">Max File Size (MB)</label>
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="max-file-size">Max File Size (MB)</label>
             <input
               id="max-file-size"
-              className="usa-input"
+              className="gf-input"
               type="number"
               min={1}
               max={500}
@@ -423,9 +423,9 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
           </div>
 
           {saveError && (
-            <div className="usa-alert usa-alert--error usa-alert--slim" role="alert">
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">{saveError}</p>
+            <div className="gf-alert gf-alert gf-alert--error" role="alert">
+              <div >
+                <p className="gf-alert__text">{saveError}</p>
               </div>
             </div>
           )}
@@ -433,7 +433,7 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button
               type="button"
-              className="usa-button"
+              className="gf-btn gf-btn--primary"
               onClick={() => void handleSave()}
               disabled={isSaving}
               data-testid="save-requirement-btn"
@@ -442,7 +442,7 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
             </button>
             <button
               type="button"
-              className="usa-button usa-button--unstyled"
+              className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
               onClick={handleCancel}
               data-testid="cancel-requirement-btn"
             >
@@ -456,19 +456,19 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
       {isLoading ? (
         <p>Loading attachment requirements...</p>
       ) : error ? (
-        <div className="usa-alert usa-alert--error" role="alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">{error}</p>
+        <div className="gf-alert gf-alert gf-alert--error" role="alert">
+          <div >
+            <p className="gf-alert__text">{error}</p>
           </div>
         </div>
       ) : (
         grouped.map((group) =>
           group.items.length === 0 ? null : (
             <div key={group.stage} style={{ marginBottom: '2rem' }}>
-              <h3 className="usa-prose" data-testid={`stage-group-${group.stage}`}>
+              <h3  data-testid={`stage-group-${group.stage}`}>
                 {group.label}
               </h3>
-              <table className="usa-table usa-table--borderless" style={{ width: '100%' }}>
+              <table className="gf-table gf-table" style={{ width: '100%' }}>
                 <thead>
                   <tr>
                     <th scope="col">Document Type</th>
@@ -508,7 +508,7 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
                       <td>
                         <button
                           type="button"
-                          className="usa-button usa-button--unstyled"
+                          className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                           onClick={() => handleEdit(req)}
                           data-testid={`edit-requirement-${req.requirement_id}`}
                           style={{ marginRight: '0.75rem' }}
@@ -517,7 +517,7 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
                         </button>
                         <button
                           type="button"
-                          className="usa-button usa-button--unstyled"
+                          className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                           onClick={() => void handleDelete(req.requirement_id)}
                           data-testid={`delete-requirement-${req.requirement_id}`}
                           style={{ color: '#e41d3d' }}
@@ -535,7 +535,7 @@ export function AttachmentRequirementsConfig({ opportunityId }: AttachmentRequir
       )}
 
       {!isLoading && !error && requirements.length === 0 && !showForm && (
-        <p className="usa-prose">No attachment requirements configured yet.</p>
+        <p >No attachment requirements configured yet.</p>
       )}
     </section>
   );

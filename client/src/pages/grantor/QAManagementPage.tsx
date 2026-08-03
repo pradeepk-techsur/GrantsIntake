@@ -84,7 +84,7 @@ export function QAManagementPage() {
 
   return (
     <div style={{ padding: '1.5rem' }}>
-      <div className="usa-prose">
+      <div >
         <h1>Q&amp;A Management</h1>
         <p style={{ color: '#565c65', fontSize: '0.9rem' }} data-testid="qa-opportunity-title">
           Opportunity: {titleQuery.data ?? opportunityId}
@@ -93,19 +93,19 @@ export function QAManagementPage() {
 
       {/* Back link */}
       <p style={{ marginBottom: '1rem' }}>
-        <Link to={`/grantor/opportunities/${opportunityId}`} className="usa-link">
+        <Link to={`/grantor/opportunities/${opportunityId}`} >
           ← Back to Opportunity
         </Link>
       </p>
 
       {/* Q&A config note */}
       <div
-        className="usa-alert usa-alert--info usa-alert--slim"
+        className="gf-alert gf-alert gf-alert--info"
         role="status"
         style={{ marginBottom: '1.5rem' }}
       >
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">
+        <div >
+          <p className="gf-alert__text">
             Q&amp;A window configuration is managed in the Opportunity Builder.
           </p>
         </div>
@@ -113,12 +113,12 @@ export function QAManagementPage() {
 
       {/* Filter tabs */}
       <nav aria-label="Q&A filter" style={{ marginBottom: '1rem' }}>
-        <ul className="usa-nav__primary" style={{ display: 'flex', gap: '1rem', listStyle: 'none', padding: 0 }}>
+        <ul  style={{ display: 'flex', gap: '1rem', listStyle: 'none', padding: 0 }}>
           {filterTabs.map((tab) => (
             <li key={tab.key}>
               <button
                 type="button"
-                className={`usa-button ${activeFilter === tab.key ? '' : 'usa-button--outline'}`}
+                className={`gf-btn gf-btn--primary ${activeFilter === tab.key ? '' : 'gf-btn gf-btn--outline'}`}
                 onClick={() => setActiveFilter(tab.key)}
                 style={{ fontSize: '0.875rem' }}
                 data-testid={`qa-filter-${tab.key}`}
@@ -134,10 +134,10 @@ export function QAManagementPage() {
       {questionsQuery.isLoading && <p>Loading questions…</p>}
 
       {questionsQuery.isError && (
-        <div className="usa-alert usa-alert--error" role="alert" data-testid="qa-list-error">
-          <div className="usa-alert__body">
-            <h4 className="usa-alert__heading">Unable to Load Questions</h4>
-            <p className="usa-alert__text">
+        <div className="gf-alert gf-alert gf-alert--error" role="alert" data-testid="qa-list-error">
+          <div >
+            <h4 className="gf-alert__title">Unable to Load Questions</h4>
+            <p className="gf-alert__text">
               {(questionsQuery.error as { status?: number })?.status === 401 ||
               (questionsQuery.error as { status?: number })?.status === 403
                 ? 'You do not have permission to view questions for this opportunity. Please ensure you are logged in with a grantor account.'
@@ -152,7 +152,7 @@ export function QAManagementPage() {
       )}
 
       {filteredQuestions.length > 0 && (
-        <table className="usa-table usa-table--borderless" style={{ width: '100%' }} data-testid="qa-questions-table">
+        <table className="gf-table gf-table" style={{ width: '100%' }} data-testid="qa-questions-table">
           <thead>
             <tr>
               <th scope="col">Question</th>
@@ -188,7 +188,7 @@ export function QAManagementPage() {
                     {q.status !== 'answered' ? (
                       <button
                         type="button"
-                        className="usa-button usa-button--unstyled"
+                        className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                         onClick={() => setExpandedId(expandedId === q.qa_id ? null : q.qa_id)}
                         data-testid={`qa-expand-${q.qa_id}`}
                       >
@@ -204,18 +204,18 @@ export function QAManagementPage() {
                   <tr key={`${q.qa_id}-answer`}>
                     <td colSpan={4} style={{ backgroundColor: '#f0f0f0', padding: '1rem' }}>
                       {successId === q.qa_id && (
-                        <div className="usa-alert usa-alert--success usa-alert--slim" style={{ marginBottom: '0.5rem' }}>
-                          <div className="usa-alert__body">
-                            <p className="usa-alert__text">Answer published successfully.</p>
+                        <div className="gf-alert gf-alert gf-alert--success" style={{ marginBottom: '0.5rem' }}>
+                          <div >
+                            <p className="gf-alert__text">Answer published successfully.</p>
                           </div>
                         </div>
                       )}
-                      <label className="usa-label" htmlFor={`answer-${q.qa_id}`}>
+                      <label className="gf-label" htmlFor={`answer-${q.qa_id}`}>
                         Your Answer
                       </label>
                       <textarea
                         id={`answer-${q.qa_id}`}
-                        className="usa-textarea"
+                        className="gf-textarea"
                         rows={4}
                         maxLength={5000}
                         value={answerDrafts[q.qa_id] ?? ''}
@@ -230,7 +230,7 @@ export function QAManagementPage() {
                       </p>
                       <button
                         type="button"
-                        className="usa-button"
+                        className="gf-btn gf-btn--primary"
                         onClick={() => handlePublish(q.qa_id)}
                         disabled={
                           publishMutation.isPending || !(answerDrafts[q.qa_id]?.trim())

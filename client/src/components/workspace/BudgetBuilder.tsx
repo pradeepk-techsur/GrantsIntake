@@ -147,14 +147,14 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
   const isMatchCategory = (cat: BudgetCategory) => cat === 'match_cash' || cat === 'match_in_kind';
 
   if (isLoading) {
-    return <div className="usa-prose"><p className="usa-hint">Loading budget…</p></div>;
+    return <div ><p className="gf-hint">Loading budget…</p></div>;
   }
 
   if (error) {
     return (
-      <div className="usa-alert usa-alert--error">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">Failed to load budget. Please try again.</p>
+      <div className="gf-alert gf-alert gf-alert--error">
+        <div >
+          <p className="gf-alert__text">Failed to load budget. Please try again.</p>
         </div>
       </div>
     );
@@ -163,11 +163,11 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
   return (
     <div data-testid="budget-builder">
       {/* Budget totals summary */}
-      <div className="usa-card" style={{ marginBottom: '1.5rem' }}>
-        <div className="usa-card__header">
-          <h3 className="usa-card__heading">Budget Summary</h3>
+      <div className="gf-card" style={{ marginBottom: '1.5rem' }}>
+        <div className="gf-card__header">
+          <h3 className="gf-card__title">Budget Summary</h3>
         </div>
-        <div className="usa-card__body">
+        <div className="gf-card__body">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
             <div>
               <strong>Total Federal Request:</strong><br />
@@ -197,15 +197,15 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
 
       {/* Validation result alert */}
       {validationResult && (
-        <div className={`usa-alert ${validationResult.valid ? 'usa-alert--success' : 'usa-alert--error'}`}>
-          <div className="usa-alert__body">
-            <h4 className="usa-alert__heading">
+        <div className={`gf-alert ${validationResult.valid ? 'gf-alert gf-alert--success' : 'gf-alert gf-alert--error'}`}>
+          <div >
+            <h4 className="gf-alert__title">
               {validationResult.valid ? 'Budget Valid' : 'Budget Validation Issues'}
             </h4>
             {!validationResult.valid && (
-              <ul className="usa-list">
+              <ul >
                 {validationResult.errors.map((err, idx) => (
-                  <li key={idx} className="usa-alert__text">
+                  <li key={idx} className="gf-alert__text">
                     <strong>[{err.error_code}]</strong> {err.message}
                   </li>
                 ))}
@@ -219,7 +219,7 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
       <div style={{ marginBottom: '1.5rem' }}>
         <button
           type="button"
-          className="usa-button usa-button--outline"
+          className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
           data-testid="validate-budget-btn"
           onClick={() => validateMutation.mutate()}
           disabled={validateMutation.isPending}
@@ -239,19 +239,19 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
           <div
             key={category}
             data-testid={`budget-category-${category}`}
-            className="usa-accordion"
+            
             style={{ marginBottom: '0.5rem', border: '1px solid #dcdee0', borderRadius: '4px' }}
           >
-            <h4 className="usa-accordion__heading">
+            <h4 >
               <button
                 type="button"
-                className="usa-accordion__button"
+                className="gf-btn gf-btn--ghost"
                 aria-expanded={isExpanded}
                 onClick={() => toggleCategory(category)}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}
               >
                 <span>{CATEGORY_LABELS[category]}</span>
-                <span className="usa-hint">${subtotal.toFixed(2)}</span>
+                <span className="gf-hint">${subtotal.toFixed(2)}</span>
               </button>
             </h4>
 
@@ -260,7 +260,7 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
               <div style={{ padding: '0.5rem 1rem' }}>
                 <button
                   type="button"
-                  className="usa-button usa-button--outline usa-button--small"
+                  className="gf-btn gf-btn--primary gf-btn gf-btn--outline gf-btn--sm"
                   data-testid={`add-line-item-btn-${category}`}
                   onClick={() => {
                     setAddingCategory(category);
@@ -276,10 +276,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
 
             {/* Accordion content: line items table + add form (only when expanded) */}
             {isExpanded && (
-              <div className="usa-accordion__content" style={{ padding: '1rem' }}>
+              <div  style={{ padding: '1rem' }}>
                 {/* Line items table */}
                 {lineItems.length > 0 && (
-                  <table className="usa-table usa-table--borderless" style={{ width: '100%', marginBottom: '1rem' }}>
+                  <table className="gf-table gf-table" style={{ width: '100%', marginBottom: '1rem' }}>
                     <thead>
                       <tr>
                         <th>Description</th>
@@ -296,13 +296,13 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                           <td>
                             {li.description}
                             {li.justification_text && (
-                              <div className="usa-hint" style={{ fontSize: '0.85rem' }}>{li.justification_text}</div>
+                              <div className="gf-hint" style={{ fontSize: '0.85rem' }}>{li.justification_text}</div>
                             )}
                           </td>
                           {isPersonnelCategory(category) && (
                             <td>
                               {li.personnel_name ?? '—'}
-                              {li.fte != null && <div className="usa-hint">{li.fte} FTE</div>}
+                              {li.fte != null && <div className="gf-hint">{li.fte} FTE</div>}
                             </td>
                           )}
                           <td>{li.quantity ?? '—'}</td>
@@ -311,7 +311,7 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                            <td>
                              <button
                                type="button"
-                               className="usa-button usa-button--unstyled"
+                               className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                                onClick={() => deleteLineItemMutation.mutate(li.line_id)}
                                disabled={deleteLineItemMutation.isPending || isLocked}
                                style={{ color: '#b50909' }}
@@ -337,10 +337,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                   <div style={{ background: '#f0f0f0', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
                     <h5 style={{ marginTop: 0 }}>Add {CATEGORY_LABELS[category]} Line Item</h5>
 
-                     <label className="usa-label" htmlFor={`desc-${category}`}>Description *</label>
+                     <label className="gf-label" htmlFor={`desc-${category}`}>Description *</label>
                      <input
                        id={`desc-${category}`}
-                       className="usa-input"
+                       className="gf-input"
                        type="text"
                        value={formState.description}
                        onChange={e => handleFormChange('description', e.target.value)}
@@ -351,10 +351,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
                       <div>
-                         <label className="usa-label" htmlFor={`qty-${category}`}>Quantity</label>
+                         <label className="gf-label" htmlFor={`qty-${category}`}>Quantity</label>
                          <input
                            id={`qty-${category}`}
-                           className="usa-input"
+                           className="gf-input"
                            type="number"
                            min="0"
                            step="0.01"
@@ -364,10 +364,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                          />
                        </div>
                        <div>
-                         <label className="usa-label" htmlFor={`uc-${category}`}>Unit Cost ($)</label>
+                         <label className="gf-label" htmlFor={`uc-${category}`}>Unit Cost ($)</label>
                          <input
                            id={`uc-${category}`}
-                           className="usa-input"
+                           className="gf-input"
                            type="number"
                            min="0"
                            step="0.01"
@@ -377,10 +377,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                          />
                        </div>
                        <div>
-                         <label className="usa-label" htmlFor={`tc-${category}`}>Total Cost ($) *</label>
+                         <label className="gf-label" htmlFor={`tc-${category}`}>Total Cost ($) *</label>
                          <input
                            id={`tc-${category}`}
-                           className="usa-input"
+                           className="gf-input"
                            type="number"
                            min="0"
                            step="0.01"
@@ -396,10 +396,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                     {isPersonnelCategory(category) && (
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
                         <div>
-                           <label className="usa-label" htmlFor={`pname-${category}`}>Personnel Name</label>
+                           <label className="gf-label" htmlFor={`pname-${category}`}>Personnel Name</label>
                            <input
                              id={`pname-${category}`}
-                             className="usa-input"
+                             className="gf-input"
                              type="text"
                              value={formState.personnel_name}
                              onChange={e => handleFormChange('personnel_name', e.target.value)}
@@ -407,10 +407,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                            />
                          </div>
                          <div>
-                           <label className="usa-label" htmlFor={`fte-${category}`}>FTE (0.001–1.000)</label>
+                           <label className="gf-label" htmlFor={`fte-${category}`}>FTE (0.001–1.000)</label>
                            <input
                              id={`fte-${category}`}
-                             className="usa-input"
+                             className="gf-input"
                              type="number"
                              min="0.001"
                              max="1.000"
@@ -421,10 +421,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                            />
                          </div>
                          <div>
-                           <label className="usa-label" htmlFor={`salary-${category}`}>Annual Salary ($)</label>
+                           <label className="gf-label" htmlFor={`salary-${category}`}>Annual Salary ($)</label>
                            <input
                              id={`salary-${category}`}
-                             className="usa-input"
+                             className="gf-input"
                              type="number"
                              min="0"
                              step="0.01"
@@ -434,10 +434,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                            />
                          </div>
                          <div>
-                           <label className="usa-label" htmlFor={`fringe-${category}`}>Fringe Rate (%)</label>
+                           <label className="gf-label" htmlFor={`fringe-${category}`}>Fringe Rate (%)</label>
                            <input
                              id={`fringe-${category}`}
-                             className="usa-input"
+                             className="gf-input"
                              type="number"
                              min="0"
                              max="100"
@@ -454,10 +454,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                     {isMatchCategory(category) && (
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
                         <div>
-                         <label className="usa-label" htmlFor={`msrc-${category}`}>Match Source</label>
+                         <label className="gf-label" htmlFor={`msrc-${category}`}>Match Source</label>
                            <input
                              id={`msrc-${category}`}
-                             className="usa-input"
+                             className="gf-input"
                              type="text"
                              value={formState.match_source}
                              onChange={e => handleFormChange('match_source', e.target.value)}
@@ -465,10 +465,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                            />
                          </div>
                          <div>
-                           <label className="usa-label" htmlFor={`mtype-${category}`}>Match Type</label>
+                           <label className="gf-label" htmlFor={`mtype-${category}`}>Match Type</label>
                            <input
                              id={`mtype-${category}`}
-                             className="usa-input"
+                             className="gf-input"
                              type="text"
                              value={formState.match_type}
                              onChange={e => handleFormChange('match_type', e.target.value)}
@@ -479,10 +479,10 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                     )}
 
                     {/* Justification */}
-                     <label className="usa-label" htmlFor={`just-${category}`} style={{ marginTop: '0.5rem' }}>Justification</label>
+                     <label className="gf-label" htmlFor={`just-${category}`} style={{ marginTop: '0.5rem' }}>Justification</label>
                      <textarea
                        id={`just-${category}`}
-                       className="usa-textarea"
+                       className="gf-textarea"
                        value={formState.justification_text}
                        onChange={e => handleFormChange('justification_text', e.target.value)}
                        rows={2}
@@ -492,7 +492,7 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
                        <button
                          type="button"
-                         className="usa-button"
+                         className="gf-btn gf-btn--primary"
                          onClick={() => handleAddLineItem(category)}
                          disabled={!formState.description || !formState.total_cost || addLineItemMutation.isPending || isLocked}
                        >
@@ -500,7 +500,7 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                        </button>
                        <button
                          type="button"
-                         className="usa-button usa-button--unstyled"
+                         className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                          onClick={() => { setAddingCategory(null); setFormState(emptyForm); }}
                        >
                          Cancel
@@ -508,7 +508,7 @@ export function BudgetBuilder({ workspaceId, isLocked = false }: BudgetBuilderPr
                      </div>
 
                     {addLineItemMutation.isError && (
-                      <p className="usa-error-message">Failed to add line item. Please try again.</p>
+                      <p className="gf-error-msg">Failed to add line item. Please try again.</p>
                     )}
                   </div>
                 )}

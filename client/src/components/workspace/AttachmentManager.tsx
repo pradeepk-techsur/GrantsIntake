@@ -75,14 +75,14 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
     : attachments;
 
   if (isLoading) {
-    return <div className="usa-prose"><p className="usa-hint">Loading attachments…</p></div>;
+    return <div ><p className="gf-hint">Loading attachments…</p></div>;
   }
 
   if (error) {
     return (
-      <div className="usa-alert usa-alert--error">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">Failed to load attachments. Please try again.</p>
+      <div className="gf-alert gf-alert gf-alert--error">
+        <div >
+          <p className="gf-alert__text">Failed to load attachments. Please try again.</p>
         </div>
       </div>
     );
@@ -94,28 +94,28 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
 
       {/* Upload error alert */}
       {uploadError && (
-        <div className="usa-alert usa-alert--error" style={{ marginBottom: '1rem' }}>
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">{uploadError}</p>
+        <div className="gf-alert gf-alert gf-alert--error" style={{ marginBottom: '1rem' }}>
+          <div >
+            <p className="gf-alert__text">{uploadError}</p>
           </div>
         </div>
       )}
 
       {/* Upload pending indicator */}
       {uploadMutation.isPending && (
-        <div className="usa-alert usa-alert--info" style={{ marginBottom: '1rem' }}>
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">Uploading file…</p>
+        <div className="gf-alert gf-alert gf-alert--info" style={{ marginBottom: '1rem' }}>
+          <div >
+            <p className="gf-alert__text">Uploading file…</p>
           </div>
         </div>
       )}
 
-      {/* Action buttons — USWDS usa-button-group */}
-      <ul className="usa-button-group" style={{ marginBottom: '1rem' }}>
-        <li className="usa-button-group__item">
+      {/* Action buttons — USWDS gf-btn gf-btn--primary-group */}
+      <ul className="gf-btn gf-btn--primary-group" style={{ marginBottom: '1rem' }}>
+        <li className="gf-btn gf-btn--primary-group__item">
           <button
             type="button"
-            className="usa-button"
+            className="gf-btn gf-btn--primary"
             data-testid="upload-attachment-btn"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploadMutation.isPending || isLocked}
@@ -123,10 +123,10 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
             Upload New File
           </button>
         </li>
-        <li className="usa-button-group__item">
+        <li className="gf-btn gf-btn--primary-group__item">
           <button
             type="button"
-            className="usa-button usa-button--outline"
+            className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
             data-testid="link-library-btn"
             onClick={() => {
               // Library link feature — opens a note for future implementation
@@ -143,7 +143,7 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
       <input
         ref={fileInputRef}
         type="file"
-        className="usa-file-input"
+        className="gf-input"
         style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap' }}
         onChange={handleFileUpload}
         aria-label="Upload attachment file"
@@ -153,10 +153,10 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
 
       {/* Attachments table */}
       {displayAttachments.length === 0 ? (
-        <p className="usa-hint">No attachments yet. Upload a file or link from your document library.</p>
+        <p className="gf-hint">No attachments yet. Upload a file or link from your document library.</p>
       ) : (
         <div style={{ overflowX: 'auto' }}>
-          <table className="usa-table usa-table--borderless" style={{ width: '100%' }} data-testid="attachment-list">
+          <table className="gf-table gf-table" style={{ width: '100%' }} data-testid="attachment-list">
             <thead>
               <tr>
                 <th>File Name</th>
@@ -172,11 +172,11 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
                   <td>
                     {att.file_name ?? '(unnamed)'}
                     {att.mime_type && (
-                      <div className="usa-hint" style={{ fontSize: '0.8rem' }}>{att.mime_type}</div>
+                      <div className="gf-hint" style={{ fontSize: '0.8rem' }}>{att.mime_type}</div>
                     )}
                   </td>
                   <td>
-                    <span className="usa-tag">
+                    <span className="gf-badge gf-badge--neutral">
                       {att.source_type === 'upload' ? 'Upload' : 'Library'}
                     </span>
                   </td>
@@ -186,7 +186,7 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button
                         type="button"
-                        className="usa-button usa-button--unstyled"
+                        className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                         onClick={() => setShowVersions(
                           showVersions === att.attachment_id ? null : att.attachment_id
                         )}
@@ -196,7 +196,7 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
                       </button>
                       <button
                         type="button"
-                        className="usa-button usa-button--unstyled usa-button--secondary"
+                        className="gf-btn gf-btn--primary gf-btn gf-btn--ghost gf-btn gf-btn--outline"
                         onClick={() => setConfirmDelete(att.attachment_id)}
                         style={{ fontSize: '0.875rem' }}
                         data-testid={`delete-attachment-btn-${att.attachment_id}`}
@@ -210,11 +210,11 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
                     {showVersions === att.attachment_id && versions.length > 0 && (
                       <div style={{ marginTop: '0.5rem', background: '#f0f0f0', padding: '0.5rem', borderRadius: '4px' }}>
                         <strong style={{ fontSize: '0.85rem' }}>Version History:</strong>
-                        <ul className="usa-list usa-list--unstyled" style={{ marginTop: '0.25rem' }}>
+                        <ul  style={{ marginTop: '0.25rem' }}>
                           {versions.map((v: WorkspaceAttachment) => (
                             <li key={v.attachment_id} style={{ fontSize: '0.85rem' }}>
                               v{v.version_number} — {v.file_name ?? '(unnamed)'}{' '}
-                              <span className="usa-hint">
+                              <span className="gf-hint">
                                 ({v.is_active ? 'active' : 'superseded'})
                               </span>
                             </li>
@@ -232,7 +232,7 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                            <button
                              type="button"
-                             className="usa-button usa-button--secondary usa-button--small"
+                             className="gf-btn gf-btn--primary gf-btn gf-btn--outline gf-btn gf-btn--sm"
                              onClick={() => deleteMutation.mutate(att.attachment_id)}
                              disabled={deleteMutation.isPending || isLocked}
                            >
@@ -240,7 +240,7 @@ export function AttachmentManager({ workspaceId, requirementId, isLocked = false
                            </button>
                           <button
                             type="button"
-                            className="usa-button usa-button--unstyled usa-button--small"
+                            className="gf-btn gf-btn--primary gf-btn gf-btn--ghost gf-btn gf-btn--sm"
                             onClick={() => setConfirmDelete(null)}
                           >
                             Cancel

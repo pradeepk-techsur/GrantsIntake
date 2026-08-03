@@ -112,9 +112,9 @@ export function IntakeQueueDetailPage() {
 
   if (entryQuery.isError) {
     return (
-      <div className="usa-alert usa-alert--error" role="alert">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">Failed to load entry details.</p>
+      <div className="gf-alert gf-alert gf-alert--error" role="alert">
+        <div >
+          <p className="gf-alert__text">Failed to load entry details.</p>
         </div>
       </div>
     );
@@ -129,9 +129,9 @@ export function IntakeQueueDetailPage() {
   const snapshots = (snapshotsQuery.data as { snapshots?: unknown[] })?.snapshots ?? [];
 
   return (
-    <div className="usa-prose">
+    <div >
       {/* Back link */}
-      <Link to="/grantor/intake-queue" className="usa-link" style={{ display: 'inline-block', marginBottom: '1rem' }}>
+      <Link to="/grantor/intake-queue"  style={{ display: 'inline-block', marginBottom: '1rem' }}>
         ← Back to Intake Queue
       </Link>
 
@@ -148,11 +148,11 @@ export function IntakeQueueDetailPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
 
         {/* Application Summary Card */}
-        <div className="usa-card">
-          <div className="usa-card__header">
-            <h2 className="usa-card__heading">Application Summary</h2>
+        <div className="gf-card">
+          <div className="gf-card__header">
+            <h2 className="gf-card__title">Application Summary</h2>
           </div>
-          <div className="usa-card__body">
+          <div className="gf-card__body">
             <dl style={{ margin: 0 }}>
               <dt><strong>Opportunity</strong></dt>
               <dd>{entry.opportunity_title}</dd>
@@ -175,18 +175,18 @@ export function IntakeQueueDetailPage() {
         </div>
 
         {/* Validation Summary Card */}
-        <div className="usa-card">
-          <div className="usa-card__header">
-            <h2 className="usa-card__heading">Validation Summary</h2>
+        <div className="gf-card">
+          <div className="gf-card__header">
+            <h2 className="gf-card__title">Validation Summary</h2>
           </div>
-          <div className="usa-card__body">
+          <div className="gf-card__body">
             {!validationSummary ||
             (typeof validationSummary === 'object' &&
               (validationSummary as Record<string, unknown>).warnings === 0 &&
               (validationSummary as Record<string, unknown>).info === 0) ? (
               <p>No validation errors at time of submission.</p>
             ) : (
-              <table className="usa-table usa-table--borderless" style={{ width: '100%', fontSize: '0.85rem' }}>
+              <table className="gf-table gf-table" style={{ width: '100%', fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
                     <th>Category</th>
@@ -207,11 +207,11 @@ export function IntakeQueueDetailPage() {
         </div>
 
         {/* Applicant Org Profile Card */}
-        <div className="usa-card">
-          <div className="usa-card__header">
-            <h2 className="usa-card__heading">Applicant Organization</h2>
+        <div className="gf-card">
+          <div className="gf-card__header">
+            <h2 className="gf-card__title">Applicant Organization</h2>
           </div>
-          <div className="usa-card__body">
+          <div className="gf-card__body">
             <dl style={{ margin: 0 }}>
               {orgProfile.legal_name && (
                 <>
@@ -259,32 +259,32 @@ export function IntakeQueueDetailPage() {
           <h2>Apply Screening Disposition</h2>
 
           {dispositionSuccess && (
-            <div className="usa-alert usa-alert--success" role="status">
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">Disposition applied. Applicant has been notified.</p>
+            <div className="gf-alert gf-alert gf-alert--success" role="status">
+              <div >
+                <p className="gf-alert__text">Disposition applied. Applicant has been notified.</p>
               </div>
             </div>
           )}
 
           {dispositionError && (
-            <div className="usa-alert usa-alert--error" role="alert">
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">{dispositionError}</p>
+            <div className="gf-alert gf-alert gf-alert--error" role="alert">
+              <div >
+                <p className="gf-alert__text">{dispositionError}</p>
               </div>
             </div>
           )}
 
           <form onSubmit={handleDispositionSubmit}>
-            <fieldset className="usa-fieldset">
-              <legend className="usa-legend">Apply Screening Disposition</legend>
+            <fieldset >
+              <legend >Apply Screening Disposition</legend>
 
-              <div className="usa-form-group">
-                <label className="usa-label" htmlFor="disposition-select">
+              <div className="gf-form-group">
+                <label className="gf-label" htmlFor="disposition-select">
                   Disposition <span style={{ color: 'red' }}>*</span>
                 </label>
                 <select
                   id="disposition-select"
-                  className="usa-select"
+                  className="gf-select"
                   value={dispositionValue}
                   onChange={(e) => {
                     setDispositionValue(e.target.value as DispositionStatus | '');
@@ -303,13 +303,13 @@ export function IntakeQueueDetailPage() {
 
               {/* Rationale — shown and required for non-acceptance */}
               {dispositionValue && dispositionValue !== 'accepted_for_review' && (
-                <div className="usa-form-group">
-                  <label className="usa-label" htmlFor="rationale-textarea">
+                <div className="gf-form-group">
+                  <label className="gf-label" htmlFor="rationale-textarea">
                     Rationale (required) <span style={{ color: 'red' }}>*</span>
                   </label>
                   <textarea
                     id="rationale-textarea"
-                    className="usa-textarea"
+                    className="gf-textarea"
                     value={rationale}
                     onChange={(e) => setRationale(e.target.value)}
                     rows={4}
@@ -322,7 +322,7 @@ export function IntakeQueueDetailPage() {
 
               <button
                 type="submit"
-                className="usa-button"
+                className="gf-btn gf-btn--primary"
                 disabled={dispositionMutation.isPending || !dispositionValue}
               >
                 {dispositionMutation.isPending ? 'Applying...' : 'Apply Disposition'}
@@ -338,7 +338,7 @@ export function IntakeQueueDetailPage() {
         {entry.disposition_history.length === 0 ? (
           <p>No disposition history yet.</p>
         ) : (
-          <table className="usa-table usa-table--borderless" style={{ width: '100%' }}>
+          <table className="gf-table gf-table" style={{ width: '100%' }}>
             <thead>
               <tr>
                 <th scope="col">Disposition</th>
@@ -371,7 +371,7 @@ export function IntakeQueueDetailPage() {
         {snapshots.length === 0 ? (
           <p>No snapshot information available.</p>
         ) : (
-          <table className="usa-table usa-table--borderless" style={{ width: '100%' }}>
+          <table className="gf-table gf-table" style={{ width: '100%' }}>
             <thead>
               <tr>
                 <th scope="col">Confirmation Number</th>

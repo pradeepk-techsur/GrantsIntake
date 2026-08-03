@@ -233,14 +233,14 @@ export function OrgProfilePage() {
 
   if (orgLoading) {
     return (
-      <div className="usa-prose">
+      <div >
         <p>Loading your organization profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="usa-prose">
+    <div >
       <h1>{org ? 'Organization Profile' : 'Create Organization Profile'}</h1>
 
       {/* Completeness percentage */}
@@ -282,12 +282,12 @@ export function OrgProfilePage() {
             return (
               <div
                 key={idx}
-                className="usa-alert usa-alert--error"
+                className="gf-alert gf-alert gf-alert--error"
                 role="alert"
                 style={{ marginBottom: '1rem' }}
               >
-                <div className="usa-alert__body">
-                  <p className="usa-alert__text">
+                <div >
+                  <p className="gf-alert__text">
                     Your {cred.item_type} is expired. Please update immediately.
                   </p>
                 </div>
@@ -298,12 +298,12 @@ export function OrgProfilePage() {
             return (
               <div
                 key={idx}
-                className="usa-alert usa-alert--warning"
+                className="gf-alert gf-alert gf-alert--warning"
                 role="alert"
                 style={{ marginBottom: '1rem' }}
               >
-                <div className="usa-alert__body">
-                  <p className="usa-alert__text">
+                <div >
+                  <p className="gf-alert__text">
                     Your {cred.item_type} expires in {cred.days_remaining} days. Please renew soon.
                   </p>
                 </div>
@@ -316,18 +316,18 @@ export function OrgProfilePage() {
 
       {/* Success message */}
       {successMessage && (
-        <div className="usa-alert usa-alert--success" role="status" style={{ marginBottom: '1rem' }}>
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">{successMessage}</p>
+        <div className="gf-alert gf-alert gf-alert--success" role="status" style={{ marginBottom: '1rem' }}>
+          <div >
+            <p className="gf-alert__text">{successMessage}</p>
           </div>
         </div>
       )}
 
       {/* Submit error */}
       {submitError && (
-        <div className="usa-alert usa-alert--error" role="alert" style={{ marginBottom: '1rem' }}>
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">
+        <div className="gf-alert gf-alert gf-alert--error" role="alert" style={{ marginBottom: '1rem' }}>
+          <div >
+            <p className="gf-alert__text">
               {(submitError as Error).message ?? 'An error occurred. Please try again.'}
             </p>
           </div>
@@ -337,24 +337,24 @@ export function OrgProfilePage() {
       {/* Profile navigation links */}
       {org && (
         <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-          <Link to="/applicant/profile/roles" className="usa-button usa-button--unstyled">
+          <Link to="/applicant/profile/roles" className="gf-btn gf-btn--primary gf-btn gf-btn--ghost">
             Team Roles
           </Link>
-          <Link to="/applicant/profile/documents" className="usa-button usa-button--unstyled">
+          <Link to="/applicant/profile/documents" className="gf-btn gf-btn--primary gf-btn gf-btn--ghost">
             Documents
           </Link>
         </div>
       )}
 
       {/* Organization form */}
-      <form className="usa-form" onSubmit={handleSubmit} style={{ maxWidth: '42rem' }}>
+      <form  onSubmit={handleSubmit} style={{ maxWidth: '42rem' }}>
         {/* Legal Name */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="legal_name">
-            Legal Name <span className="usa-error-message" aria-hidden="true"> *</span>
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="legal_name">
+            Legal Name <span className="gf-error-msg" aria-hidden="true"> *</span>
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="legal_name"
             name="legal_name"
             type="text"
@@ -365,12 +365,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* DBA Name */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="dba_name">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="dba_name">
             DBA Name (Doing Business As)
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="dba_name"
             name="dba_name"
             type="text"
@@ -380,12 +380,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Address Line 1 */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="address_line1">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="address_line1">
             Address Line 1 <span aria-hidden="true"> *</span>
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="address_line1"
             name="address_line1"
             type="text"
@@ -396,12 +396,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Address Line 2 */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="address_line2">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="address_line2">
             Address Line 2
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="address_line2"
             name="address_line2"
             type="text"
@@ -411,12 +411,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* City */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="city">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="city">
             City <span aria-hidden="true"> *</span>
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="city"
             name="city"
             type="text"
@@ -427,12 +427,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* State */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="state">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="state">
             State <span aria-hidden="true"> *</span>
           </label>
           <select
-            className="usa-select"
+            className="gf-select"
             id="state"
             name="state"
             required
@@ -449,12 +449,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* ZIP */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="zip">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="zip">
             ZIP Code <span aria-hidden="true"> *</span>
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="zip"
             name="zip"
             type="text"
@@ -466,12 +466,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Country */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="country">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="country">
             Country
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="country"
             name="country"
             type="text"
@@ -481,12 +481,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Entity Type */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="entity_type">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="entity_type">
             Entity Type <span aria-hidden="true"> *</span>
           </label>
           <select
-            className="usa-select"
+            className="gf-select"
             id="entity_type"
             name="entity_type"
             required
@@ -503,12 +503,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* EIN */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="ein">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="ein">
             EIN (Employer Identification Number)
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="ein"
             name="ein"
             type="text"
@@ -521,17 +521,17 @@ export function OrgProfilePage() {
         </div>
 
         {/* UEI */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="uei">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="uei">
             UEI (Unique Entity Identifier)
           </label>
           {ueiError && (
-            <span className="usa-error-message" id="uei-error" role="alert">
+            <span className="gf-error-msg" id="uei-error" role="alert">
               {ueiError}
             </span>
           )}
           <input
-            className={`usa-input${ueiError ? ' usa-input--error' : ''}`}
+            className={`gf-input${ueiError ? ' gf-input--error' : ''}`}
             id="uei"
             name="uei"
             type="text"
@@ -544,29 +544,29 @@ export function OrgProfilePage() {
         </div>
 
         {/* SAM Registered */}
-        <div className="usa-form-group">
-          <div className="usa-checkbox">
+        <div className="gf-form-group">
+          <div className="gf-form-group">
             <input
-              className="usa-checkbox__input"
+              
               id="sam_registered"
               name="sam_registered"
               type="checkbox"
               checked={form.sam_registered ?? false}
               onChange={handleFieldChange}
             />
-            <label className="usa-checkbox__label" htmlFor="sam_registered">
+            <label className="gf-label" htmlFor="sam_registered">
               SAM.gov Registered
             </label>
           </div>
         </div>
 
         {/* SAM Expiration Date */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="sam_expiration_date">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="sam_expiration_date">
             SAM Expiration Date
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="sam_expiration_date"
             name="sam_expiration_date"
             type="date"
@@ -576,12 +576,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Tax Exempt Status */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="tax_exempt_status">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="tax_exempt_status">
             Tax Exempt Status
           </label>
           <select
-            className="usa-select"
+            className="gf-select"
             id="tax_exempt_status"
             name="tax_exempt_status"
             value={form.tax_exempt_status ?? ''}
@@ -596,12 +596,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Congressional District */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="congressional_district">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="congressional_district">
             Congressional District
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="congressional_district"
             name="congressional_district"
             type="text"
@@ -611,12 +611,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Primary Contact Name */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="primary_contact_name">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="primary_contact_name">
             Primary Contact Name <span aria-hidden="true"> *</span>
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="primary_contact_name"
             name="primary_contact_name"
             type="text"
@@ -627,12 +627,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Primary Contact Email */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="primary_contact_email">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="primary_contact_email">
             Primary Contact Email <span aria-hidden="true"> *</span>
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="primary_contact_email"
             name="primary_contact_email"
             type="email"
@@ -643,12 +643,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Primary Contact Phone */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="primary_contact_phone">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="primary_contact_phone">
             Primary Contact Phone
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="primary_contact_phone"
             name="primary_contact_phone"
             type="tel"
@@ -658,13 +658,13 @@ export function OrgProfilePage() {
         </div>
 
         {/* Banking Readiness */}
-        <div className="usa-form-group">
-          <fieldset className="usa-fieldset">
-            <legend className="usa-legend">Banking Readiness</legend>
+        <div className="gf-form-group">
+          <fieldset >
+            <legend >Banking Readiness</legend>
             {(['ready', 'not_ready', 'unknown'] as const).map((val) => (
-              <div key={val} className="usa-radio">
+              <div key={val} className="gf-form-group">
                 <input
-                  className="usa-radio__input"
+                  
                   id={`banking_readiness_${val}`}
                   name="banking_readiness"
                   type="radio"
@@ -672,7 +672,7 @@ export function OrgProfilePage() {
                   checked={form.banking_readiness === val}
                   onChange={handleFieldChange}
                 />
-                <label className="usa-radio__label" htmlFor={`banking_readiness_${val}`}>
+                <label className="gf-label" htmlFor={`banking_readiness_${val}`}>
                   {val === 'ready'
                     ? 'Ready'
                     : val === 'not_ready'
@@ -685,12 +685,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Indirect Cost Rate */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="indirect_cost_rate">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="indirect_cost_rate">
             Indirect Cost Rate (%)
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="indirect_cost_rate"
             name="indirect_cost_rate"
             type="number"
@@ -703,12 +703,12 @@ export function OrgProfilePage() {
         </div>
 
         {/* Indirect Cost Base */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="indirect_cost_base">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="indirect_cost_base">
             Indirect Cost Base
           </label>
           <input
-            className="usa-input"
+            className="gf-input"
             id="indirect_cost_base"
             name="indirect_cost_base"
             type="text"
@@ -719,7 +719,7 @@ export function OrgProfilePage() {
 
         {/* Submit button */}
         <button
-          className="usa-button"
+          className="gf-btn gf-btn--primary"
           type="submit"
           data-testid="save-org-button"
           disabled={isSubmitting}

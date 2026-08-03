@@ -109,13 +109,13 @@ export function SectionFormPanel({ section, workspaceId, onFieldBlur, isLocked =
     <div data-testid="section-form-panel">
       {/* Auto-save status indicator */}
       {saveMutation.isPending && (
-        <span className="usa-hint" data-testid="save-status-saving" style={{ display: 'block', marginBottom: '0.5rem' }}>
+        <span className="gf-hint" data-testid="save-status-saving" style={{ display: 'block', marginBottom: '0.5rem' }}>
           Saving…
         </span>
       )}
       {saveMutation.isSuccess && !saveMutation.isPending && (
         <span
-          className="usa-hint"
+          className="gf-hint"
           data-testid="save-status-saved"
           style={{ display: 'block', marginBottom: '0.5rem', color: '#2e8540' }}
         >
@@ -138,8 +138,8 @@ export function SectionFormPanel({ section, workspaceId, onFieldBlur, isLocked =
           ))}
         </>
       ) : (
-        <div className="usa-prose">
-          <p className="usa-hint">No form fields have been configured for this section yet.</p>
+        <div >
+          <p className="gf-hint">No form fields have been configured for this section yet.</p>
         </div>
       )}
     </div>

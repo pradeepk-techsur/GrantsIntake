@@ -240,17 +240,17 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
 
   return (
     <section aria-labelledby="screening-heading">
-      <h2 id="screening-heading" className="usa-prose" style={{ marginTop: 0 }}>
+      <h2 id="screening-heading"  style={{ marginTop: 0 }}>
         Administrative Screening Criteria
       </h2>
-      <p className="usa-prose">
+      <p >
         Define what intake staff must verify before accepting or routing an application.
       </p>
 
       {/* Auto criteria (read-only, locked) */}
       <div style={{ marginBottom: '2rem' }}>
-        <h3 className="usa-prose">System Criteria</h3>
-        <p className="usa-prose" style={{ fontSize: '0.875rem', color: '#565c65' }}>
+        <h3 >System Criteria</h3>
+        <p  style={{ fontSize: '0.875rem', color: '#565c65' }}>
           The following criteria are automatically applied to all applications and cannot be modified or deleted.
         </p>
         {isLoading ? (
@@ -263,7 +263,7 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
               autoCriteria.map((criterion) => (
                 <div
                   key={criterion.criterion_id}
-                  className="usa-card"
+                  className="gf-card"
                   style={{
                     padding: '0.75rem 1rem',
                     marginBottom: '0.5rem',
@@ -292,7 +292,7 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
                     </strong>
                   </span>
                   <span
-                    className="usa-tag"
+                    className="gf-badge gf-badge--neutral"
                     style={{ marginLeft: 'auto', background: '#565c65', color: 'white', fontSize: '0.75rem' }}
                   >
                     System
@@ -306,12 +306,12 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
 
       {/* Manual criteria section */}
       <div>
-        <h3 className="usa-prose">Custom Criteria</h3>
+        <h3 >Custom Criteria</h3>
 
         {!showForm && (
           <button
             type="button"
-            className="usa-button"
+            className="gf-btn gf-btn--primary"
             onClick={() => { setShowForm(true); setEditingId(null); setSaveError(null); }}
             data-testid="add-criterion-btn"
             style={{ marginBottom: '1rem' }}
@@ -323,23 +323,23 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
         {/* Criterion form */}
         {showForm && (
           <div
-            className="usa-card"
+            className="gf-card"
             style={{ marginBottom: '1.5rem', padding: '1.5rem', border: '1px solid #dfe1e2' }}
             data-testid="criterion-form"
           >
-            <h4 className="usa-prose" style={{ marginTop: 0 }}>
+            <h4  style={{ marginTop: 0 }}>
               {editingId ? 'Edit Criterion' : 'Add Criterion'}
             </h4>
 
-            <div className="usa-form-group">
-              <label className="usa-label" htmlFor="criterion-text">
+            <div className="gf-form-group">
+              <label className="gf-label" htmlFor="criterion-text">
                 Criterion Text{' '}
-                <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+                <abbr title="required" className="gf-hint">*</abbr>
               </label>
-              <span className="usa-hint">Maximum 500 characters</span>
+              <span className="gf-hint">Maximum 500 characters</span>
               <textarea
                 id="criterion-text"
-                className="usa-textarea"
+                className="gf-textarea"
                 maxLength={500}
                 rows={3}
                 value={formData.criterion_text}
@@ -348,29 +348,29 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
               />
             </div>
 
-            <div className="usa-form-group">
-              <div className="usa-checkbox">
+            <div className="gf-form-group">
+              <div className="gf-form-group">
                 <input
-                  className="usa-checkbox__input"
+                  
                   id="criterion-required"
                   type="checkbox"
                   checked={formData.is_required}
                   onChange={(e) => setFormData((p) => ({ ...p, is_required: e.target.checked }))}
                   data-testid="criterion-required-checkbox"
                 />
-                <label className="usa-checkbox__label" htmlFor="criterion-required">
+                <label className="gf-label" htmlFor="criterion-required">
                   Required
                 </label>
               </div>
             </div>
 
-            <div className="usa-form-group">
-              <label className="usa-label" htmlFor="disposition-on-failure">
+            <div className="gf-form-group">
+              <label className="gf-label" htmlFor="disposition-on-failure">
                 Disposition on Failure (optional)
               </label>
               <input
                 id="disposition-on-failure"
-                className="usa-input"
+                className="gf-input"
                 type="text"
                 value={formData.suggested_disposition_on_failure}
                 onChange={(e) =>
@@ -384,11 +384,11 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
               />
             </div>
 
-            <div className="usa-form-group">
-              <label className="usa-label" htmlFor="display-order">Display Order</label>
+            <div className="gf-form-group">
+              <label className="gf-label" htmlFor="display-order">Display Order</label>
               <input
                 id="display-order"
-                className="usa-input"
+                className="gf-input"
                 type="number"
                 min={0}
                 value={formData.display_order}
@@ -399,9 +399,9 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
             </div>
 
             {saveError && (
-              <div className="usa-alert usa-alert--error usa-alert--slim" role="alert">
-                <div className="usa-alert__body">
-                  <p className="usa-alert__text">{saveError}</p>
+              <div className="gf-alert gf-alert gf-alert--error" role="alert">
+                <div >
+                  <p className="gf-alert__text">{saveError}</p>
                 </div>
               </div>
             )}
@@ -409,7 +409,7 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button
                 type="button"
-                className="usa-button"
+                className="gf-btn gf-btn--primary"
                 onClick={() => void handleSave()}
                 disabled={isSaving}
                 data-testid="save-criterion-btn"
@@ -418,7 +418,7 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
               </button>
               <button
                 type="button"
-                className="usa-button usa-button--unstyled"
+                className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                 onClick={handleCancel}
                 data-testid="cancel-criterion-btn"
               >
@@ -430,15 +430,15 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
 
         {/* Manual criteria list with drag-to-reorder */}
         {error && (
-          <div className="usa-alert usa-alert--error" role="alert">
-            <div className="usa-alert__body">
-              <p className="usa-alert__text">{error}</p>
+          <div className="gf-alert gf-alert gf-alert--error" role="alert">
+            <div >
+              <p className="gf-alert__text">{error}</p>
             </div>
           </div>
         )}
 
         {!isLoading && manualCriteria.length === 0 && (
-          <p className="usa-prose" style={{ color: '#565c65' }}>
+          <p  style={{ color: '#565c65' }}>
             No custom criteria configured yet. Click &quot;Add Criterion&quot; to add one.
           </p>
         )}
@@ -485,7 +485,7 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
                   type="button"
-                  className="usa-button usa-button--unstyled"
+                  className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                   onClick={() => handleEdit(criterion)}
                   data-testid={`edit-criterion-${criterion.criterion_id}`}
                 >
@@ -493,7 +493,7 @@ export function ScreeningCriteriaConfig({ opportunityId }: ScreeningCriteriaConf
                 </button>
                 <button
                   type="button"
-                  className="usa-button usa-button--unstyled"
+                  className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                   onClick={() => void handleDelete(criterion.criterion_id)}
                   data-testid={`delete-criterion-${criterion.criterion_id}`}
                   style={{ color: '#e41d3d' }}

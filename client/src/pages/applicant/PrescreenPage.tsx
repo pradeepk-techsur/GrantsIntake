@@ -143,37 +143,37 @@ export function PrescreenPage() {
 
   return (
     <main id="main-content" tabIndex={-1}>
-      <div className="usa-section">
-        <div className="grid-container">
+      <div >
+        <div >
           {/* Back navigation */}
-          <nav aria-label="Breadcrumb" className="usa-breadcrumb">
-            <ol className="usa-breadcrumb__list">
-              <li className="usa-breadcrumb__list-item">
-                <Link to="/opportunities" className="usa-breadcrumb__link">
+          <nav aria-label="Breadcrumb" >
+            <ol >
+              <li className="-item">
+                <Link to="/opportunities" >
                   Opportunities
                 </Link>
               </li>
-              <li className="usa-breadcrumb__list-item usa-current" aria-current="page">
+              <li className="-item active" aria-current="page">
                 Eligibility Pre-Screen
               </li>
             </ol>
           </nav>
 
-          <h1 className="usa-prose">Eligibility Pre-Screen</h1>
+          <h1 >Eligibility Pre-Screen</h1>
 
           {error && (
-            <div className="usa-alert usa-alert--error" role="alert">
-              <div className="usa-alert__body">
-                <h4 className="usa-alert__heading">Error</h4>
-                <p className="usa-alert__text">{error}</p>
+            <div className="gf-alert gf-alert gf-alert--error" role="alert">
+              <div >
+                <h4 className="gf-alert__title">Error</h4>
+                <p className="gf-alert__text">{error}</p>
               </div>
             </div>
           )}
 
           {questionnaire && questionnaire.questions.length === 0 && (
-            <div className="usa-alert usa-alert--info" role="status">
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">
+            <div className="gf-alert gf-alert gf-alert--info" role="status">
+              <div >
+                <p className="gf-alert__text">
                   No eligibility questionnaire has been configured for this opportunity.
                 </p>
               </div>
@@ -182,7 +182,7 @@ export function PrescreenPage() {
 
           {questionnaire && questionnaire.questions.length > 0 && (
             <form onSubmit={handleSubmit}>
-              <p className="usa-prose">
+              <p >
                 Please answer the following questions to determine your eligibility for this
                 opportunity. Your responses will be saved and cannot be changed after submission.
               </p>
@@ -198,8 +198,8 @@ export function PrescreenPage() {
                     key={question.question_id}
                     style={{ marginBottom: '2rem', borderBottom: '1px solid #dfe1e2', paddingBottom: '1.5rem' }}
                   >
-                    <fieldset className="usa-fieldset">
-                      <legend className="usa-legend">
+                    <fieldset >
+                      <legend >
                         <strong>
                           {index + 1}. {question.question_text}
                           {question.is_required && (
@@ -212,9 +212,9 @@ export function PrescreenPage() {
                       {question.question_type === 'yes_no' && (
                         <div>
                           {['Yes', 'No'].map((label) => (
-                            <div key={label} className="usa-radio">
+                            <div key={label} className="gf-form-group">
                               <input
-                                className="usa-radio__input"
+                                
                                 type="radio"
                                 id={`${question.question_id}-${label.toLowerCase()}`}
                                 name={question.question_id}
@@ -223,7 +223,7 @@ export function PrescreenPage() {
                                 onChange={() => handleYesNoChange(question.question_id, label.toLowerCase())}
                               />
                               <label
-                                className="usa-radio__label"
+                                className="gf-label"
                                 htmlFor={`${question.question_id}-${label.toLowerCase()}`}
                               >
                                 {label}
@@ -237,9 +237,9 @@ export function PrescreenPage() {
                       {question.question_type === 'multiple_choice' && (
                         <div>
                           {question.options.map((option) => (
-                            <div key={option.option_id} className="usa-radio">
+                            <div key={option.option_id} className="gf-form-group">
                               <input
-                                className="usa-radio__input"
+                                
                                 type="radio"
                                 id={`${question.question_id}-${option.option_id}`}
                                 name={question.question_id}
@@ -248,7 +248,7 @@ export function PrescreenPage() {
                                 onChange={() => handleOptionChange(question.question_id, option.option_id)}
                               />
                               <label
-                                className="usa-radio__label"
+                                className="gf-label"
                                 htmlFor={`${question.question_id}-${option.option_id}`}
                               >
                                 {option.option_text}
@@ -260,9 +260,9 @@ export function PrescreenPage() {
 
                       {/* text question type */}
                       {question.question_type === 'text' && (
-                        <div className="usa-form-group">
+                        <div className="gf-form-group">
                           <textarea
-                            className="usa-textarea"
+                            className="gf-textarea"
                             id={`text-${question.question_id}`}
                             name={question.question_id}
                             value={currentResponse?.response_text ?? ''}
@@ -280,13 +280,13 @@ export function PrescreenPage() {
               <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <button
                   type="submit"
-                  className="usa-button"
+                  className="gf-btn gf-btn--primary"
                   disabled={isSubmitting}
                   aria-busy={isSubmitting}
                 >
                   {isSubmitting ? 'Submitting…' : 'Submit Responses'}
                 </button>
-                <Link to="/opportunities" className="usa-link">
+                <Link to="/opportunities" >
                   Cancel
                 </Link>
               </div>

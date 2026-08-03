@@ -53,14 +53,14 @@ export function GuidancePanel({ fieldId }: GuidancePanelProps) {
 
   return (
     <div
-      className="usa-accordion usa-accordion--bordered"
+      
       data-testid={`guidance-panel-${fieldId}`}
       style={{ marginTop: '0.5rem' }}
     >
-      <h4 className="usa-accordion__heading">
+      <h4 >
         <button
           type="button"
-          className="usa-accordion__button"
+          className="gf-btn gf-btn--ghost"
           aria-expanded={isExpanded}
           aria-controls={`guidance-panel-content-${fieldId}`}
           onClick={() => setIsExpanded((prev) => !prev)}
@@ -70,7 +70,7 @@ export function GuidancePanel({ fieldId }: GuidancePanelProps) {
       </h4>
       <div
         id={`guidance-panel-content-${fieldId}`}
-        className="usa-accordion__content usa-prose"
+        
         hidden={!isExpanded}
       >
         <p>{prompt.prompt_text}</p>

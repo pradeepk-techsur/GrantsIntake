@@ -192,33 +192,33 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
       {/* Save status */}
       {saveStatus === 'saved' && (
         <div
-          className="usa-alert usa-alert--success usa-alert--slim"
+          className="gf-alert gf-alert gf-alert--success"
           role="status"
           aria-live="polite"
           data-testid="deadline-save-success"
         >
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">Deadline settings saved</p>
+          <div >
+            <p className="gf-alert__text">Deadline settings saved</p>
           </div>
         </div>
       )}
 
-      <h2 id="deadline-section-heading" className="usa-prose" style={{ marginTop: '2rem' }}>
+      <h2 id="deadline-section-heading"  style={{ marginTop: '2rem' }}>
         Deadlines &amp; Intake Window
       </h2>
 
-      <fieldset className="usa-fieldset">
-        <legend className="usa-legend">Application Window</legend>
+      <fieldset >
+        <legend >Application Window</legend>
 
         {/* Deadline Timezone */}
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="deadline-timezone">
-            Deadline Timezone <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="deadline-timezone">
+            Deadline Timezone <abbr title="required" className="gf-hint">*</abbr>
           </label>
           <select
             id="deadline-timezone"
             name="deadline_timezone"
-            className="usa-select"
+            className="gf-select"
             value={fields.deadline_timezone}
             onChange={(e) => handleChange('deadline_timezone', e.target.value)}
             onBlur={() => handleBlur('deadline_timezone')}
@@ -233,12 +233,12 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
         </div>
 
         {/* Application Open Date */}
-        <div className={`usa-form-group${getFieldError('application_open_date') ? ' usa-form-group--error' : ''}`}>
-          <label className="usa-label" htmlFor="app-open-date">
-            Application Open Date <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+        <div className={`gf-form-group${getFieldError('application_open_date') ? ' gf-form-group' : ''}`}>
+          <label className="gf-label" htmlFor="app-open-date">
+            Application Open Date <abbr title="required" className="gf-hint">*</abbr>
           </label>
           {getFieldError('application_open_date') && (
-            <span className="usa-error-message" role="alert">
+            <span className="gf-error-msg" role="alert">
               {getFieldError('application_open_date')}
             </span>
           )}
@@ -246,7 +246,7 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
             id="app-open-date"
             name="application_open_date"
             type="datetime-local"
-            className={`usa-input${getFieldError('application_open_date') ? ' usa-input--error' : ''}`}
+            className={`gf-input${getFieldError('application_open_date') ? ' gf-input--error' : ''}`}
             value={fields.application_open_date}
             onChange={(e) => handleChange('application_open_date', e.target.value)}
             onBlur={() => handleBlur('application_open_date')}
@@ -255,12 +255,12 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
         </div>
 
         {/* Application Close Date */}
-        <div className={`usa-form-group${getFieldError('application_close_date') ? ' usa-form-group--error' : ''}`}>
-          <label className="usa-label" htmlFor="app-close-date">
-            Application Close Date <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+        <div className={`gf-form-group${getFieldError('application_close_date') ? ' gf-form-group' : ''}`}>
+          <label className="gf-label" htmlFor="app-close-date">
+            Application Close Date <abbr title="required" className="gf-hint">*</abbr>
           </label>
           {getFieldError('application_close_date') && (
-            <span className="usa-error-message" role="alert" data-testid="close-date-error">
+            <span className="gf-error-msg" role="alert" data-testid="close-date-error">
               {getFieldError('application_close_date')}
             </span>
           )}
@@ -268,7 +268,7 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
             id="app-close-date"
             name="application_close_date"
             type="datetime-local"
-            className={`usa-input${getFieldError('application_close_date') ? ' usa-input--error' : ''}`}
+            className={`gf-input${getFieldError('application_close_date') ? ' gf-input--error' : ''}`}
             value={fields.application_close_date}
             onChange={(e) => handleChange('application_close_date', e.target.value)}
             onBlur={() => handleBlur('application_close_date')}
@@ -277,12 +277,12 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
         </div>
 
         {/* Pre-Application Deadline */}
-        <div className={`usa-form-group${getFieldError('pre_application_deadline') ? ' usa-form-group--error' : ''}`}>
-          <label className="usa-label" htmlFor="pre-app-deadline">
-            Pre-Application Deadline <span className="usa-hint">(optional — must be before open date)</span>
+        <div className={`gf-form-group${getFieldError('pre_application_deadline') ? ' gf-form-group' : ''}`}>
+          <label className="gf-label" htmlFor="pre-app-deadline">
+            Pre-Application Deadline <span className="gf-hint">(optional — must be before open date)</span>
           </label>
           {getFieldError('pre_application_deadline') && (
-            <span className="usa-error-message" role="alert" data-testid="pre-app-error">
+            <span className="gf-error-msg" role="alert" data-testid="pre-app-error">
               {getFieldError('pre_application_deadline')}
             </span>
           )}
@@ -290,7 +290,7 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
             id="pre-app-deadline"
             name="pre_application_deadline"
             type="datetime-local"
-            className={`usa-input${getFieldError('pre_application_deadline') ? ' usa-input--error' : ''}`}
+            className={`gf-input${getFieldError('pre_application_deadline') ? ' gf-input--error' : ''}`}
             value={fields.pre_application_deadline}
             onChange={(e) => handleChange('pre_application_deadline', e.target.value)}
             onBlur={() => handleBlur('pre_application_deadline')}
@@ -299,17 +299,17 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
         </div>
       </fieldset>
 
-      <fieldset className="usa-fieldset" style={{ marginTop: '1.5rem' }}>
-        <legend className="usa-legend">Letter of Intent (LOI)</legend>
+      <fieldset  style={{ marginTop: '1.5rem' }}>
+        <legend >Letter of Intent (LOI)</legend>
 
         {/* LOI Required */}
-        <div className="usa-form-group">
-          <div className="usa-checkbox">
+        <div className="gf-form-group">
+          <div className="gf-form-group">
             <input
               id="loi-required"
               name="loi_required"
               type="checkbox"
-              className="usa-checkbox__input"
+              
               checked={fields.loi_required}
               onChange={(e) => {
                 handleChange('loi_required', e.target.checked);
@@ -322,7 +322,7 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
               onBlur={() => handleBlur('loi_required')}
               data-testid="field-loi-required"
             />
-            <label htmlFor="loi-required" className="usa-checkbox__label">
+            <label htmlFor="loi-required" className="gf-label">
               LOI Required
             </label>
           </div>
@@ -331,15 +331,15 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
         {/* LOI Deadline — shown when loi_required is checked */}
         {fields.loi_required && (
           <div
-            className={`usa-form-group${getFieldError('loi_deadline') ? ' usa-form-group--error' : ''}`}
+            className={`gf-form-group${getFieldError('loi_deadline') ? ' gf-form-group' : ''}`}
             data-testid="loi-deadline-field"
           >
-            <label className="usa-label" htmlFor="loi-deadline">
-              LOI Deadline <abbr title="required" className="usa-hint usa-hint--required">*</abbr>{' '}
-              <span className="usa-hint">(must be before close date)</span>
+            <label className="gf-label" htmlFor="loi-deadline">
+              LOI Deadline <abbr title="required" className="gf-hint">*</abbr>{' '}
+              <span className="gf-hint">(must be before close date)</span>
             </label>
             {getFieldError('loi_deadline') && (
-              <span className="usa-error-message" role="alert" data-testid="loi-deadline-error">
+              <span className="gf-error-msg" role="alert" data-testid="loi-deadline-error">
                 {getFieldError('loi_deadline')}
               </span>
             )}
@@ -347,7 +347,7 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
               id="loi-deadline"
               name="loi_deadline"
               type="datetime-local"
-              className={`usa-input${getFieldError('loi_deadline') ? ' usa-input--error' : ''}`}
+              className={`gf-input${getFieldError('loi_deadline') ? ' gf-input--error' : ''}`}
               value={fields.loi_deadline}
               onChange={(e) => handleChange('loi_deadline', e.target.value)}
               onBlur={() => handleBlur('loi_deadline')}
@@ -357,17 +357,17 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
         )}
       </fieldset>
 
-      <fieldset className="usa-fieldset" style={{ marginTop: '1.5rem' }}>
-        <legend className="usa-legend">Rolling Review</legend>
+      <fieldset  style={{ marginTop: '1.5rem' }}>
+        <legend >Rolling Review</legend>
 
         {/* Enable Rolling Review */}
-        <div className="usa-form-group">
-          <div className="usa-checkbox">
+        <div className="gf-form-group">
+          <div className="gf-form-group">
             <input
               id="rolling-review-enabled"
               name="rolling_review_enabled"
               type="checkbox"
-              className="usa-checkbox__input"
+              
               checked={fields.rolling_review_enabled}
               onChange={(e) => {
                 handleChange('rolling_review_enabled', e.target.checked);
@@ -379,7 +379,7 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
               onBlur={() => handleBlur('rolling_review_enabled')}
               data-testid="field-rolling-review"
             />
-            <label htmlFor="rolling-review-enabled" className="usa-checkbox__label">
+            <label htmlFor="rolling-review-enabled" className="gf-label">
               Enable Rolling Review
             </label>
           </div>
@@ -388,14 +388,14 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
         {/* Rolling Review Cadence — shown when rolling_review_enabled is checked */}
         {fields.rolling_review_enabled && (
           <div
-            className={`usa-form-group${getFieldError('rolling_review_cadence_days') ? ' usa-form-group--error' : ''}`}
+            className={`gf-form-group${getFieldError('rolling_review_cadence_days') ? ' gf-form-group' : ''}`}
             data-testid="rolling-cadence-field"
           >
-            <label className="usa-label" htmlFor="rolling-cadence">
-              Rolling Review Cadence (days) <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+            <label className="gf-label" htmlFor="rolling-cadence">
+              Rolling Review Cadence (days) <abbr title="required" className="gf-hint">*</abbr>
             </label>
             {getFieldError('rolling_review_cadence_days') && (
-              <span className="usa-error-message" role="alert" data-testid="rolling-cadence-error">
+              <span className="gf-error-msg" role="alert" data-testid="rolling-cadence-error">
                 {getFieldError('rolling_review_cadence_days')}
               </span>
             )}
@@ -404,7 +404,7 @@ export function DeadlineForm({ opportunity, onSave }: DeadlineFormProps) {
               name="rolling_review_cadence_days"
               type="number"
               min={1}
-              className={`usa-input${getFieldError('rolling_review_cadence_days') ? ' usa-input--error' : ''}`}
+              className={`gf-input${getFieldError('rolling_review_cadence_days') ? ' gf-input--error' : ''}`}
               value={fields.rolling_review_cadence_days}
               onChange={(e) => handleChange('rolling_review_cadence_days', e.target.value)}
               onBlur={() => handleBlur('rolling_review_cadence_days')}

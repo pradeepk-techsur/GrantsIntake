@@ -119,7 +119,7 @@ export function FormFieldRenderer({
         return (
           <input
             id={fieldInputId}
-            className={`usa-input${error ? ' usa-input--error' : ''}`}
+            className={`gf-input${error ? ' gf-input--error' : ''}`}
             type="text"
             value={String(value ?? '')}
             placeholder={field.placeholder}
@@ -136,7 +136,7 @@ export function FormFieldRenderer({
           <>
             <textarea
               id={fieldInputId}
-              className={`usa-textarea${error ? ' usa-input--error' : ''}`}
+              className={`gf-textarea${error ? ' gf-input--error' : ''}`}
               value={String(value ?? '')}
               placeholder={field.placeholder}
               maxLength={vc.max_chars}
@@ -147,7 +147,7 @@ export function FormFieldRenderer({
               rows={6}
             />
             {vc.max_chars && (
-              <span className="usa-hint" aria-live="polite">
+              <span className="gf-hint" aria-live="polite">
                 {String(value ?? '').length}/{vc.max_chars} characters
               </span>
             )}
@@ -158,7 +158,7 @@ export function FormFieldRenderer({
         return (
           <input
             id={fieldInputId}
-            className={`usa-input${error ? ' usa-input--error' : ''}`}
+            className={`gf-input${error ? ' gf-input--error' : ''}`}
             type="number"
             value={String(value ?? '')}
             placeholder={field.placeholder}
@@ -174,11 +174,11 @@ export function FormFieldRenderer({
 
       case 'currency':
         return (
-          <div className="usa-input-group">
-            <span className="usa-input-prefix" aria-hidden="true">$</span>
+          <div className="gf-input-group">
+            <span className="gf-input-prefix" aria-hidden="true">$</span>
             <input
               id={fieldInputId}
-              className={`usa-input${error ? ' usa-input--error' : ''}`}
+              className={`gf-input${error ? ' gf-input--error' : ''}`}
               type="number"
               value={String(value ?? '')}
               placeholder={field.placeholder ?? '0.00'}
@@ -196,7 +196,7 @@ export function FormFieldRenderer({
         return (
           <input
             id={fieldInputId}
-            className={`usa-input usa-date-picker__external-input${error ? ' usa-input--error' : ''}`}
+            className={`gf-input gf-input${error ? ' gf-input--error' : ''}`}
             type="date"
             value={String(value ?? '')}
             min={vc.min_date}
@@ -212,7 +212,7 @@ export function FormFieldRenderer({
         return (
           <select
             id={fieldInputId}
-            className={`usa-select${error ? ' usa-input--error' : ''}`}
+            className={`gf-select${error ? ' gf-input--error' : ''}`}
             value={String(value ?? '')}
             onChange={(e) => onChange(e.target.value)}
             onBlur={onBlur}
@@ -228,12 +228,12 @@ export function FormFieldRenderer({
 
       case 'multi_select':
         return (
-          <fieldset className="usa-fieldset" onBlur={onBlur}>
-            <legend className="usa-sr-only">{field.label} — select all that apply</legend>
+          <fieldset  onBlur={onBlur}>
+            <legend className="gf-sr-only">{field.label} — select all that apply</legend>
             {(vc.allowed_values ?? []).map((v) => (
-              <div className="usa-checkbox" key={v}>
+              <div className="gf-form-group" key={v}>
                 <input
-                  className="usa-checkbox__input"
+                  
                   type="checkbox"
                   id={`${fieldInputId}-${v}`}
                   value={v}
@@ -241,7 +241,7 @@ export function FormFieldRenderer({
                   onChange={(e) => toggleMultiSelect(v, e.target.checked)}
                   disabled={disabled}
                 />
-                <label className="usa-checkbox__label" htmlFor={`${fieldInputId}-${v}`}>
+                <label className="gf-label" htmlFor={`${fieldInputId}-${v}`}>
                   {v}
                 </label>
               </div>
@@ -251,9 +251,9 @@ export function FormFieldRenderer({
 
       case 'checkbox':
         return (
-          <div className="usa-checkbox">
+          <div className="gf-form-group">
             <input
-              className="usa-checkbox__input"
+              
               id={fieldInputId}
               type="checkbox"
               checked={value === 'true' || value === true}
@@ -261,7 +261,7 @@ export function FormFieldRenderer({
               onBlur={onBlur}
               disabled={disabled}
             />
-            <label className="usa-checkbox__label" htmlFor={fieldInputId}>
+            <label className="gf-label" htmlFor={fieldInputId}>
               {field.label}
             </label>
           </div>
@@ -277,7 +277,7 @@ export function FormFieldRenderer({
             <input
               id={fieldInputId}
               type="file"
-              className="usa-file-input"
+              className="gf-input"
               accept={vc.file_formats?.join(',') ?? undefined}
               onChange={handleFileChange}
               onBlur={onBlur}
@@ -285,7 +285,7 @@ export function FormFieldRenderer({
               aria-describedby={error ? `${fieldInputId}-error` : undefined}
             />
             {selectedFileName && (
-              <span className="usa-hint" style={{ marginTop: '0.25rem', display: 'block' }}>
+              <span className="gf-hint" style={{ marginTop: '0.25rem', display: 'block' }}>
                 Selected: {selectedFileName}
               </span>
             )}
@@ -296,26 +296,26 @@ export function FormFieldRenderer({
       case 'calculated':
         return (
           <div
-            className="usa-input"
+            className="gf-input"
             aria-readonly="true"
             role="status"
             style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
           >
-            {computeCalcValue(field.formula) || <span className="usa-hint">Calculated value</span>}
+            {computeCalcValue(field.formula) || <span className="gf-hint">Calculated value</span>}
           </div>
         );
 
       case 'repeating_table':
         return (
           <div style={{ overflowX: 'auto' }}>
-            <table className="usa-table usa-table--borderless" style={{ width: '100%' }}>
+            <table className="gf-table gf-table" style={{ width: '100%' }}>
               <thead>
                 <tr>
                   {(field.columns ?? []).map((col) => (
                     <th key={col.key} scope="col">{col.label}</th>
                   ))}
                   <th scope="col">
-                    <span className="usa-sr-only">Remove row</span>
+                    <span className="gf-sr-only">Remove row</span>
                   </th>
                 </tr>
               </thead>
@@ -325,7 +325,7 @@ export function FormFieldRenderer({
                     {(field.columns ?? []).map((col) => (
                       <td key={col.key}>
                         <input
-                          className="usa-input"
+                          className="gf-input"
                           type="text"
                           value={row[col.key] ?? ''}
                           onChange={(e) => updateTableCell(rowIdx, col.key, e.target.value)}
@@ -338,7 +338,7 @@ export function FormFieldRenderer({
                     <td>
                       <button
                         type="button"
-                        className="usa-button usa-button--unstyled"
+                        className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                         onClick={() => removeTableRow(rowIdx)}
                         disabled={disabled}
                         aria-label={`Remove row ${rowIdx + 1}`}
@@ -352,7 +352,7 @@ export function FormFieldRenderer({
             </table>
             <button
               type="button"
-              className="usa-button usa-button--outline"
+              className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
               onClick={addTableRow}
               disabled={disabled}
               style={{ marginTop: '0.5rem' }}
@@ -364,9 +364,9 @@ export function FormFieldRenderer({
 
       default:
         return (
-          <div className="usa-alert usa-alert--warning usa-alert--slim">
-            <div className="usa-alert__body">
-              <p className="usa-alert__text">Unknown field type: {(field as FormFieldDefinition).field_type}</p>
+          <div className="gf-alert gf-alert gf-alert--warning">
+            <div >
+              <p className="gf-alert__text">Unknown field type: {(field as FormFieldDefinition).field_type}</p>
             </div>
           </div>
         );
@@ -375,13 +375,13 @@ export function FormFieldRenderer({
 
   // ─── Wrapper with label, help text, error message ──────────────────────────
   return (
-    <div className={`usa-form-group${error ? ' usa-form-group--error' : ''}`} style={{ marginBottom: '1.5rem' }}>
+    <div className={`gf-form-group${error ? ' gf-form-group' : ''}`} style={{ marginBottom: '1.5rem' }}>
       {/* Label (skip for checkbox — label is rendered inline) */}
       {field.field_type !== 'checkbox' && (
-        <label className="usa-label" htmlFor={fieldInputId}>
+        <label className="gf-label" htmlFor={fieldInputId}>
           {field.label}
           {field.is_required && (
-            <span className="usa-hint" style={{ color: '#e52207', marginLeft: '0.25rem' }} aria-label="required">
+            <span className="gf-hint" style={{ color: '#e52207', marginLeft: '0.25rem' }} aria-label="required">
               *
             </span>
           )}
@@ -390,14 +390,14 @@ export function FormFieldRenderer({
 
       {/* Help text */}
       {field.help_text && (
-        <div className="usa-hint" id={`${fieldInputId}-hint`}>
+        <div className="gf-hint" id={`${fieldInputId}-hint`}>
           {field.help_text}
         </div>
       )}
 
       {/* Error message (USWDS error pattern) */}
       {error && (
-        <span className="usa-error-message" id={`${fieldInputId}-error`} role="alert">
+        <span className="gf-error-msg" id={`${fieldInputId}-error`} role="alert">
           {error}
         </span>
       )}

@@ -73,28 +73,28 @@ export function CertifySubmitPage() {
     | null;
 
   return (
-    <div className="usa-prose" data-testid="certify-submit-page">
+    <div  data-testid="certify-submit-page">
       {/* Breadcrumb */}
-      <nav className="usa-breadcrumb" aria-label="Breadcrumbs">
-        <ol className="usa-breadcrumb__list">
-          <li className="usa-breadcrumb__list-item">
+      <nav  aria-label="Breadcrumbs">
+        <ol >
+          <li className="-item">
             <Link
               to="/applicant/applications"
-              className="usa-breadcrumb__link"
+              
             >
               My Applications
             </Link>
           </li>
-          <li className="usa-breadcrumb__list-item">
+          <li className="-item">
             <Link
               to={`/applicant/workspaces/${workspaceId}`}
-              className="usa-breadcrumb__link"
+              
             >
               Workspace
             </Link>
           </li>
           <li
-            className="usa-breadcrumb__list-item usa-current"
+            className="-item active"
             aria-current="page"
           >
             Submit
@@ -104,24 +104,24 @@ export function CertifySubmitPage() {
 
       <h1>Submit Your Application</h1>
 
-      {isLoading && <p className="usa-hint">Loading pre-submission checklist…</p>}
+      {isLoading && <p className="gf-hint">Loading pre-submission checklist…</p>}
 
       {!isLoading && (
         <>
           {/* Pre-submission checklist */}
-          <div className="usa-card" data-testid="submission-checklist">
-            <div className="usa-card__header">
-              <h2 className="usa-card__heading">Pre-Submission Checklist</h2>
+          <div className="gf-card" data-testid="submission-checklist">
+            <div className="gf-card__header">
+              <h2 className="gf-card__title">Pre-Submission Checklist</h2>
             </div>
-            <div className="usa-card__body">
-              <ul className="usa-list" data-testid="checklist-items">
+            <div className="gf-card__body">
+              <ul  data-testid="checklist-items">
                 <li>
                   <span aria-hidden="true">
                     {allSectionsComplete ? '✓' : '✗'}{' '}
                   </span>
                   <strong>All sections complete</strong>
                   {!allSectionsComplete && readiness && (
-                    <span className="usa-hint">
+                    <span className="gf-hint">
                       {' '}
                       — {readiness.overall_completion_pct}% complete
                     </span>
@@ -136,7 +136,7 @@ export function CertifySubmitPage() {
                     <span>
                       {' '}
                       —{' '}
-                      <Link to="/applicant/profile/roles" className="usa-link">
+                      <Link to="/applicant/profile/roles" >
                         Assign AR
                       </Link>
                     </span>
@@ -153,7 +153,7 @@ export function CertifySubmitPage() {
                       —{' '}
                       <Link
                         to={`/applicant/workspaces/${workspaceId}#section-certifications`}
-                        className="usa-link"
+                        
                       >
                         Certify application
                       </Link>
@@ -166,7 +166,7 @@ export function CertifySubmitPage() {
                   </span>
                   <strong>No blocking errors</strong>
                   {!noBlockingErrors && readiness && (
-                    <span className="usa-hint">
+                    <span className="gf-hint">
                       {' '}
                       — {readiness.blocking_errors.length} blocking error(s)
                     </span>
@@ -179,11 +179,11 @@ export function CertifySubmitPage() {
           {/* Ready alert */}
           {allReady && (
             <div
-              className="usa-alert usa-alert--success"
+              className="gf-alert gf-alert gf-alert--success"
               style={{ marginTop: '1rem' }}
             >
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">
+              <div >
+                <p className="gf-alert__text">
                   Your application is ready to submit.
                 </p>
               </div>
@@ -195,17 +195,17 @@ export function CertifySubmitPage() {
             submitError.code === 'SUBMISSION_BLOCKED' &&
             submitError.blocking_errors && (
               <div
-                className="usa-alert usa-alert--error"
+                className="gf-alert gf-alert gf-alert--error"
                 role="alert"
                 style={{ marginTop: '1rem' }}
                 data-testid="submit-blocked-alert"
               >
-                <div className="usa-alert__body">
-                  <h4 className="usa-alert__heading">Submission Blocked</h4>
-                  <ul className="usa-list">
+                <div >
+                  <h4 className="gf-alert__title">Submission Blocked</h4>
+                  <ul >
                     {submitError.blocking_errors.map((e, i) => (
                       <li key={i}>
-                        <a href={e.link} className="usa-link">
+                        <a href={e.link} >
                           {e.message}
                         </a>
                       </li>
@@ -217,17 +217,17 @@ export function CertifySubmitPage() {
 
           {submitError && submitError.code === 'ALREADY_SUBMITTED' && (
             <div
-              className="usa-alert usa-alert--warning"
+              className="gf-alert gf-alert gf-alert--warning"
               role="alert"
               style={{ marginTop: '1rem' }}
               data-testid="already-submitted-alert"
             >
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">
+              <div >
+                <p className="gf-alert__text">
                   This application has already been submitted.{' '}
                   <Link
                     to={`/applicant/workspaces/${workspaceId}/receipt`}
-                    className="usa-link"
+                    
                   >
                     View submission receipt
                   </Link>
@@ -240,7 +240,7 @@ export function CertifySubmitPage() {
           <div style={{ marginTop: '1.5rem' }}>
             <button
               type="button"
-              className="usa-button usa-button--big"
+              className="gf-btn gf-btn--primary gf-btn gf-btn--primary"
               disabled={!allReady || submitMutation.isPending}
               aria-disabled={!allReady || submitMutation.isPending}
               onClick={() => submitMutation.mutate()}
@@ -254,7 +254,7 @@ export function CertifySubmitPage() {
 
           {/* Legal disclaimer */}
           <p
-            className="usa-hint"
+            className="gf-hint"
             style={{ marginTop: '1rem', fontSize: '0.85rem' }}
           >
             By clicking Submit, you confirm that your authorized representative

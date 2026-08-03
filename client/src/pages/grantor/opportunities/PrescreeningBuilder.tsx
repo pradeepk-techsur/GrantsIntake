@@ -298,9 +298,9 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
 
   if (loadError) {
     return (
-      <div className="usa-alert usa-alert--error" role="alert">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">{loadError}</p>
+      <div className="gf-alert gf-alert gf-alert--error" role="alert">
+        <div >
+          <p className="gf-alert__text">{loadError}</p>
         </div>
       </div>
     );
@@ -308,18 +308,18 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
 
   return (
     <section aria-labelledby="prescreening-heading" data-testid="prescreening-builder">
-      <h2 id="prescreening-heading" className="usa-prose" style={{ marginTop: 0 }}>
+      <h2 id="prescreening-heading"  style={{ marginTop: 0 }}>
         Pre-Screening Questionnaire
       </h2>
 
       {/* Placement selector */}
-      <div className="usa-form-group">
-        <fieldset className="usa-fieldset">
-          <legend className="usa-legend">Questionnaire Placement</legend>
-          <div className="usa-radio">
+      <div className="gf-form-group">
+        <fieldset >
+          <legend >Questionnaire Placement</legend>
+          <div className="gf-form-group">
             <input
               id="placement-pre-workspace"
-              className="usa-radio__input"
+              
               type="radio"
               name="placement"
               value="pre_workspace"
@@ -327,14 +327,14 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
               onChange={() => setPlacement('pre_workspace')}
               data-testid="placement-pre-workspace"
             />
-            <label className="usa-radio__label" htmlFor="placement-pre-workspace">
+            <label className="gf-label" htmlFor="placement-pre-workspace">
               Before Workspace Access
             </label>
           </div>
-          <div className="usa-radio">
+          <div className="gf-form-group">
             <input
               id="placement-pre-submission"
-              className="usa-radio__input"
+              
               type="radio"
               name="placement"
               value="pre_submission"
@@ -342,7 +342,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
               onChange={() => setPlacement('pre_submission')}
               data-testid="placement-pre-submission"
             />
-            <label className="usa-radio__label" htmlFor="placement-pre-submission">
+            <label className="gf-label" htmlFor="placement-pre-submission">
               Before Submission
             </label>
           </div>
@@ -353,7 +353,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
       {!showAddForm && (
         <button
           type="button"
-          className="usa-button"
+          className="gf-btn gf-btn--primary"
           onClick={openAddForm}
           data-testid="add-question-button"
         >
@@ -364,21 +364,21 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
       {/* ─── Question form ─── */}
       {showAddForm && (
         <div
-          className="usa-card"
+          className="gf-card"
           style={{ padding: '1.5rem', marginBottom: '1.5rem', background: '#f0f0f0' }}
           data-testid="question-form"
         >
           <h3 style={{ marginTop: 0 }}>{editingIndex !== null ? 'Edit Question' : 'Add Question'}</h3>
 
           {/* Question Text */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="question-text">
-              Question Text <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="question-text">
+              Question Text <abbr title="required" className="gf-hint">*</abbr>
             </label>
-            <span className="usa-hint">Max 500 characters</span>
+            <span className="gf-hint">Max 500 characters</span>
             <textarea
               id="question-text"
-              className="usa-textarea"
+              className="gf-textarea"
               rows={3}
               maxLength={500}
               value={formQuestion.question_text}
@@ -388,14 +388,14 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
           </div>
 
           {/* Question Type */}
-          <div className="usa-form-group">
-            <fieldset className="usa-fieldset">
-              <legend className="usa-legend">Question Type</legend>
+          <div className="gf-form-group">
+            <fieldset >
+              <legend >Question Type</legend>
               {(['yes_no', 'multiple_choice', 'text'] as const).map((type) => (
-                <div key={type} className="usa-radio">
+                <div key={type} className="gf-form-group">
                   <input
                     id={`q-type-${type}`}
-                    className="usa-radio__input"
+                    
                     type="radio"
                     name="question_type"
                     value={type}
@@ -405,7 +405,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                     }
                     data-testid={`q-type-${type}`}
                   />
-                  <label className="usa-radio__label" htmlFor={`q-type-${type}`}>
+                  <label className="gf-label" htmlFor={`q-type-${type}`}>
                     {type === 'yes_no' ? 'Yes/No' : type === 'multiple_choice' ? 'Multiple Choice' : 'Text'}
                   </label>
                 </div>
@@ -414,26 +414,26 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
           </div>
 
           {/* Is Required */}
-          <div className="usa-form-group">
-            <div className="usa-checkbox">
+          <div className="gf-form-group">
+            <div className="gf-form-group">
               <input
                 id="is-required"
-                className="usa-checkbox__input"
+                
                 type="checkbox"
                 checked={formQuestion.is_required}
                 onChange={(e) => setFormQuestion((q) => ({ ...q, is_required: e.target.checked }))}
                 data-testid="field-is-required"
               />
-              <label className="usa-checkbox__label" htmlFor="is-required">Required</label>
+              <label className="gf-label" htmlFor="is-required">Required</label>
             </div>
           </div>
 
           {/* Conditional Display */}
-          <div className="usa-form-group">
-            <div className="usa-checkbox">
+          <div className="gf-form-group">
+            <div className="gf-form-group">
               <input
                 id="show-conditional"
-                className="usa-checkbox__input"
+                
                 type="checkbox"
                 checked={showConditional}
                 onChange={(e) => {
@@ -444,20 +444,20 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                 }}
                 data-testid="toggle-conditional"
               />
-              <label className="usa-checkbox__label" htmlFor="show-conditional">
+              <label className="gf-label" htmlFor="show-conditional">
                 Show only if...
               </label>
             </div>
 
             {showConditional && (
               <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: '#f9f9f9', border: '1px solid #ddd' }}>
-                <div className="usa-form-group">
-                  <label className="usa-label" htmlFor="depends-on-question">
+                <div className="gf-form-group">
+                  <label className="gf-label" htmlFor="depends-on-question">
                     Depends on Question
                   </label>
                   <select
                     id="depends-on-question"
-                    className="usa-select"
+                    className="gf-select"
                     value={formQuestion.conditional_display?.depends_on_question_id ?? ''}
                     onChange={(e) =>
                       setFormQuestion((q) => ({
@@ -482,13 +482,13 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                       ))}
                   </select>
                 </div>
-                <div className="usa-form-group">
-                  <label className="usa-label" htmlFor="trigger-response">
+                <div className="gf-form-group">
+                  <label className="gf-label" htmlFor="trigger-response">
                     When answer is
                   </label>
                   <input
                     id="trigger-response"
-                    className="usa-input"
+                    className="gf-input"
                     type="text"
                     placeholder="e.g. yes"
                     value={formQuestion.conditional_display?.trigger_response_value ?? ''}
@@ -511,7 +511,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
 
           {/* Options (for multiple_choice) */}
           {formQuestion.question_type === 'multiple_choice' && (
-            <div className="usa-form-group">
+            <div className="gf-form-group">
               <h4>Options</h4>
               {formQuestion.options.map((opt, optIdx) => (
                 <div
@@ -525,7 +525,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                   }}
                 >
                   <input
-                    className="usa-input"
+                    className="gf-input"
                     type="text"
                     placeholder="Option text"
                     value={opt.option_text}
@@ -534,7 +534,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                     data-testid={`option-text-${optIdx}`}
                   />
                   <select
-                    className="usa-select"
+                    className="gf-select"
                     value={opt.mapped_rule_id ?? ''}
                     onChange={(e) => updateOption(optIdx, 'mapped_rule_id', e.target.value)}
                     style={{ maxWidth: '200px' }}
@@ -548,7 +548,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                     ))}
                   </select>
                   <select
-                    className="usa-select"
+                    className="gf-select"
                     value={opt.rule_outcome ?? ''}
                     onChange={(e) => updateOption(optIdx, 'rule_outcome', e.target.value)}
                     style={{ maxWidth: '120px' }}
@@ -561,7 +561,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                   </select>
                   <button
                     type="button"
-                    className="usa-button usa-button--unstyled"
+                    className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                     style={{ color: '#b50909', fontSize: '0.875rem' }}
                     onClick={() => removeOption(optIdx)}
                     data-testid={`remove-option-${optIdx}`}
@@ -572,7 +572,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
               ))}
               <button
                 type="button"
-                className="usa-button usa-button--outline"
+                className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
                 style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}
                 onClick={addOption}
                 data-testid="add-option-button"
@@ -586,7 +586,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <button
               type="button"
-              className="usa-button"
+              className="gf-btn gf-btn--primary"
               onClick={handleSaveQuestion}
               disabled={!formQuestion.question_text.trim()}
               data-testid="save-question-button"
@@ -595,7 +595,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
             </button>
             <button
               type="button"
-              className="usa-button usa-button--outline"
+              className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
               onClick={() => {
                 setShowAddForm(false);
                 setEditingIndex(null);
@@ -610,9 +610,9 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
 
       {/* ─── Questions list (draggable) ─── */}
       {questions.length === 0 && !showAddForm && (
-        <div className="usa-alert usa-alert--info">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">No questions yet. Click "Add Question" to start.</p>
+        <div className="gf-alert gf-alert gf-alert--info">
+          <div >
+            <p className="gf-alert__text">No questions yet. Click "Add Question" to start.</p>
           </div>
         </div>
       )}
@@ -665,7 +665,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
             <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
               <button
                 type="button"
-                className="usa-button usa-button--unstyled"
+                className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                 onClick={() => handleEditQuestion(idx)}
                 data-testid={`edit-question-${idx}`}
               >
@@ -673,7 +673,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
               </button>
               <button
                 type="button"
-                className="usa-button usa-button--unstyled"
+                className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                 style={{ color: '#b50909' }}
                 onClick={() => handleDeleteQuestion(idx)}
                 data-testid={`delete-question-${idx}`}
@@ -690,7 +690,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
         <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
           <button
             type="button"
-            className="usa-button"
+            className="gf-btn gf-btn--primary"
             onClick={handleSaveAll}
             disabled={isSaving}
             data-testid="save-all-button"
@@ -699,7 +699,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
           </button>
           <button
             type="button"
-            className="usa-button usa-button--outline"
+            className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
             onClick={handlePreview}
             data-testid="preview-button"
           >
@@ -721,7 +721,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
       {/* ─── Preview modal ─── */}
       {showPreviewModal && previewData && (
         <div
-          className="usa-modal-wrapper is-visible"
+          className="is-visible"
           role="dialog"
           aria-modal="true"
           aria-labelledby="preview-modal-heading"
@@ -738,7 +738,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
           }}
         >
           <div
-            className="usa-modal"
+            
             style={{
               background: 'white',
               padding: '2rem',
@@ -749,7 +749,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
               overflow: 'auto',
             }}
           >
-            <h2 id="preview-modal-heading" className="usa-modal__heading">
+            <h2 id="preview-modal-heading" className="gf-card__title">
               Questionnaire Preview
             </h2>
             <p>
@@ -764,7 +764,7 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                 <p>
                   <strong>
                     {idx + 1}. {q.question_text}
-                    {q.is_required && <abbr title="required" className="usa-hint usa-hint--required"> *</abbr>}
+                    {q.is_required && <abbr title="required" className="gf-hint"> *</abbr>}
                   </strong>
                 </p>
                 {q.show_if && (
@@ -773,29 +773,29 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                   </p>
                 )}
                 {q.question_type === 'yes_no' && (
-                  <div className="usa-fieldset">
-                    <div className="usa-radio">
-                      <input className="usa-radio__input" type="radio" name={`preview-${q.question_id}`} id={`prev-yes-${q.question_id}`} disabled />
-                      <label className="usa-radio__label" htmlFor={`prev-yes-${q.question_id}`}>Yes</label>
+                  <div >
+                    <div className="gf-form-group">
+                      <input  type="radio" name={`preview-${q.question_id}`} id={`prev-yes-${q.question_id}`} disabled />
+                      <label className="gf-label" htmlFor={`prev-yes-${q.question_id}`}>Yes</label>
                     </div>
-                    <div className="usa-radio">
-                      <input className="usa-radio__input" type="radio" name={`preview-${q.question_id}`} id={`prev-no-${q.question_id}`} disabled />
-                      <label className="usa-radio__label" htmlFor={`prev-no-${q.question_id}`}>No</label>
+                    <div className="gf-form-group">
+                      <input  type="radio" name={`preview-${q.question_id}`} id={`prev-no-${q.question_id}`} disabled />
+                      <label className="gf-label" htmlFor={`prev-no-${q.question_id}`}>No</label>
                     </div>
                   </div>
                 )}
                 {q.question_type === 'multiple_choice' && q.options.length > 0 && (
-                  <div className="usa-fieldset">
+                  <div >
                     {q.options.map((opt) => (
-                      <div key={opt.option_id} className="usa-radio">
+                      <div key={opt.option_id} className="gf-form-group">
                         <input
-                          className="usa-radio__input"
+                          
                           type="radio"
                           name={`preview-${q.question_id}`}
                           id={`prev-opt-${opt.option_id}`}
                           disabled
                         />
-                        <label className="usa-radio__label" htmlFor={`prev-opt-${opt.option_id}`}>
+                        <label className="gf-label" htmlFor={`prev-opt-${opt.option_id}`}>
                           {opt.option_text}
                         </label>
                       </div>
@@ -803,14 +803,14 @@ export function PrescreeningBuilder({ opportunityId }: PrescreeningBuilderProps)
                   </div>
                 )}
                 {q.question_type === 'text' && (
-                  <textarea className="usa-textarea" rows={3} disabled placeholder="Applicant response..." />
+                  <textarea className="gf-textarea" rows={3} disabled placeholder="Applicant response..." />
                 )}
               </div>
             ))}
 
             <button
               type="button"
-              className="usa-button"
+              className="gf-btn gf-btn--primary"
               onClick={() => setShowPreviewModal(false)}
               data-testid="close-preview-button"
             >

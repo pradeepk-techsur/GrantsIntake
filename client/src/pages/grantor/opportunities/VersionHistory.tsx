@@ -16,16 +16,16 @@ export function VersionHistory({ opportunityId }: VersionHistoryProps) {
   if (isLoading) {
     return (
       <div aria-busy="true" aria-label="Loading version history">
-        <p className="usa-hint">Loading version history...</p>
+        <p className="gf-hint">Loading version history...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="usa-alert usa-alert--error usa-alert--slim" role="alert">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">Failed to load version history.</p>
+      <div className="gf-alert gf-alert gf-alert--error" role="alert">
+        <div >
+          <p className="gf-alert__text">Failed to load version history.</p>
         </div>
       </div>
     );
@@ -34,7 +34,7 @@ export function VersionHistory({ opportunityId }: VersionHistoryProps) {
   if (!versions || versions.length === 0) {
     return (
       <div data-testid="version-history-empty">
-        <p className="usa-hint" style={{ fontStyle: 'italic' }}>
+        <p className="gf-hint" style={{ fontStyle: 'italic' }}>
           No version history — versions are created when this opportunity is published or modified
           after publication.
         </p>
@@ -67,9 +67,9 @@ export function VersionHistory({ opportunityId }: VersionHistoryProps) {
 
   return (
     <div data-testid="version-history">
-      <div className="usa-table-container--scrollable" tabIndex={0}>
-        <table className="usa-table usa-table--borderless" style={{ width: '100%' }}>
-          <caption className="usa-sr-only">Opportunity version history</caption>
+      <div className="gf-table-container--scrollable" tabIndex={0}>
+        <table className="gf-table gf-table" style={{ width: '100%' }}>
+          <caption className="gf-sr-only">Opportunity version history</caption>
           <thead>
             <tr>
               <th scope="col">Version</th>
@@ -83,7 +83,7 @@ export function VersionHistory({ opportunityId }: VersionHistoryProps) {
               <tr key={version.version_id} data-testid={`version-row-${version.version_number}`}>
                 <td>
                   <span
-                    className="usa-tag"
+                    className="gf-badge gf-badge--neutral"
                     style={{ background: version.version_number === 1 ? '#2e7d32' : '#005ea2', color: 'white' }}
                   >
                     v{version.version_number}
@@ -95,7 +95,7 @@ export function VersionHistory({ opportunityId }: VersionHistoryProps) {
                     : version.modification_reason}
                 </td>
                 <td>
-                  <span className="usa-hint" style={{ fontSize: '0.85rem' }}>
+                  <span className="gf-hint" style={{ fontSize: '0.85rem' }}>
                     {getDeltaSummary(version)}
                   </span>
                 </td>

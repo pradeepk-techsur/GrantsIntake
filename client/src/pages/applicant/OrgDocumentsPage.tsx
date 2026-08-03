@@ -31,19 +31,19 @@ const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
 
 function expirationBadge(status: OrgDocument['expiration_status']) {
   if (status === 'expired') {
-    return <span className="usa-tag usa-tag--error">Expired</span>;
+    return <span className="gf-badge gf-badge--neutral gf-badge gf-badge--error">Expired</span>;
   }
   if (status === 'expiring_soon') {
-    return <span className="usa-tag usa-tag--warning">Expiring Soon</span>;
+    return <span className="gf-badge gf-badge--neutral gf-badge gf-badge--warning">Expiring Soon</span>;
   }
-  return <span className="usa-tag usa-tag--success">Valid</span>;
+  return <span className="gf-badge gf-badge--neutral gf-badge gf-badge--success">Valid</span>;
 }
 
 /**
  * OrgDocumentsPage — Standard document library upload/list page.
  *
  * Fetches GET /organizations/:org_id/documents on mount.
- * Groups documents by type using usa-card-group.
+ * Groups documents by type using .
  * Upload form handles file selection, type, and expiration date.
  * Version History modal shows all versions per document.
  *
@@ -167,43 +167,43 @@ export function OrgDocumentsPage() {
 
   if (isLoading) {
     return (
-      <div className="usa-prose">
+      <div >
         <p>Loading documents...</p>
       </div>
     );
   }
 
   return (
-    <div className="usa-prose">
+    <div >
       <h1>Documents</h1>
       <p>Upload and manage your organization&rsquo;s standard documents.</p>
 
       {/* Upload form */}
       <section style={{ marginBottom: '2rem' }}>
         <h2>Upload Document</h2>
-        <form className="usa-form" onSubmit={handleUpload} style={{ maxWidth: '36rem' }}>
+        <form  onSubmit={handleUpload} style={{ maxWidth: '36rem' }}>
           {uploadError && (
-            <div className="usa-alert usa-alert--error" role="alert">
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">{uploadError}</p>
+            <div className="gf-alert gf-alert gf-alert--error" role="alert">
+              <div >
+                <p className="gf-alert__text">{uploadError}</p>
               </div>
             </div>
           )}
           {uploadSuccess && (
-            <div className="usa-alert usa-alert--success" role="status">
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">{uploadSuccess}</p>
+            <div className="gf-alert gf-alert gf-alert--success" role="status">
+              <div >
+                <p className="gf-alert__text">{uploadSuccess}</p>
               </div>
             </div>
           )}
 
           {/* Document Type */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="doc_type">
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="doc_type">
               Document Type
             </label>
             <select
-              className="usa-select"
+              className="gf-select"
               id="doc_type"
               name="doc_type"
               value={docType}
@@ -219,12 +219,12 @@ export function OrgDocumentsPage() {
 
           {/* Custom name (only for "other") */}
           {docType === 'other' && (
-            <div className="usa-form-group">
-              <label className="usa-label" htmlFor="custom_name">
+            <div className="gf-form-group">
+              <label className="gf-label" htmlFor="custom_name">
                 Document Name
               </label>
               <input
-                className="usa-input"
+                className="gf-input"
                 id="custom_name"
                 name="custom_name"
                 type="text"
@@ -236,12 +236,12 @@ export function OrgDocumentsPage() {
           )}
 
           {/* Expiration Date */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="expiration_date">
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="expiration_date">
               Expiration Date (if applicable)
             </label>
             <input
-              className="usa-input"
+              className="gf-input"
               id="expiration_date"
               name="expiration_date"
               type="date"
@@ -251,23 +251,23 @@ export function OrgDocumentsPage() {
           </div>
 
           {/* File input */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="document_file">
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="document_file">
               File
             </label>
             <input
-              className="usa-file-input"
+              className="gf-input"
               id="document_file"
               name="document_file"
               type="file"
               accept={ACCEPTED_MIME_TYPES}
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
-            <p className="usa-hint">Accepted formats: PDF, Word, Excel, PNG, JPG. Max 25 MB.</p>
+            <p className="gf-hint">Accepted formats: PDF, Word, Excel, PNG, JPG. Max 25 MB.</p>
           </div>
 
           <button
-            className="usa-button"
+            className="gf-btn gf-btn--primary"
             type="submit"
             disabled={isUploading}
           >
@@ -280,25 +280,25 @@ export function OrgDocumentsPage() {
       <section>
         <h2>Uploaded Documents</h2>
         {documents.length === 0 ? (
-          <div className="usa-alert usa-alert--info">
-            <div className="usa-alert__body">
-              <p className="usa-alert__text">No documents uploaded yet.</p>
+          <div className="gf-alert gf-alert gf-alert--info">
+            <div >
+              <p className="gf-alert__text">No documents uploaded yet.</p>
             </div>
           </div>
         ) : (
-          <div className="usa-card-group">
+          <div >
             {DOCUMENT_TYPES.filter((dt) => (grouped[dt.value]?.length ?? 0) > 0).map((dt) => (
               <div key={dt.value} style={{ marginBottom: '1.5rem', width: '100%' }}>
                 <h3>{dt.label}</h3>
-                <div className="usa-card-group">
+                <div >
                   {grouped[dt.value].map((doc) => (
-                    <div key={doc.attachment_id} className="usa-card usa-card--header-first" style={{ flex: '1 1 300px', maxWidth: '400px' }}>
-                      <div className="usa-card__header">
-                        <h4 className="usa-card__heading">
+                    <div key={doc.attachment_id} className="gf-card gf-card--header-first" style={{ flex: '1 1 300px', maxWidth: '400px' }}>
+                      <div className="gf-card__header">
+                        <h4 className="gf-card__title">
                           {doc.custom_document_name ?? dt.label}
                         </h4>
                       </div>
-                      <div className="usa-card__body">
+                      <div className="gf-card__body">
                         <p>
                           <strong>Version:</strong> {doc.version_number}
                         </p>
@@ -319,9 +319,9 @@ export function OrgDocumentsPage() {
                           <strong>Status:</strong> {expirationBadge(doc.expiration_status)}
                         </p>
                       </div>
-                      <div className="usa-card__footer">
+                      <div className="gf-card__footer">
                         <button
-                          className="usa-button usa-button--unstyled"
+                          className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                           type="button"
                           onClick={() => setVersionDocId(doc.attachment_id)}
                         >
@@ -368,7 +368,7 @@ export function OrgDocumentsPage() {
             {versions.length === 0 ? (
               <p>No version history available.</p>
             ) : (
-              <table className="usa-table usa-table--borderless" style={{ width: '100%' }}>
+              <table className="gf-table gf-table" style={{ width: '100%' }}>
                 <thead>
                   <tr>
                     <th scope="col">Version</th>
@@ -390,7 +390,7 @@ export function OrgDocumentsPage() {
               </table>
             )}
             <button
-              className="usa-button"
+              className="gf-btn gf-btn--primary"
               type="button"
               onClick={() => setVersionDocId(null)}
               style={{ marginTop: '1rem' }}

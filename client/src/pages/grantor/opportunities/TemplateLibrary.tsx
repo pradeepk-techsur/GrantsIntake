@@ -29,7 +29,7 @@ const TEMPLATE_DESCRIPTIONS: Record<string, string> = {
 /**
  * Full-page modal template library.
  * Shown when "Create New Opportunity" is clicked.
- * Groups templates by grant_market using USWDS usa-card components.
+ * Groups templates by grant_market using USWDS gf-card components.
  * Blocks proceeding without template selection.
  */
 export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
@@ -89,7 +89,7 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
 
   return (
     <div
-      className="usa-modal-overlay"
+      className="-overlay"
       data-testid="template-library-modal"
       style={{
         position: 'fixed',
@@ -107,7 +107,7 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
       aria-labelledby="template-library-title"
     >
       <div
-        className="usa-modal"
+        
         style={{
           background: 'white',
           maxWidth: '800px',
@@ -117,13 +117,13 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
         }}
       >
         {/* Header */}
-        <div className="usa-modal__heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 id="template-library-title" className="usa-modal__heading">
+        <div className="gf-card__title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 id="template-library-title" className="gf-card__title">
             Select a Template
           </h2>
           <button
             type="button"
-            className="usa-button usa-button--unstyled"
+            className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
             onClick={onClose}
             aria-label="Close template library"
           >
@@ -131,20 +131,20 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
           </button>
         </div>
 
-        <div className="usa-modal__content">
-          <p className="usa-prose">
+        <div className="gf-card__body">
+          <p >
             Choose a funding opportunity template to get started. Each template provides sections and default settings appropriate for its type.
           </p>
 
           {/* Error alert when no template selected */}
           {showSelectionError && (
             <div
-              className="usa-alert usa-alert--error usa-alert--slim"
+              className="gf-alert gf-alert gf-alert--error"
               role="alert"
               data-testid="template-selection-error"
             >
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">Please select a template before continuing.</p>
+              <div >
+                <p className="gf-alert__text">Please select a template before continuing.</p>
               </div>
             </div>
           )}
@@ -152,12 +152,12 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
           {/* Error alert when opportunity creation fails */}
           {createError && (
             <div
-              className="usa-alert usa-alert--error usa-alert--slim"
+              className="gf-alert gf-alert gf-alert--error"
               role="alert"
               data-testid="create-opportunity-error"
             >
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">
+              <div >
+                <p className="gf-alert__text">
                   Could not create opportunity: {createError}
                 </p>
               </div>
@@ -177,35 +177,35 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
 
             return (
               <div key={market} style={{ marginTop: '1.5rem' }}>
-                <h3 className="usa-prose">{label}</h3>
-                <div className="usa-card-group">
+                <h3 >{label}</h3>
+                <div >
                   {marketTemplates.map((template) => {
                     const isSelected = selectedTemplateId === template.template_id;
 
                     return (
                       <div
                         key={template.template_id}
-                        className="usa-card tablet:grid-col-6"
+                        className="gf-card tablet:grid-col-6"
                         data-testid={`template-card-${template.template_type}`}
                       >
                         <div
-                          className="usa-card__container"
+                          
                           style={{
                             border: isSelected ? '3px solid #005ea2' : '1px solid #ddd',
                             cursor: 'pointer',
                           }}
                           onClick={() => handleSelectTemplate(template.template_id)}
                         >
-                          <div className="usa-card__header">
-                            <h4 className="usa-card__heading">{template.template_name}</h4>
+                          <div className="gf-card__header">
+                            <h4 className="gf-card__title">{template.template_name}</h4>
                           </div>
-                          <div className="usa-card__body">
+                          <div className="gf-card__body">
                             <p>{TEMPLATE_DESCRIPTIONS[template.template_type] ?? template.template_name}</p>
                           </div>
-                          <div className="usa-card__footer">
+                          <div className="gf-card__footer">
                             <button
                               type="button"
-                              className={`usa-button${isSelected ? '' : ' usa-button--outline'}`}
+                              className={`gf-btn gf-btn--primary${isSelected ? '' : ' gf-btn gf-btn--outline'}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleSelectTemplate(template.template_id);
@@ -227,17 +227,17 @@ export function TemplateLibrary({ programId, onClose }: TemplateLibraryProps) {
         </div>
 
         {/* Footer actions */}
-        <div className="usa-modal__footer" style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+        <div className="gf-card__footer" style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
           <button
             type="button"
-            className="usa-button usa-button--outline"
+            className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
             onClick={onClose}
           >
             Cancel
           </button>
           <button
             type="button"
-            className="usa-button"
+            className="gf-btn gf-btn--primary"
             onClick={handleCreate}
             disabled={createOpportunity.isPending}
             data-testid="create-from-template-btn"

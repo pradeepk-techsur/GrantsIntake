@@ -71,11 +71,11 @@ export function CertificationPanel({ workspaceId, isAuthorizedRep }: Certificati
   // Already certified state
   if (isCertified && certification) {
     return (
-      <div data-testid="certification-panel" className="usa-prose">
+      <div data-testid="certification-panel" >
         <h3>Authorized Representative Certification</h3>
-        <div className="usa-alert usa-alert--success" role="alert" data-testid="certification-success">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">
+        <div className="gf-alert gf-alert gf-alert--success" role="alert" data-testid="certification-success">
+          <div >
+            <p className="gf-alert__text">
               Application certified on{' '}
               {new Date(certification.certification_timestamp).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -92,12 +92,12 @@ export function CertificationPanel({ workspaceId, isAuthorizedRep }: Certificati
   }
 
   return (
-    <div data-testid="certification-panel" className="usa-prose">
+    <div data-testid="certification-panel" >
       <h3>Authorized Representative Certification</h3>
 
       {/* Legal certification text */}
       <div
-        className="usa-prose"
+        
         style={{
           background: '#f0f0f0',
           padding: '1rem',
@@ -111,31 +111,31 @@ export function CertificationPanel({ workspaceId, isAuthorizedRep }: Certificati
 
       {/* Error/success messages */}
       {certError && (
-        <div className="usa-alert usa-alert--error usa-alert--slim" role="alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">{certError}</p>
+        <div className="gf-alert gf-alert gf-alert--error" role="alert">
+          <div >
+            <p className="gf-alert__text">{certError}</p>
           </div>
         </div>
       )}
       {certSuccess && (
-        <div className="usa-alert usa-alert--success usa-alert--slim" role="alert" data-testid="certification-success">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">Application successfully certified.</p>
+        <div className="gf-alert gf-alert gf-alert--success" role="alert" data-testid="certification-success">
+          <div >
+            <p className="gf-alert__text">Application successfully certified.</p>
           </div>
         </div>
       )}
 
       {/* Agreement checkbox */}
-      <div className="usa-checkbox" style={{ marginBottom: '1rem' }}>
+      <div className="gf-form-group" style={{ marginBottom: '1rem' }}>
         <input
-          className="usa-checkbox__input"
+          
           id="cert-agree"
           type="checkbox"
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
           data-testid="certification-checkbox"
         />
-        <label className="usa-checkbox__label" htmlFor="cert-agree">
+        <label className="gf-label" htmlFor="cert-agree">
           I agree to the above certification statement
         </label>
       </div>
@@ -143,7 +143,7 @@ export function CertificationPanel({ workspaceId, isAuthorizedRep }: Certificati
       {/* Submit Certification button */}
       <button
         type="button"
-        className="usa-button"
+        className="gf-btn gf-btn--primary"
         disabled={!agreed || certifyMutation.isPending}
         onClick={() => certifyMutation.mutate()}
         data-testid="submit-certification-btn"
@@ -155,7 +155,7 @@ export function CertificationPanel({ workspaceId, isAuthorizedRep }: Certificati
       <div style={{ marginTop: '2rem' }}>
         <button
           type="button"
-          className="usa-button usa-button--unstyled"
+          className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
           onClick={() => setConcernOpen(!concernOpen)}
           aria-expanded={concernOpen}
           data-testid="concern-flag-toggle"
@@ -165,11 +165,11 @@ export function CertificationPanel({ workspaceId, isAuthorizedRep }: Certificati
 
         {concernOpen && (
           <div style={{ marginTop: '0.5rem', paddingLeft: '1rem' }}>
-            <p className="usa-hint" style={{ fontSize: '0.85rem' }}>
+            <p className="gf-hint" style={{ fontSize: '0.85rem' }}>
               This note is private to your team and will notify your Proposal Lead. It does not block submission.
             </p>
             <textarea
-              className="usa-textarea"
+              className="gf-textarea"
               value={concernText}
               onChange={(e) => setConcernText(e.target.value)}
               placeholder="Describe your concern…"
@@ -178,7 +178,7 @@ export function CertificationPanel({ workspaceId, isAuthorizedRep }: Certificati
             />
             <button
               type="button"
-              className="usa-button usa-button--outline"
+              className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
               disabled={!concernText.trim() || concernMutation.isPending}
               onClick={() => concernMutation.mutate(concernText.trim())}
               style={{ marginTop: '0.5rem' }}
@@ -187,9 +187,9 @@ export function CertificationPanel({ workspaceId, isAuthorizedRep }: Certificati
               Submit Concern
             </button>
             {concernSuccess && (
-              <div className="usa-alert usa-alert--success usa-alert--slim" role="alert" style={{ marginTop: '0.5rem' }}>
-                <div className="usa-alert__body">
-                  <p className="usa-alert__text">Concern flag recorded.</p>
+              <div className="gf-alert gf-alert gf-alert--success" role="alert" style={{ marginTop: '0.5rem' }}>
+                <div >
+                  <p className="gf-alert__text">Concern flag recorded.</p>
                 </div>
               </div>
             )}

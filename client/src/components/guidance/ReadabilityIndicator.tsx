@@ -80,7 +80,7 @@ export function ReadabilityIndicator({ text }: ReadabilityIndicatorProps) {
   }
 
   // Determine color coding (advisory only)
-  let tagClass = 'usa-tag';
+  let tagClass = 'gf-badge gf-badge--neutral';
   let label: string;
 
   if (grade <= 8) {
@@ -100,7 +100,7 @@ export function ReadabilityIndicator({ text }: ReadabilityIndicatorProps) {
       <span className={tagClass} aria-live="polite">
         Reading Level: {label}
       </span>
-      <span className="usa-hint" style={{ marginLeft: '0.5rem', fontSize: '0.875rem' }}>
+      <span className="gf-hint" style={{ marginLeft: '0.5rem', fontSize: '0.875rem' }}>
         (advisory only)
       </span>
     </div>

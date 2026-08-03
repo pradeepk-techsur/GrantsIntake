@@ -297,9 +297,9 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
 
   if (loadError) {
     return (
-      <div className="usa-alert usa-alert--error" role="alert">
-        <div className="usa-alert__body">
-          <p className="usa-alert__text">{loadError}</p>
+      <div className="gf-alert gf-alert gf-alert--error" role="alert">
+        <div >
+          <p className="gf-alert__text">{loadError}</p>
         </div>
       </div>
     );
@@ -307,17 +307,17 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
 
   return (
     <section aria-labelledby="eligibility-rules-heading" data-testid="eligibility-rule-builder">
-      <h2 id="eligibility-rules-heading" className="usa-prose" style={{ marginTop: 0 }}>
+      <h2 id="eligibility-rules-heading"  style={{ marginTop: 0 }}>
         Eligibility Rules
       </h2>
-      <p className="usa-prose">
+      <p >
         Define who can apply. Hard blockers prevent access; advisory indicators help applicants self-assess.
       </p>
 
       {!showForm && (
         <button
           type="button"
-          className="usa-button"
+          className="gf-btn gf-btn--primary"
           onClick={() => {
             setFormData(EMPTY_FORM);
             setEditingRuleId(null);
@@ -333,26 +333,26 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
       {/* ─── Inline form ─── */}
       {showForm && (
         <div
-          className="usa-card"
+          className="gf-card"
           style={{ padding: '1.5rem', marginBottom: '1.5rem', background: '#f0f0f0' }}
           data-testid="rule-form"
         >
           <h3 style={{ marginTop: 0 }}>{editingRuleId ? 'Edit Rule' : 'Add Rule'}</h3>
 
           {formErrors.general && (
-            <div className="usa-alert usa-alert--error" role="alert">
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">{formErrors.general}</p>
+            <div className="gf-alert gf-alert gf-alert--error" role="alert">
+              <div >
+                <p className="gf-alert__text">{formErrors.general}</p>
               </div>
             </div>
           )}
 
           {/* Rule Type */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="rule-type">Rule Type</label>
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="rule-type">Rule Type</label>
             <select
               id="rule-type"
-              className="usa-select"
+              className="gf-select"
               value={formData.rule_type}
               onChange={(e) => setFormData((f) => ({ ...f, rule_type: e.target.value }))}
               data-testid="field-rule-type"
@@ -364,16 +364,16 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
           </div>
 
           {/* Criterion Field */}
-          <div className={`usa-form-group${formErrors.criterion_field ? ' usa-form-group--error' : ''}`}>
-            <label className="usa-label" htmlFor="criterion-field">
-              Criterion Field <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+          <div className={`gf-form-group${formErrors.criterion_field ? ' gf-form-group' : ''}`}>
+            <label className="gf-label" htmlFor="criterion-field">
+              Criterion Field <abbr title="required" className="gf-hint">*</abbr>
             </label>
             {formErrors.criterion_field && (
-              <span className="usa-error-message" role="alert">{formErrors.criterion_field}</span>
+              <span className="gf-error-msg" role="alert">{formErrors.criterion_field}</span>
             )}
             <input
               id="criterion-field"
-              className={`usa-input${formErrors.criterion_field ? ' usa-input--error' : ''}`}
+              className={`gf-input${formErrors.criterion_field ? ' gf-input--error' : ''}`}
               type="text"
               placeholder="e.g. state_of_incorporation"
               value={formData.criterion_field}
@@ -383,11 +383,11 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
           </div>
 
           {/* Operator */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="operator">Operator</label>
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="operator">Operator</label>
             <select
               id="operator"
-              className="usa-select"
+              className="gf-select"
               value={formData.operator}
               onChange={(e) => setFormData((f) => ({ ...f, operator: e.target.value }))}
               data-testid="field-operator"
@@ -399,19 +399,19 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
           </div>
 
           {/* Criterion Value */}
-          <div className={`usa-form-group${formErrors.criterion_value ? ' usa-form-group--error' : ''}`}>
-            <label className="usa-label" htmlFor="criterion-value">
-              Criterion Value <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+          <div className={`gf-form-group${formErrors.criterion_value ? ' gf-form-group' : ''}`}>
+            <label className="gf-label" htmlFor="criterion-value">
+              Criterion Value <abbr title="required" className="gf-hint">*</abbr>
             </label>
-            <span className="usa-hint">
+            <span className="gf-hint">
               For a list, separate values with commas (e.g. CA, OR, WA)
             </span>
             {formErrors.criterion_value && (
-              <span className="usa-error-message" role="alert">{formErrors.criterion_value}</span>
+              <span className="gf-error-msg" role="alert">{formErrors.criterion_value}</span>
             )}
             <input
               id="criterion-value"
-              className={`usa-input${formErrors.criterion_value ? ' usa-input--error' : ''}`}
+              className={`gf-input${formErrors.criterion_value ? ' gf-input--error' : ''}`}
               type="text"
               value={formData.criterion_value}
               onChange={(e) => setFormData((f) => ({ ...f, criterion_value: e.target.value }))}
@@ -420,13 +420,13 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
           </div>
 
           {/* Severity */}
-          <div className="usa-form-group">
-            <fieldset className="usa-fieldset">
-              <legend className="usa-legend">Severity</legend>
-              <div className="usa-radio">
+          <div className="gf-form-group">
+            <fieldset >
+              <legend >Severity</legend>
+              <div className="gf-form-group">
                 <input
                   id="severity-advisory"
-                  className="usa-radio__input"
+                  
                   type="radio"
                   name="severity"
                   value="advisory"
@@ -434,12 +434,12 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                   onChange={() => setFormData((f) => ({ ...f, severity: 'advisory', enforcement_point: '' }))}
                   data-testid="severity-advisory"
                 />
-                <label className="usa-radio__label" htmlFor="severity-advisory">Advisory</label>
+                <label className="gf-label" htmlFor="severity-advisory">Advisory</label>
               </div>
-              <div className="usa-radio">
+              <div className="gf-form-group">
                 <input
                   id="severity-hard-blocker"
-                  className="usa-radio__input"
+                  
                   type="radio"
                   name="severity"
                   value="hard_blocker"
@@ -447,20 +447,20 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                   onChange={() => setFormData((f) => ({ ...f, severity: 'hard_blocker' }))}
                   data-testid="severity-hard-blocker"
                 />
-                <label className="usa-radio__label" htmlFor="severity-hard-blocker">Hard Blocker</label>
+                <label className="gf-label" htmlFor="severity-hard-blocker">Hard Blocker</label>
               </div>
             </fieldset>
           </div>
 
           {/* Enforcement Point — shown only for hard_blocker */}
           {formData.severity === 'hard_blocker' && (
-            <div className={`usa-form-group${formErrors.enforcement_point ? ' usa-form-group--error' : ''}`}>
-              <label className="usa-label" htmlFor="enforcement-point">
-                Enforcement Point <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+            <div className={`gf-form-group${formErrors.enforcement_point ? ' gf-form-group' : ''}`}>
+              <label className="gf-label" htmlFor="enforcement-point">
+                Enforcement Point <abbr title="required" className="gf-hint">*</abbr>
               </label>
               {formErrors.enforcement_point && (
                 <span
-                  className="usa-error-message"
+                  className="gf-error-msg"
                   role="alert"
                   data-testid="enforcement-point-error"
                 >
@@ -469,7 +469,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
               )}
               <select
                 id="enforcement-point"
-                className={`usa-select${formErrors.enforcement_point ? ' usa-input--error' : ''}`}
+                className={`gf-select${formErrors.enforcement_point ? ' gf-input--error' : ''}`}
                 value={formData.enforcement_point}
                 onChange={(e) =>
                   setFormData((f) => ({
@@ -487,17 +487,17 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
           )}
 
           {/* Explanation Text */}
-          <div className={`usa-form-group${formErrors.explanation_text ? ' usa-form-group--error' : ''}`}>
-            <label className="usa-label" htmlFor="explanation-text">
-              Explanation Text <abbr title="required" className="usa-hint usa-hint--required">*</abbr>
+          <div className={`gf-form-group${formErrors.explanation_text ? ' gf-form-group' : ''}`}>
+            <label className="gf-label" htmlFor="explanation-text">
+              Explanation Text <abbr title="required" className="gf-hint">*</abbr>
             </label>
-            <span className="usa-hint">Plain-language explanation shown to applicants</span>
+            <span className="gf-hint">Plain-language explanation shown to applicants</span>
             {formErrors.explanation_text && (
-              <span className="usa-error-message" role="alert">{formErrors.explanation_text}</span>
+              <span className="gf-error-msg" role="alert">{formErrors.explanation_text}</span>
             )}
             <textarea
               id="explanation-text"
-              className={`usa-textarea${formErrors.explanation_text ? ' usa-input--error' : ''}`}
+              className={`gf-textarea${formErrors.explanation_text ? ' gf-input--error' : ''}`}
               rows={3}
               value={formData.explanation_text}
               onChange={(e) => setFormData((f) => ({ ...f, explanation_text: e.target.value }))}
@@ -506,11 +506,11 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
           </div>
 
           {/* Display Order */}
-          <div className="usa-form-group">
-            <label className="usa-label" htmlFor="display-order">Display Order</label>
+          <div className="gf-form-group">
+            <label className="gf-label" htmlFor="display-order">Display Order</label>
             <input
               id="display-order"
-              className="usa-input"
+              className="gf-input"
               type="number"
               min="0"
               value={formData.display_order}
@@ -523,7 +523,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <button
               type="button"
-              className="usa-button"
+              className="gf-btn gf-btn--primary"
               onClick={handleSave}
               disabled={isSaving}
               data-testid="save-rule-button"
@@ -532,7 +532,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
             </button>
             <button
               type="button"
-              className="usa-button usa-button--outline"
+              className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
               onClick={() => {
                 setShowForm(false);
                 setEditingRuleId(null);
@@ -549,9 +549,9 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
 
       {/* ─── Rules list ─── */}
       {rules.length === 0 && !showForm && (
-        <div className="usa-alert usa-alert--info">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">No eligibility rules defined yet. Click "Add Rule" to create one.</p>
+        <div className="gf-alert gf-alert gf-alert--info">
+          <div >
+            <p className="gf-alert__text">No eligibility rules defined yet. Click "Add Rule" to create one.</p>
           </div>
         </div>
       )}
@@ -561,15 +561,15 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
           <div key={rule.rule_id} style={{ marginBottom: '1rem' }}>
             {/* T-02-06: explanation_text rendered via React JSX (NOT dangerouslySetInnerHTML) */}
             <div
-              className={`usa-alert ${rule.severity === 'hard_blocker' ? 'usa-alert--error' : 'usa-alert--warning'}`}
+              className={`gf-alert ${rule.severity === 'hard_blocker' ? 'gf-alert gf-alert--error' : 'gf-alert gf-alert--warning'}`}
               data-testid={`rule-card-${rule.rule_id}`}
               data-severity={rule.severity}
             >
-              <div className="usa-alert__body">
+              <div >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
                     <span
-                      className={`usa-tag ${rule.severity === 'hard_blocker' ? 'usa-tag--red' : 'usa-tag--yellow'}`}
+                      className={`gf-badge gf-badge--neutral ${rule.severity === 'hard_blocker' ? 'gf-badge gf-badge--neutral--red' : 'gf-badge gf-badge--neutral--yellow'}`}
                       style={{
                         background: rule.severity === 'hard_blocker' ? '#b50909' : '#ffbe2e',
                         color: rule.severity === 'hard_blocker' ? 'white' : '#1b1b1b',
@@ -585,7 +585,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                         ? rule.criterion_value.join(', ')
                         : String(rule.criterion_value)}
                     </p>
-                    <p style={{ margin: '0.25rem 0' }} className="usa-prose">
+                    <p style={{ margin: '0.25rem 0' }} >
                       {rule.explanation_text}
                     </p>
                     {rule.enforcement_point && (
@@ -603,7 +603,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                   <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                     <button
                       type="button"
-                      className="usa-button usa-button--unstyled"
+                      className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                       onClick={() => handleEdit(rule)}
                       data-testid={`edit-rule-${rule.rule_id}`}
                     >
@@ -611,7 +611,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                     </button>
                     <button
                       type="button"
-                      className="usa-button usa-button--unstyled"
+                      className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                       style={{ color: '#b50909' }}
                       onClick={() => setDeleteConfirmId(rule.rule_id)}
                       data-testid={`delete-rule-${rule.rule_id}`}
@@ -620,7 +620,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                     </button>
                     <button
                       type="button"
-                      className="usa-button usa-button--unstyled"
+                      className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                       style={{ fontSize: '0.875rem' }}
                       onClick={() => {
                         setGroupInputRuleId(rule.rule_id);
@@ -638,7 +638,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                 {groupInputRuleId === rule.rule_id && (
                   <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <input
-                      className="usa-input"
+                      className="gf-input"
                       type="text"
                       placeholder="Group ID (UUID)"
                       value={groupIdInput}
@@ -647,7 +647,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                       data-testid="group-id-input"
                     />
                     <select
-                      className="usa-select"
+                      className="gf-select"
                       value={groupOperatorInput}
                       onChange={(e) => setGroupOperatorInput(e.target.value as 'AND' | 'OR')}
                       style={{ maxWidth: '100px' }}
@@ -658,7 +658,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                     </select>
                     <button
                       type="button"
-                      className="usa-button usa-button--outline"
+                      className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
                       style={{ fontSize: '0.875rem' }}
                       onClick={() => handleSaveGroup(rule.rule_id)}
                       data-testid="save-group-button"
@@ -667,7 +667,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
                     </button>
                     <button
                       type="button"
-                      className="usa-button usa-button--unstyled"
+                      className="gf-btn gf-btn--primary gf-btn gf-btn--ghost"
                       style={{ fontSize: '0.875rem' }}
                       onClick={() => setGroupInputRuleId(null)}
                     >
@@ -684,7 +684,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
       {/* ─── Delete confirm modal ─── */}
       {deleteConfirmId && (
         <div
-          className="usa-modal-wrapper is-visible"
+          className="is-visible"
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-rule-heading"
@@ -700,17 +700,17 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
           }}
         >
           <div
-            className="usa-modal"
+            
             style={{ background: 'white', padding: '2rem', maxWidth: '420px', width: '100%', borderRadius: '4px' }}
           >
-            <h2 id="delete-rule-heading" className="usa-modal__heading">
+            <h2 id="delete-rule-heading" className="gf-card__title">
               Delete Rule?
             </h2>
             <p>This action cannot be undone. Are you sure you want to delete this eligibility rule?</p>
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button
                 type="button"
-                className="usa-button usa-button--secondary"
+                className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
                 onClick={() => handleDelete(deleteConfirmId)}
                 disabled={isDeleting}
                 data-testid="confirm-delete-button"
@@ -719,7 +719,7 @@ export function EligibilityRuleBuilder({ opportunityId }: EligibilityRuleBuilder
               </button>
               <button
                 type="button"
-                className="usa-button usa-button--outline"
+                className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
                 onClick={() => setDeleteConfirmId(null)}
                 data-testid="cancel-delete-button"
               >

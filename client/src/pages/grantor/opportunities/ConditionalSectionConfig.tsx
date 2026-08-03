@@ -197,31 +197,31 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
 
   return (
     <section aria-labelledby="conditional-sections-heading">
-      <h2 id="conditional-sections-heading" className="usa-prose" style={{ marginTop: 0 }}>
+      <h2 id="conditional-sections-heading"  style={{ marginTop: 0 }}>
         Conditional Section Display
       </h2>
-      <p className="usa-prose">
+      <p >
         Configure which form sections appear based on applicant characteristics.
       </p>
 
       {/* Add new section condition form */}
       <div
-        className="usa-card"
+        className="gf-card"
         style={{ marginBottom: '1.5rem', padding: '1.5rem', border: '1px solid #dfe1e2' }}
         data-testid="section-condition-form"
       >
-        <h3 className="usa-prose" style={{ marginTop: 0 }}>
+        <h3  style={{ marginTop: 0 }}>
           Add Section Display Condition
         </h3>
 
-        <div className="usa-form-group">
-          <label className="usa-label" htmlFor="section-key-input">
+        <div className="gf-form-group">
+          <label className="gf-label" htmlFor="section-key-input">
             Section Key
           </label>
-          <span className="usa-hint">Identifier for the form section (e.g., budget_section)</span>
+          <span className="gf-hint">Identifier for the form section (e.g., budget_section)</span>
           <input
             id="section-key-input"
-            className="usa-input"
+            className="gf-input"
             type="text"
             value={sectionKey}
             onChange={(e) => setSectionKey(e.target.value)}
@@ -243,13 +243,13 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
             }}
             data-testid={`condition-row-${idx}`}
           >
-            <div className="usa-form-group" style={{ margin: 0 }}>
-              <label className="usa-label" htmlFor={`condition-type-${idx}`} style={{ fontSize: '0.875rem' }}>
+            <div className="gf-form-group" style={{ margin: 0 }}>
+              <label className="gf-label" htmlFor={`condition-type-${idx}`} style={{ fontSize: '0.875rem' }}>
                 Condition Type
               </label>
               <select
                 id={`condition-type-${idx}`}
-                className="usa-select"
+                className="gf-select"
                 value={cond.condition_type}
                 onChange={(e) => handleConditionChange(idx, 'condition_type', e.target.value)}
                 data-testid={`condition-type-${idx}`}
@@ -262,13 +262,13 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
               </select>
             </div>
 
-            <div className="usa-form-group" style={{ margin: 0 }}>
-              <label className="usa-label" htmlFor={`condition-field-${idx}`} style={{ fontSize: '0.875rem' }}>
+            <div className="gf-form-group" style={{ margin: 0 }}>
+              <label className="gf-label" htmlFor={`condition-field-${idx}`} style={{ fontSize: '0.875rem' }}>
                 Field
               </label>
               <input
                 id={`condition-field-${idx}`}
-                className="usa-input"
+                className="gf-input"
                 type="text"
                 value={cond.field}
                 onChange={(e) => handleConditionChange(idx, 'field', e.target.value)}
@@ -277,13 +277,13 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
               />
             </div>
 
-            <div className="usa-form-group" style={{ margin: 0 }}>
-              <label className="usa-label" htmlFor={`condition-operator-${idx}`} style={{ fontSize: '0.875rem' }}>
+            <div className="gf-form-group" style={{ margin: 0 }}>
+              <label className="gf-label" htmlFor={`condition-operator-${idx}`} style={{ fontSize: '0.875rem' }}>
                 Operator
               </label>
               <select
                 id={`condition-operator-${idx}`}
-                className="usa-select"
+                className="gf-select"
                 value={cond.operator}
                 onChange={(e) => handleConditionChange(idx, 'operator', e.target.value)}
                 data-testid={`condition-operator-${idx}`}
@@ -296,13 +296,13 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
               </select>
             </div>
 
-            <div className="usa-form-group" style={{ margin: 0 }}>
-              <label className="usa-label" htmlFor={`condition-value-${idx}`} style={{ fontSize: '0.875rem' }}>
+            <div className="gf-form-group" style={{ margin: 0 }}>
+              <label className="gf-label" htmlFor={`condition-value-${idx}`} style={{ fontSize: '0.875rem' }}>
                 Value
               </label>
               <input
                 id={`condition-value-${idx}`}
-                className="usa-input"
+                className="gf-input"
                 type="text"
                 value={cond.value}
                 onChange={(e) => handleConditionChange(idx, 'value', e.target.value)}
@@ -313,7 +313,7 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
 
             <button
               type="button"
-              className="usa-button usa-button--secondary"
+              className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
               onClick={() => handleRemoveCondition(idx)}
               disabled={conditions.length === 1}
               aria-label={`Remove condition ${idx + 1}`}
@@ -326,7 +326,7 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
 
         <button
           type="button"
-          className="usa-button usa-button--outline"
+          className="gf-btn gf-btn--primary gf-btn gf-btn--outline"
           onClick={handleAddCondition}
           data-testid="add-condition-btn"
           style={{ marginBottom: '1rem' }}
@@ -335,12 +335,12 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
         </button>
 
         {/* Condition group operator */}
-        <fieldset className="usa-fieldset" style={{ marginBottom: '1rem' }}>
-          <legend className="usa-legend">Condition Group Operator</legend>
-          <div className="usa-radio" style={{ display: 'inline-flex', gap: '1.5rem' }}>
+        <fieldset  style={{ marginBottom: '1rem' }}>
+          <legend >Condition Group Operator</legend>
+          <div className="gf-form-group" style={{ display: 'inline-flex', gap: '1.5rem' }}>
             <div>
               <input
-                className="usa-radio__input"
+                
                 id="group-operator-and"
                 type="radio"
                 name="group-operator"
@@ -349,13 +349,13 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
                 onChange={() => setGroupOperator('AND')}
                 data-testid="group-operator-and"
               />
-              <label className="usa-radio__label" htmlFor="group-operator-and">
+              <label className="gf-label" htmlFor="group-operator-and">
                 AND (all conditions must match)
               </label>
             </div>
             <div>
               <input
-                className="usa-radio__input"
+                
                 id="group-operator-or"
                 type="radio"
                 name="group-operator"
@@ -364,7 +364,7 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
                 onChange={() => setGroupOperator('OR')}
                 data-testid="group-operator-or"
               />
-              <label className="usa-radio__label" htmlFor="group-operator-or">
+              <label className="gf-label" htmlFor="group-operator-or">
                 OR (any condition must match)
               </label>
             </div>
@@ -372,24 +372,24 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
         </fieldset>
 
         {saveError && (
-          <div className="usa-alert usa-alert--error usa-alert--slim" role="alert">
-            <div className="usa-alert__body">
-              <p className="usa-alert__text">{saveError}</p>
+          <div className="gf-alert gf-alert gf-alert--error" role="alert">
+            <div >
+              <p className="gf-alert__text">{saveError}</p>
             </div>
           </div>
         )}
 
         {saveSuccess && (
-          <div className="usa-alert usa-alert--success usa-alert--slim" role="status">
-            <div className="usa-alert__body">
-              <p className="usa-alert__text">Section conditions saved successfully.</p>
+          <div className="gf-alert gf-alert gf-alert--success" role="status">
+            <div >
+              <p className="gf-alert__text">Section conditions saved successfully.</p>
             </div>
           </div>
         )}
 
         <button
           type="button"
-          className="usa-button"
+          className="gf-btn gf-btn--primary"
           onClick={() => void handleSave()}
           disabled={isSaving}
           data-testid="save-conditions-btn"
@@ -402,19 +402,19 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
       {isLoading ? (
         <p>Loading section conditions...</p>
       ) : error ? (
-        <div className="usa-alert usa-alert--error" role="alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">{error}</p>
+        <div className="gf-alert gf-alert gf-alert--error" role="alert">
+          <div >
+            <p className="gf-alert__text">{error}</p>
           </div>
         </div>
       ) : configs.length === 0 ? (
-        <p className="usa-prose">No section conditions configured yet.</p>
+        <p >No section conditions configured yet.</p>
       ) : (
         <div data-testid="section-condition-cards">
           {configs.map((config) => (
             <div
               key={config.config_id}
-              className="usa-card"
+              className="gf-card"
               style={{
                 marginBottom: '1rem',
                 padding: '1rem',
@@ -430,7 +430,7 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
                   {config.section_key}
                 </strong>
                 <span
-                  className="usa-tag"
+                  className="gf-badge gf-badge--neutral"
                   style={{ marginLeft: '0.75rem', background: '#005ea2', color: 'white', fontSize: '0.75rem' }}
                   data-testid={`section-operator-badge-${config.section_key}`}
                 >
@@ -442,7 +442,7 @@ export function ConditionalSectionConfig({ opportunityId }: ConditionalSectionCo
               </div>
               <button
                 type="button"
-                className="usa-button usa-button--secondary usa-button--unstyled"
+                className="gf-btn gf-btn--primary gf-btn gf-btn--outline gf-btn gf-btn--ghost"
                 onClick={() => void handleDelete(config.section_key)}
                 aria-label={`Delete section condition for ${config.section_key}`}
                 data-testid={`delete-section-${config.section_key}`}
