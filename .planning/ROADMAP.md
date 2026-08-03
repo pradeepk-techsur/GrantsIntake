@@ -161,7 +161,7 @@ Plans:
 - [ ] 06-03-PLAN.md — Review handoff auto-creation on accepted_for_review (PRD-INTAKE-061); grantor intake analytics dashboard with /intake-analytics endpoint + 3 analytics cards in Dashboard.tsx (PRD-INTAKE-062); ApplicantDashboard page + route + sidebar wiring (PRD-INTAKE-063); synchronous CSV export via /intake-queue/export + Export button (PRD-INTAKE-064)
 
 ### Phase 7: Navigation Cleanup
-**Status**: passed
+**Status**: In Progress
 **Completed**: 2026-08-03
 **Goal**: Remove post-award navigation items (Awards, Monitoring) that are outside the intake module scope, and correct a mislabeled nav item in the applicant portal
 **Depends on**: UI: GrantFlow Design System v1.0
