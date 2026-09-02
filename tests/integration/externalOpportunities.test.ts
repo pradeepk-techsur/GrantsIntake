@@ -140,6 +140,21 @@ describe('External Opportunities (Grants.gov ingestion)', () => {
   });
 
   async function cleanOpportunities() {
+    // Scheduler ingest now writes EXTERNAL_OPPORTUNITY_IMPORTED/REFRESHED audit
+    // events (Plan 08-05) keyed to the external opp id; clear them first.
+    const ids = await pool.query<{ id: string }>(
+      `SELECT id FROM external_opportunities WHERE source_opportunity_number = $1`,
+      ['TEST-FON-001'],
+    );
+    if (ids.rows.length > 0) {
+      const idList = ids.rows.map((r) => r.id);
+      await pool.query('ALTER TABLE audit_events DISABLE TRIGGER audit_events_immutable');
+      await pool.query(
+        `DELETE FROM audit_events WHERE entity_type = 'external_opportunity' AND entity_id = ANY($1)`,
+        [idList],
+      );
+      await pool.query('ALTER TABLE audit_events ENABLE TRIGGER audit_events_immutable');
+    }
     await pool.query(
       `DELETE FROM external_opportunities WHERE source_opportunity_number = $1`,
       ['TEST-FON-001'],

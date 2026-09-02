@@ -107,6 +107,21 @@ function makeMockFetch(detail: () => Record<string, unknown>) {
 }
 
 async function cleanOpportunity() {
+  // Scheduler-driven ingest now writes EXTERNAL_OPPORTUNITY_IMPORTED/REFRESHED
+  // audit events (Plan 08-05) keyed to the external opp id; clear them first.
+  const ids = await pool.query<{ id: string }>(
+    `SELECT id FROM external_opportunities WHERE source_opportunity_number = $1`,
+    [FON],
+  );
+  if (ids.rows.length > 0) {
+    const idList = ids.rows.map((r) => r.id);
+    await pool.query('ALTER TABLE audit_events DISABLE TRIGGER audit_events_immutable');
+    await pool.query(
+      `DELETE FROM audit_events WHERE entity_type = 'external_opportunity' AND entity_id = ANY($1)`,
+      [idList],
+    );
+    await pool.query('ALTER TABLE audit_events ENABLE TRIGGER audit_events_immutable');
+  }
   await pool.query(
     `DELETE FROM external_opportunities WHERE source_opportunity_number = $1`,
     [FON],
@@ -142,6 +157,12 @@ describe('IngestionScheduler — scheduled refresh & change alerts (Plan 08-04)'
     await pool.query('DELETE FROM saved_external_opportunities WHERE user_id = $1', [
       saverUserId,
     ]);
+    // saveOpportunity now emits an EXTERNAL_OPPORTUNITY_SAVED audit event
+    // referencing this user (Plan 08-05); clear it before deleting the user.
+    // audit_events is immutable via trigger — disable it for cleanup (Phase 1 pattern).
+    await pool.query('ALTER TABLE audit_events DISABLE TRIGGER audit_events_immutable');
+    await pool.query('DELETE FROM audit_events WHERE actor_user_id = $1', [saverUserId]);
+    await pool.query('ALTER TABLE audit_events ENABLE TRIGGER audit_events_immutable');
     await pool.query('DELETE FROM users WHERE user_id = $1', [saverUserId]);
     await closeRedisClient();
     await pool.end();
