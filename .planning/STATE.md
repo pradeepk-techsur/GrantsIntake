@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 08-enhancements-grantsgov-ingestion-03-PLAN.md
-last_updated: "2026-09-02T04:32:45.414Z"
-last_activity: "2026-09-02 — Plan 08-03 complete: import endpoint + field mapping + audit event, confirmation flow, attribution badges; backend 279/279 tests passing, client build green"
+stopped_at: Completed 08-enhancements-grantsgov-ingestion-05-PLAN.md
+last_updated: "2026-09-02T04:42:08.283Z"
+last_activity: "2026-09-02 — Plan 08-05 complete: source attribution + versions[] in detail response, ingestion audit trail (IMPORTED/REFRESHED/SAVED), version-history accordion + snapshot modal, attribution regression suite; backend 284/284 tests passing, client build green"
 progress:
   total_phases: 15
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 52
-  completed_plans: 50
+  completed_plans: 51
   percent: 92
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 8 of 8 (Enhancements: Grants.gov Opportunity Ingestion)
-Plan: 08-03 complete (4 of 5 plans in phase 8 done: 08-01, 08-02, 08-03, 08-04)
-Status: Plan 08-03 Complete — Import external opportunity into internal workspace: migration 018 (external_opportunity_id FK + source column), POST /external-opportunities/:id/import with system import org+program, OPPORTUNITY_IMPORTED audit, idempotent re-import, in-page confirmation modal, "Imported from Grants.gov" badge across builder/detail/card; backend 279/279 tests passing
-Last activity: 2026-09-02 — Plan 08-03 complete: import endpoint + field mapping + audit event, confirmation flow, attribution badges; backend 279/279 tests passing, client build green
+Plan: 08-05 complete (5 of 5 plans in phase 8 done: 08-01, 08-02, 08-03, 08-04, 08-05) — Phase 8 complete
+Status: Plan 08-05 Complete — Source attribution, version history & audit: GET /external-opportunities/:id now returns versions[] with full attribution (source/source_url/FON/import_timestamp/api_reference); ingestion audit trail EXTERNAL_OPPORTUNITY_IMPORTED/REFRESHED (NULL actor) + EXTERNAL_OPPORTUNITY_SAVED (user actor); version-history accordion + pretty-printed snapshot modal on the applicant detail page; import_timestamp immutable / last_fetched_at updated; V1 immutable across re-ingest; 5-test regression suite; backend 284/284 tests passing, client build green
+Last activity: 2026-09-02 — Plan 08-05 complete: attribution + versions[] in detail, ingestion audit trail, version accordion + snapshot modal, regression suite; backend 284/284 tests passing, client build green
 
 Progress: [█████████▒] 92%
 
@@ -101,6 +101,7 @@ Progress: [█████████▒] 92%
 | Phase 08-enhancements-grantsgov-ingestion P04 | 5 min | 5 tasks | 9 files |
 | Phase 08-enhancements-grantsgov-ingestion P02 | 8 min | 8 tasks | 13 files |
 | Phase 08-enhancements-grantsgov-ingestion P03 | 5 min | 5 tasks | 12 files |
+| Phase 08-enhancements-grantsgov-ingestion P05 | 8 min | 5 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -214,6 +215,7 @@ Recent decisions affecting current work:
 - [Phase 08-enhancements-grantsgov-ingestion / 08-03]: Imported Grants.gov opps live under a system 'Grants.gov Imports' grantor org + per-agency program (satisfies programs→opportunities FK with no real tenant); status='imported', source='grants_gov_import' on the internal opportunity
 - [Phase 08-enhancements-grantsgov-ingestion / 08-03]: Import is idempotent: unique partial index on opportunities.external_opportunity_id + service guard returns existing record on re-import (200 already_imported vs 201); funding_amount_max (NOT NULL) falls back award_ceiling→award_floor→0
 - [Phase 08-enhancements-grantsgov-ingestion / 08-03]: Detail-page import is an in-page confirmation modal (plan Task 3), replacing 08-02's forward-reference navigate to an unbuilt /import route; attribution ('Imported from Grants.gov') surfaced via existing SELECT o.* opportunity reads by adding source to searchService
+- [Phase 08-enhancements-grantsgov-ingestion]: Plan 08-05: external opportunity detail response now carries versions[] inline alongside source attribution; ingestion audit trail (EXTERNAL_OPPORTUNITY_IMPORTED/REFRESHED with NULL actor, SAVED with user actor); version-history accordion + snapshot JSON modal; attribution regression suite. Backend 284/284, client build green.
 
 ### Pending Todos
 
@@ -225,6 +227,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T04:32:45.412Z
-Stopped at: Completed 08-enhancements-grantsgov-ingestion-03-PLAN.md
+Last session: 2026-09-02T04:42:04.081Z
+Stopped at: Completed 08-enhancements-grantsgov-ingestion-05-PLAN.md
 Resume file: None
