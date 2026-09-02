@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Intake Queue, Screening & Analytics** - Stages 10–11: intake queue routing, administrative screening, dispositions, and reporting
 - [x] **UI: GrantFlow Design System v1.0** - Full migration from USWDS to GrantFlow DS; all 51 components converted, CSS 570KB→15KB, Figma spec implemented
 - [x] **Phase 7: Navigation Cleanup** - Remove Awards and Monitoring from grantor sidebar; remove Awards from applicant sidebar
-- [ ] **Phase 8: Enhancements — Grants.gov Opportunity Ingestion** - Automatically ingest, normalize, track, and alert on funding opportunities from Grants.gov APIs; allow applicants to save, compare, and import external opportunities into internal workspaces
+- [x] **Phase 8: Enhancements — Grants.gov Opportunity Ingestion** - Automatically ingest, normalize, track, and alert on funding opportunities from Grants.gov APIs; allow applicants to save, compare, and import external opportunities into internal workspaces (completed 2026-09-02)
 
 ## Phase Details
 
@@ -216,7 +216,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 6. Intake Queue, Screening & Analytics | 3/3 | Complete | 2026-08-02 |
 | UI: GrantFlow Design System v1.0 | 1/1 | passed | 2026-08-03 |
 | 7. Navigation Cleanup | 1/1 | Complete | 2026-08-03 |
-| 8. Enhancements — Grants.gov Ingestion | 0/7 | In progress | — |
+| 8. Enhancements — Grants.gov Ingestion | 7/7 | Complete | — |
 
 ---
 *Roadmap created: 2026-07-24*
