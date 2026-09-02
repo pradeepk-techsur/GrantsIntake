@@ -3,15 +3,15 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 08-enhancements-grantsgov-ingestion-01-PLAN.md
-last_updated: "2026-09-02T04:09:27.604Z"
-last_activity: "2026-09-02 — Plan 08-01 complete: backend ingestion pipeline, 275/275 tests passing"
+stopped_at: Completed 08-enhancements-grantsgov-ingestion-04-PLAN.md
+last_updated: "2026-09-02T04:18:34.977Z"
+last_activity: "2026-09-02 — Plan 08-04 complete: scheduled refresh env config, addenda/instructions change alerts, grantor Sync Now UI; backend 278/278 tests passing"
 progress:
   total_phases: 15
   completed_phases: 6
   total_plans: 52
-  completed_plans: 47
-  percent: 90
+  completed_plans: 48
+  percent: 92
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 8 of 8 (Enhancements: Grants.gov Opportunity Ingestion)
-Plan: 1 of 5 in current phase — Plan 08-01 complete
-Status: Plan 08-01 Complete — Grants.gov ingestion backend: GrantsGovService, ExternalOpportunityService (diff-based versioning + change alerts), node-cron scheduler, REST API at /api/v1/external-opportunities
-Last activity: 2026-09-02 — Plan 08-01 complete: backend ingestion pipeline, 275/275 tests passing
+Plan: 4 of 5 in current phase — Plan 08-04 complete
+Status: Plan 08-04 Complete — Scheduled refresh & change alerts: env-configurable node-cron refresh, addenda_change/instructions_change detection from raw_metadata, ingestion-scheduler alert-delivery test, grantor-admin "Grants.gov Sync" dashboard card
+Last activity: 2026-09-02 — Plan 08-04 complete: scheduled refresh env config, addenda/instructions change alerts, grantor Sync Now UI; backend 278/278 tests passing
 
-Progress: [█████████▒] 90%
+Progress: [█████████▒] 92%
 
 ## Performance Metrics
 
@@ -98,6 +98,7 @@ Progress: [█████████▒] 90%
 | Phase 06-intake-queue-screening-analytics P02 | 11 min | 2 tasks | 4 files |
 | Phase 07-navigation-cleanup P01 | 2 min | 1 tasks | 2 files |
 | Phase 08-enhancements-grantsgov-ingestion P01 | 7 min | 6 tasks | 10 files |
+| Phase 08-enhancements-grantsgov-ingestion P04 | 5 min | 5 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -203,6 +204,9 @@ Recent decisions affecting current work:
 - [Phase 08-enhancements-grantsgov-ingestion]: Diff-based immutable versioning: external_opportunity_versions gets v1 on insert and a new row only when tracked fields change; change_alerts fan out to savers with previous/new values (PRD-INTAKE-019D/019E)
 - [Phase 08-enhancements-grantsgov-ingestion]: Ingestion scheduler (node-cron) started from src/server.ts startServer (not src/index.ts); disabled under NODE_ENV=test and GRANTS_GOV_INGESTION_ENABLED=false; schedule via GRANTS_GOV_REFRESH_CRON (default every 6h)
 - [Phase 08-enhancements-grantsgov-ingestion]: pg DATE columns come back as JS Date; formatDbDate() normalizes to UTC YYYY-MM-DD before diffing/serializing so alert values and version diffs are correct
+- [Phase 08-enhancements-grantsgov-ingestion / 08-04]: GRANTS_GOV_MAX_PAGES / GRANTS_GOV_PAGE_SIZE wired into the scheduler (were hardcoded); GRANTS_GOV_REFRESH_CRON/API_BASE/INGESTION_ENABLED documented in .env.example
+- [Phase 08-enhancements-grantsgov-ingestion / 08-04]: addenda_change (synopsis.synopsisAddendum) and instructions_change (packages[].instructions) now diffed from raw_metadata (normalizer persists them); removed 08-01's incorrect eligibility_summary→instructions_change mapping per PRD-INTAKE-019D
+- [Phase 08-enhancements-grantsgov-ingestion / 08-04]: Grantor "Grants.gov Sync" dashboard card gated to grantor_admin; last-sync time stored client-side (localStorage) — no server field; grantor-scoped externalSyncApi kept separate from applicant client to avoid parallel-plan (08-02) file conflicts
 
 ### Pending Todos
 
@@ -210,10 +214,10 @@ None yet.
 
 ### Blockers/Concerns
 
-None yet.
+- [08-04 → 08-02]: client `vite build` blocked by out-of-scope unused import `ChangeAlertsBell` in client/src/layouts/ApplicantLayout.tsx (owned by parallel plan 08-02, commit 88a77c2). Backend build + tsc -b pass; resolves when 08-02 wires in or removes the import. Logged to phase deferred-items.md.
 
 ## Session Continuity
 
-Last session: 2026-09-02T04:09:27.602Z
-Stopped at: Completed 08-enhancements-grantsgov-ingestion-01-PLAN.md
+Last session: 2026-09-02T04:17:34Z
+Stopped at: Completed 08-enhancements-grantsgov-ingestion-04-PLAN.md
 Resume file: None
