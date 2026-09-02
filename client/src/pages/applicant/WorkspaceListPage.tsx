@@ -209,7 +209,27 @@ export function WorkspaceListPage() {
           <div className="gf-loading">Loading imported opportunities…</div>
         )}
 
-        {!importedQuery.isLoading && importedItems.length === 0 && (
+        {importedQuery.isError && (
+          <div
+            className="gf-alert gf-alert--error"
+            role="alert"
+            data-testid="imported-error"
+            style={{ margin: '16px 20px' }}
+          >
+            <p className="gf-alert__text">
+              Failed to load your imported opportunities.{' '}
+              <button
+                type="button"
+                className="gf-btn gf-btn--ghost gf-btn--sm"
+                onClick={() => importedQuery.refetch()}
+              >
+                Retry
+              </button>
+            </p>
+          </div>
+        )}
+
+        {!importedQuery.isLoading && !importedQuery.isError && importedItems.length === 0 && (
           <div
             style={{ padding: '24px 20px', color: 'var(--gf-muted)' }}
             data-testid="imported-empty"
