@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticate } from '../middleware/authenticate';
 import { requireRole } from '../middleware/requireRole';
 import { externalOpportunityService } from '../services/external/externalOpportunityService';
+import { externalOpportunityImportService } from '../services/external/importService';
 import { ingestionScheduler } from '../services/external/ingestionScheduler';
 
 export const externalOpportunitiesRouter = Router();
@@ -184,6 +185,36 @@ externalOpportunitiesRouter.delete(
         req.params.id,
       );
       res.json({ ok: true });
+    } catch {
+      res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  },
+);
+
+// ─── Import into internal workspace (authenticated, PRD-INTAKE-019C) ────────
+// POST /external-opportunities/:id/import
+externalOpportunitiesRouter.post(
+  '/external-opportunities/:id/import',
+  authenticate,
+  async (req: Request, res: Response): Promise<void> => {
+    if (!UUID_REGEX.test(req.params.id)) {
+      res.status(404).json({ error: 'NOT_FOUND' });
+      return;
+    }
+    try {
+      const result = await externalOpportunityImportService.importOpportunity(
+        req.params.id,
+        req.user!.user_id,
+      );
+      if (!result) {
+        res.status(404).json({ error: 'NOT_FOUND' });
+        return;
+      }
+      res.status(result.already_imported ? 200 : 201).json({
+        opportunity_id: result.opportunity_id,
+        workspace_url: result.workspace_url,
+        already_imported: result.already_imported,
+      });
     } catch {
       res.status(500).json({ error: 'INTERNAL_ERROR' });
     }
