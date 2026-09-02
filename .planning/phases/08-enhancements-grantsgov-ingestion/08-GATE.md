@@ -563,3 +563,51 @@ dist/assets/index-ClNXLySG.js   615.26 kB │ gzip: 158.96 kB
 [2m   Duration [22m 16.93s[2m (transform 294ms, setup 0ms, collect 1.01s, tests 15.77s, environment 0ms, prepare 27ms)[22m
 ```
 
+
+## Backend pre-push gate
+
+- Status: passed
+- Result marker + failing output tail:
+```
+__GATE__ build_exit=0 test_exit=0 build_cmd=[npm run build] test_cmd=[npm test] head=009813b1012b5685b6dfe8f32b13fca76cf18aaf test_files=56 skip_marks=42 shadow_files=0
+
+ [32m✓[39m tests/integration/ingestionScheduler.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+
+ [32m✓[39m tests/integration/deadlines.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 290[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+ [32m✓[39m tests/integration/programs.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[33m 417[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+ [32m✓[39m tests/integration/sectionConditions.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 288[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+ [32m✓[39m tests/integration/screeningCriteria.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 282[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+ [32m✓[39m tests/integration/opportunityTemplates.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[90m 282[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+ [32m✓[39m tests/integration/guidance.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 293[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+
+ [32m✓[39m tests/integration/contextBoot.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+ [32m✓[39m tests/integration/serverHeaders.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 2[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m32 passed[39m[22m[90m (32)[39m
+[2m      Tests [22m [1m[32m284 passed[39m[22m[90m (284)[39m
+[2m   Start at [22m 04:42:19
+[2m   Duration [22m 17.34s[2m (transform 290ms, setup 0ms, collect 1.00s, tests 16.18s, environment 0ms, prepare 27ms)[22m
+
+```
