@@ -38,6 +38,26 @@ const MOCK_OPP = {
   raw_metadata: {},
   created_at: '2026-09-01T10:00:00Z',
   updated_at: '2026-09-02T04:00:00Z',
+  // The detail response carries versions[] inline (Plan 08-05 source-attribution
+  // contract); the detail page reads opp.versions, not the /versions endpoint.
+  versions: [
+    {
+      id: 'v1',
+      external_opportunity_id: OPP_ID,
+      version_number: 1,
+      changed_fields: [],
+      snapshot: {},
+      fetched_at: '2026-09-01T10:00:00Z',
+    },
+    {
+      id: 'v2',
+      external_opportunity_id: OPP_ID,
+      version_number: 2,
+      changed_fields: ['due_date'],
+      snapshot: {},
+      fetched_at: '2026-09-02T04:00:00Z',
+    },
+  ],
 };
 
 const MOCK_FORECASTED = {
@@ -239,5 +259,110 @@ test.describe('Grants.gov browser — Applicant', () => {
     await page.getByTestId('version-history-toggle').click();
     await expect(page.getByTestId('version-history-panel')).toBeVisible();
     await expect(page.getByTestId('version-history-item')).toHaveCount(2);
+  });
+
+  test('imports a Grants.gov opportunity and surfaces it on /applicant/applications with success banner and badge (PRD-INTAKE-019C, uat/5)', async ({
+    page,
+  }) => {
+    const INTERNAL_ID = '33333333-3333-4333-8333-333333333333';
+    let importCount = 0;
+
+    // The imported-list surface always returns EXACTLY ONE item for this
+    // opportunity regardless of how many imports fire (asserts no-duplicate).
+    const IMPORTED_LIST = {
+      items: [
+        {
+          opportunity_id: INTERNAL_ID,
+          title: 'Community Health Innovation Grant',
+          funder_name: 'Department of Health and Human Services',
+          program_area: 'Federal Grants',
+          max_award_amount: 500000,
+          application_close_date: '2026-11-30',
+          status_badge: 'open',
+          source: 'grants_gov_import',
+          import_timestamp: '2026-09-02T10:00:00Z',
+        },
+      ],
+    };
+
+    // Detail page fetches the external opportunity.
+    await page.route(`**/api/v1/external-opportunities/${OPP_ID}/versions`, (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_VERSIONS) }),
+    );
+    await page.route(`**/api/v1/external-opportunities/${OPP_ID}`, (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(MOCK_OPP) }),
+    );
+
+    // Import endpoint: first POST → 201 (fresh); second → 200 already_imported.
+    await page.route(`**/api/v1/external-opportunities/${OPP_ID}/import`, (route) => {
+      importCount += 1;
+      const alreadyImported = importCount > 1;
+      return route.fulfill({
+        status: alreadyImported ? 200 : 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          opportunity_id: INTERNAL_ID,
+          workspace_url: `/applicant/workspaces?opportunity_id=${INTERNAL_ID}`,
+          already_imported: alreadyImported,
+        }),
+      });
+    });
+
+    // Imported list surfaced on the applications page.
+    await page.route('**/api/v1/external-opportunities/imported', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(IMPORTED_LIST) }),
+    );
+
+    // Applications page's other queries: empty workspaces + empty saved list.
+    await page.route('**/api/v1/workspaces', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }),
+    );
+    await page.route('**/api/v1/external-opportunities/saved', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(EMPTY_SAVED) }),
+    );
+
+    // ── Import (first time) ──────────────────────────────────────────────
+    await loginAndNavigate(page, `/applicant/grants-gov/${OPP_ID}`);
+    await expect(page.getByTestId('detail-title')).toContainText(
+      'Community Health Innovation Grant',
+    );
+
+    await page.getByTestId('import-to-workspace').click();
+    await expect(page.getByTestId('import-confirm-modal')).toBeVisible();
+    await page.getByTestId('import-confirm-submit').click();
+
+    // Lands on /applicant/applications (handler navigates after ~1200ms,
+    // carrying router state { importedFromGrantsGov: true } which WorkspaceListPage
+    // reads via useLocation to show the success banner).
+    await page.waitForURL('**/applicant/applications', { timeout: 5000 });
+
+    // Success banner + imported card with badge.
+    await expect(page.getByTestId('import-success-banner')).toBeVisible();
+    await expect(page.getByTestId('import-success-banner')).toContainText(
+      /imported successfully/i,
+    );
+    await expect(page.getByTestId('imported-opportunity-card')).toHaveCount(1);
+    await expect(page.getByTestId('imported-badge').first()).toContainText(
+      'Imported from Grants.gov',
+    );
+
+    // ── Re-import (no duplicate) ─────────────────────────────────────────
+    await page.evaluate((path: string) => {
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }, `/applicant/grants-gov/${OPP_ID}`);
+    await page.waitForTimeout(800);
+
+    await expect(page.getByTestId('import-to-workspace')).toBeVisible({ timeout: 5000 });
+    await page.getByTestId('import-to-workspace').click();
+    await expect(page.getByTestId('import-confirm-modal')).toBeVisible();
+    await page.getByTestId('import-confirm-submit').click();
+
+    await page.waitForURL('**/applicant/applications', { timeout: 5000 });
+
+    // Still exactly one imported card — the idempotency truth at the surface.
+    await expect(page.getByTestId('imported-opportunity-card')).toHaveCount(1);
+
+    expect(importCount).toBe(2);
   });
 });
