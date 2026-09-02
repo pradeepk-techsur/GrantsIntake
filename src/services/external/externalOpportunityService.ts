@@ -31,6 +31,19 @@ const FIELD_TO_ALERT_TYPE: Record<string, string> = {
   eligibility_summary: 'instructions_change',
 };
 
+// pg returns DATE columns as JS Date objects; format to ISO YYYY-MM-DD (UTC).
+function formatDbDate(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (value instanceof Date) {
+    // Use UTC to avoid off-by-one from local tz; DATE has no time component.
+    const y = value.getUTCFullYear();
+    const m = String(value.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(value.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return String(value).slice(0, 10);
+}
+
 function rowToOpportunity(row: Record<string, unknown>): ExternalOpportunity {
   return {
     id: row.id as string,
@@ -45,7 +58,7 @@ function rowToOpportunity(row: Record<string, unknown>): ExternalOpportunity {
     agency: (row.agency as string) ?? null,
     opportunity_status: (row.opportunity_status as string) ?? null,
     eligibility_summary: (row.eligibility_summary as string) ?? null,
-    due_date: row.due_date ? String(row.due_date).slice(0, 10) : null,
+    due_date: formatDbDate(row.due_date),
     award_ceiling: row.award_ceiling !== null && row.award_ceiling !== undefined
       ? Number(row.award_ceiling)
       : null,
@@ -70,8 +83,8 @@ function computeChangedFields(
     const priorVal = (prior as unknown as Record<string, unknown>)[field] ?? null;
     const nextVal = (next as unknown as Record<string, unknown>)[field] ?? null;
     // Normalize date to YYYY-MM-DD on both sides before comparing.
-    const a = field === 'due_date' && priorVal ? String(priorVal).slice(0, 10) : priorVal;
-    const b = field === 'due_date' && nextVal ? String(nextVal).slice(0, 10) : nextVal;
+    const a = field === 'due_date' && priorVal ? formatDbDate(priorVal) : priorVal;
+    const b = field === 'due_date' && nextVal ? formatDbDate(nextVal) : nextVal;
     if (String(a ?? '') !== String(b ?? '')) {
       changed.push(field);
     }
