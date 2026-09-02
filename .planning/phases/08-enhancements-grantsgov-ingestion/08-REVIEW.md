@@ -1,93 +1,114 @@
 ---
 phase: 8
 status: issues_found
-blockers: 0
-warnings: 3
-files_reviewed: 5
+blockers: 1
+warnings: 2
+files_reviewed: 8
 files_reviewed_list:
-  - src/services/external/grantsGovService.ts
-  - src/services/external/ingestionScheduler.ts
+  - src/routes/externalOpportunities.ts
+  - src/services/external/importService.ts
+  - client/src/api/externalOpportunitiesApi.ts
+  - client/src/types/externalOpportunity.ts
+  - client/src/pages/applicant/WorkspaceListPage.tsx
+  - client/src/pages/applicant/ExternalOpportunityDetailPage.tsx
   - tests/integration/externalOpportunities.test.ts
-  - tests/integration/externalOpportunityAttribution.test.ts
-  - tests/integration/ingestionScheduler.test.ts
-reviewed_at: 2026-09-02T12:21:50Z
+  - e2e/externalOpportunities.spec.ts
+reviewed_at: 2026-09-02T13:21:32Z
 iteration: 1
 ---
 
 # Phase 8 Code Review
 
-Gap-closure run (08-06). Reviewed the diff from `e3c38ea^` → `HEAD`
-(commits `f233d7e`, `0f0e32e`, `6f8c3e3`, `b8650f1`, `b16516a`), focused on the
-Grants.gov endpoint fix, the normalizer's new envelope tolerance, and the
-regression test. `tsc --noEmit` passes (exit 0); the 3 affected integration
-suites pass (17/17). No BLOCKERs found.
+Scope: the single gap-closure plan 08-07 (gap_ref uat/5, PRD-INTAKE-019C) — the
+new `GET /external-opportunities/imported` read surface and its client wiring.
+Diff established from `git diff 5190eb9..HEAD` (first 08-07 commit is `c89c890`).
 
 ## BLOCKERs
 
-None.
+### B1: GET /external-opportunities/imported returns every user's imports — no per-caller scoping (IDOR / broken "my imports" view)
+- **File:** src/routes/externalOpportunities.ts:64-76; src/services/external/importService.ts:159-203
+- **Category:** security (IDOR pattern) / integration (correctness vs. PRD intent)
+- **Evidence:**
+  The route authenticates the caller but then discards their identity:
+  ```ts
+  authenticate,
+  async (_req: Request, res: Response) => {          // _req — user_id never read
+    const items = await externalOpportunityImportService.listImportedOpportunities();
+  ```
+  The service query filters only on source/status, never on the importing user:
+  ```sql
+  WHERE o.source = $1 AND o.status = $2   -- 'grants_gov_import', 'imported'
+  ORDER BY o.created_at DESC
+  ```
+  Every other authenticated endpoint in this same file derives ownership
+  server-side from `req.user!.user_id` (`/saved` line 51-53, `/alerts` line
+  84-86, `/:id/save` line 181, `/import` line 224). This endpoint breaks that
+  established phase-8 pattern.
 
-The core fix is correct:
-- `SEARCH_ENDPOINT` → `/search2` and `DETAIL_ENDPOINT` → POST `/fetchOpportunity`
-  match the documented Grants.gov REST API, with a `Content-Type: application/json`
-  header now sent on the detail POST (previously absent).
-- The regression test (`externalOpportunities.test.ts:205`) is **not** a
-  tautology: `toMatch(/\/search2(\?|$)/)` fails for the old `/search2/opportunities/search`
-  path (it does not end in `/search2`), and `not.toMatch(/\/search2\/opportunities\/search/)`
-  independently fails on a revert. Either regression breaks the assertion. Confirmed genuine.
-- No injection surface introduced: the detail body is `JSON.stringify`'d, not string-interpolated.
+  Concrete failure: User A imports opportunity X. User B — who has imported
+  nothing — logs in and lands on `/applicant/applications`; WorkspaceListPage's
+  `['imported-opportunities']` query returns A's import, so B sees "Imported
+  from Grants.gov: [A's opportunity]" as if it were their own. In any
+  multi-applicant deployment the "My imported opportunities" list is a single
+  global pool, and it grows without bound with every user's imports.
+
+  The write path already records ownership: `insertOpportunity` writes
+  `created_by = actorUserId` (importService.ts:272, 302), and `opportunities`
+  has a NOT NULL `created_by` FK (migration 002). Per-user scoping is therefore
+  available and was simply omitted — this is a missing `AND o.created_by = $3`
+  (or `AND created_by = actorUserId`) rather than a schema limitation. The code
+  comment ("not per-applicant scoped, so all imported opportunities are
+  returned") documents the defect as if intended, but it contradicts the plan's
+  own signature (`listImportedOpportunities(actorUserId)`) and the PRD framing
+  of a per-applicant post-import surface.
+
+  Mitigating fact (why not higher-severity data breach, but still a blocker):
+  the leaked *fields* (title, funder_name, program_area, award amount, close
+  date) are public Grants.gov metadata also served unauthenticated via
+  `GET /external-opportunities`. The exposure is the cross-user visibility of
+  *whose/which* imports exist plus a broken per-user view — a correctness/IDOR
+  defect on the phase's user-facing goal, not disclosure of confidential data.
+
+  Neither test would catch this: the integration "double-import" test
+  (test.ts:499-527) uses one user, and the e2e (spec.ts:264-367) mocks
+  `/imported` to a fixed single item — so the missing scoping is unverified.
+- **Fix direction:** Thread the authenticated `req.user!.user_id` into
+  `listImportedOpportunities(actorUserId)` and add `AND o.created_by = $3` to
+  the WHERE clause, mirroring the `/saved` and `/alerts` ownership derivation.
+  Add a two-user integration assertion (user B must NOT see user A's import).
 
 ## WARNINGs
 
-### W1: Detail enrichment backfills `oppStatus`/`closeDate` but not `opportunityNumber`; a live envelope without a flat `opportunityNumber` silently skips every hit
-- **File:** src/services/external/ingestionScheduler.ts:68-72, 129-133; src/services/external/grantsGovService.ts:257
-- **Category:** integration
-- **Evidence:** The `enriched` object explicitly reasons that the live
-  `/fetchOpportunity` detail "carries no flat status field and may omit the
-  closeDate" and backfills those two fields from the search hit. `normalizeOpportunity`
-  derives `source_opportunity_number` **solely** from `raw.opportunityNumber`
-  (line 257, no synopsis/search fallback). If the live detail envelope also lacks
-  a flat `opportunityNumber` (the same class of omission the comment acknowledges
-  for status/closeDate), `source_opportunity_number` becomes `''`, `refreshAll`
-  throws `missing source_opportunity_number after normalize` (line 75), and the
-  opportunity is caught+logged+`failed++` — i.e. **every** ingested opportunity
-  is skipped on the live API. This is degraded (skip, not corruption; the search
-  hit's `opportunityNumber` is available and could be backfilled the same way),
-  and I cannot confirm the live envelope shape from here, so it is a WARNING
-  rather than a BLOCKER.
-- **Fix direction:** Add `opportunityNumber: detail.opportunityNumber ?? hit.opportunityNumber`
-  to both `enriched` objects (or fall back to the search hit's number inside the
-  normalizer), mirroring the status/closeDate backfill.
+### W1: `status_badge` union declares `'not_yet_open'` but the deriver can never produce it
+- **File:** src/services/external/importService.ts:27,53-65 (and client type at client/src/types/externalOpportunity.ts:96)
+- **Evidence:** `ImportedOpportunityListItem['status_badge']` includes
+  `'not_yet_open'`, but `deriveStatusBadge` only ever returns `'open' |
+  'closing_soon' | 'closed'` (no branch inspects an open/start date, and no
+  `'not_yet_open'` literal is returned anywhere). A forecasted/not-yet-open
+  imported opportunity is mislabeled `'open'`. Degraded rather than broken —
+  the badge is cosmetic and the imported flow currently only imports posted
+  opps — so a WARNING, but the dead union member will mislead future consumers.
+- **Fix direction:** Either drop `'not_yet_open'` from the union, or derive it
+  from the opportunity's open/start date when available.
 
-### W2: Synthesized package URL for the live `opportunityPkgs` shape is a guessed path that may not resolve
-- **File:** src/services/external/grantsGovService.ts:72-76
-- **Category:** bug
-- **Evidence:** When the live `opportunityPkgs` entry has no `packageURL`, the code
-  fabricates `https://apply07.grants.gov/apply/opportunities/instructions/PKG-${packageId}-instructions.pdf`.
-  This URL template is not returned by the API and is unverified against the live
-  service; if the real instructions-download path differs, `application_package_url`
-  will point at a broken/404 link for live-sourced records. Non-blocking (the field
-  is informational, not on a critical path), but it can surface dead links to users.
-- **Fix direction:** Prefer a URL the API actually returns; if none exists, leave
-  `application_package_url` null rather than emit a fabricated path, or verify the
-  template against a live round-trip before relying on it.
-
-### W3: Non-string live date fields (e.g. epoch `responseDate`) are silently dropped by the normalizer
-- **File:** src/services/external/grantsGovService.ts:30-31, 231-234
-- **Category:** bug
-- **Evidence:** `due_date` falls back to `synopsis.responseDateStr` then
-  `synopsis.responseDate`, but `toIsoDateOrNull` returns null for any non-string
-  input. If the live envelope delivers `responseDate` as a numeric epoch (a common
-  Grants.gov representation) and `responseDateStr` is absent, the due date is
-  silently dropped to null rather than parsed. Degraded metadata, not a break.
-- **Fix direction:** Extend `toIsoDateOrNull` to accept numeric epoch millis/seconds,
-  or narrow the fallback to string-typed date fields only and document the assumption.
+### W2: Imported-opportunities query has no error surface on the applications page
+- **File:** client/src/pages/applicant/WorkspaceListPage.tsx:48-51,208-223
+- **Evidence:** `importedQuery` is consumed only via `isLoading` and
+  `data?.items ?? []`; `importedQuery.isError` is never handled. If
+  `GET /imported` fails (500/network), the section silently renders the
+  "You have no imported opportunities yet" empty state, which is misleading
+  immediately after a successful import redirect. Non-critical path (the import
+  itself succeeded and its own success alert fired on the detail page), so a
+  WARNING. The sibling workspaces query does render an error alert (lines
+  131-135) — inconsistent handling.
+- **Fix direction:** Add an `importedQuery.isError` branch rendering a small
+  retry/error notice, consistent with the workspaces error alert.
 
 ## Cross-file seams checked
-- `SEARCH_ENDPOINT` (`/search2`) ↔ all three test mocks re-pinned to `POST` + `/search2($|?)` regex — OK (no mock still matches the old 403 suffix).
-- `DETAIL_ENDPOINT` (`POST /fetchOpportunity`) ↔ all three test mocks match `/fetchOpportunity` — OK; detail regex cannot collide with the search regex (distinct path segments).
-- `getOpportunityDetail` unwraps `{ data: {...} }` ↔ mocks return `{ data: detail() }` — OK; flat fallback preserved for pre-normalized fixtures.
-- `normalizeOpportunity` new fields (`raw.cfdas`, `raw.opportunityPkgs`, `raw.agencyDetails`, `raw.oppStatus`) ↔ `GrantsGovDetail` index signature `[key: string]: unknown` — OK (tsc passes).
-- `ingestionScheduler` `enriched.{oppStatus,closeDate}` ↔ normalizer status/date reads — OK for flat fixtures; `opportunityNumber` gap — see W1.
-- Mutating admin routes `/admin/refresh` + `/admin/refresh/:opportunityNumber` ↔ `authenticate` + `requireGrantorAdmin` — OK (unchanged by this diff, auth intact).
-</content>
-</invoke>
+- Route order `/imported` (routes:64) precedes `/:id/versions` (142) and bare `/:id` (242), and sits among the other static authenticated paths — OK, literal segment not swallowed by `:id`.
+- SQL in `listImportedOpportunities` uses parameterized `$1/$2` for source/status; no string interpolation — OK, no injection.
+- Client `externalOpportunitiesApi.listImported()` → `GET /external-opportunities/imported` matches backend route path and `{ items }` response shape — OK.
+- `ImportedOpportunityListItem` client type (types:89-99) mirrors backend interface (importService:20-30) field-for-field — OK (except the never-emitted `not_yet_open`, see W1).
+- Navigation seam: DetailPage `navigate('/applicant/applications', { state: { importedFromGrantsGov: true } })` (DetailPage:82-84) ↔ WorkspaceListPage `useLocation().state.importedFromGrantsGov` banner (WorkspaceListPage:37-41); App.tsx route `applications → WorkspaceListPage` (App.tsx:66) — OK.
+- Cache invalidation `['imported-opportunities']` on import success (DetailPage:80) matches the query key used by WorkspaceListPage (WorkspaceListPage:49) — OK.
+- Import write path (`importOpportunity`/`insertOpportunity`/BEGIN-COMMIT-ROLLBACK) unchanged by this diff (git diff shows zero touched lines in that region) — OK, no regression to the existing import writer.
