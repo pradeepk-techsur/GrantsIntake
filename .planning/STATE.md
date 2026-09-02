@@ -2,15 +2,16 @@
 pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-last_updated: "2026-09-02T12:00:00.000Z"
-last_activity: "2026-09-02 — Phase 8 Enhancements created (Grants.gov ingestion)"
+status: completed
+stopped_at: Completed 08-enhancements-grantsgov-ingestion-01-PLAN.md
+last_updated: "2026-09-02T04:09:27.604Z"
+last_activity: "2026-09-02 — Plan 08-01 complete: backend ingestion pipeline, 275/275 tests passing"
 progress:
-  total_phases: 14
-  completed_phases: 7
+  total_phases: 15
+  completed_phases: 6
   total_plans: 52
-  completed_plans: 46
-  percent: 88
+  completed_plans: 47
+  percent: 90
 ---
 
 # Project State
@@ -24,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 5 of 7 (Q&A, Submission & Validation)
-Plan: 2 of 3 in current phase — Plan 05-02 complete
-Status: Plan 05-02 Complete — Validation engine (three-tier), certification service (SHA-256), submit gate
-Last activity: 2026-07-31 — Plan 05-02 complete: Continuous validation, AR certification, ReadinessDashboard submit gate
+Phase: 8 of 8 (Enhancements: Grants.gov Opportunity Ingestion)
+Plan: 1 of 5 in current phase — Plan 08-01 complete
+Status: Plan 08-01 Complete — Grants.gov ingestion backend: GrantsGovService, ExternalOpportunityService (diff-based versioning + change alerts), node-cron scheduler, REST API at /api/v1/external-opportunities
+Last activity: 2026-09-02 — Plan 08-01 complete: backend ingestion pipeline, 275/275 tests passing
 
-Progress: [█████████▒] 97%
+Progress: [█████████▒] 90%
 
 ## Performance Metrics
 
@@ -96,6 +97,7 @@ Progress: [█████████▒] 97%
 | Phase 06-intake-queue-screening-analytics P01 | 20 min | 2 tasks | 13 files |
 | Phase 06-intake-queue-screening-analytics P02 | 11 min | 2 tasks | 4 files |
 | Phase 07-navigation-cleanup P01 | 2 min | 1 tasks | 2 files |
+| Phase 08-enhancements-grantsgov-ingestion P01 | 7 min | 6 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -197,6 +199,10 @@ Recent decisions affecting current work:
 - [Phase 08-enhancements-grantsgov-ingestion]: Phase created 2026-09-02. Scope: PRD-INTAKE-019A–019E. Grants.gov REST API ingestion (not S2S), node-cron scheduler, ExternalOpportunityService with versioning + change alerts, 5 plans (backend, frontend browser, import flow, scheduler, attribution). Depends on Phase 7.
 - [Phase 08-enhancements-grantsgov-ingestion]: Grants.gov API base URL: https://api.grants.gov/v1/api — Opportunity Search endpoint: POST /search2/opportunities/search, Detail endpoint: GET /opportunities/:id. No API key required for public search.
 - [Phase 08-enhancements-grantsgov-ingestion]: source_opportunity_number is the unique key for upsert (not grants.gov internal ID) — FON (funding opportunity number) is stable across fetches and human-readable for audit trail.
+- [Phase 08-enhancements-grantsgov-ingestion]: Grants.gov ingestion uses Node global fetch (undici); nock cannot intercept it, so integration tests mock via vi.stubGlobal('fetch')
+- [Phase 08-enhancements-grantsgov-ingestion]: Diff-based immutable versioning: external_opportunity_versions gets v1 on insert and a new row only when tracked fields change; change_alerts fan out to savers with previous/new values (PRD-INTAKE-019D/019E)
+- [Phase 08-enhancements-grantsgov-ingestion]: Ingestion scheduler (node-cron) started from src/server.ts startServer (not src/index.ts); disabled under NODE_ENV=test and GRANTS_GOV_INGESTION_ENABLED=false; schedule via GRANTS_GOV_REFRESH_CRON (default every 6h)
+- [Phase 08-enhancements-grantsgov-ingestion]: pg DATE columns come back as JS Date; formatDbDate() normalizes to UTC YYYY-MM-DD before diffing/serializing so alert values and version diffs are correct
 
 ### Pending Todos
 
@@ -208,6 +214,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T12:00:00.000Z
-Stopped at: Phase 8 created — 5 plans written, all artifacts updated. Ready to plan → execute.
+Last session: 2026-09-02T04:09:27.602Z
+Stopped at: Completed 08-enhancements-grantsgov-ingestion-01-PLAN.md
 Resume file: None
