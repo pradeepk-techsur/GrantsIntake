@@ -1,0 +1,21 @@
+{
+  "duration_secs": 1299.0,
+  "token_usage": {
+    "input": 138,
+    "output": 30487,
+    "total": 7642990,
+    "cache_read": 7490345,
+    "cache_write": 122020,
+    "cost": 5.2706625
+  },
+  "model": "claude-opus-4-8",
+  "files_changed": [
+    ".planning/phases/08-enhancements-grantsgov-ingestion/08-UAT.md",
+    ".planning/phases/08-enhancements-grantsgov-ingestion/08-UAT.summary.json"
+  ],
+  "verification_status": "passed",
+  "error_message": null,
+  "attempt_number": 4,
+  "created_at": "2026-09-02T12:30:43.816622+00:00",
+  "completed_at": "2026-09-02T12:52:23.410811989+00:00"
+}

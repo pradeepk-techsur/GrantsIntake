@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 08-enhancements-grantsgov-ingestion
-source: [08-01-SUMMARY.md, 08-02-SUMMARY.md, 08-03-SUMMARY.md, 08-04-SUMMARY.md, 08-05-SUMMARY.md]
-started: 2026-09-02T11:44:44Z
-updated: 2026-09-02T11:48:30Z
+source: [08-01-SUMMARY.md, 08-02-SUMMARY.md, 08-03-SUMMARY.md, 08-04-SUMMARY.md, 08-05-SUMMARY.md, 08-06-SUMMARY.md]
+started: 2026-09-02T12:31:38Z
+updated: 2026-09-02T12:45:00Z
 ---
 
 ## Current Test
@@ -13,100 +13,93 @@ updated: 2026-09-02T11:48:30Z
 ## Tests
 
 ### 1. Browse Grants.gov Opportunities
-expected: "Browse Grants.gov" sidebar link opens a filterable, paginated list (25/page) of external opportunity cards, each with status badge, award range, due date, eligibility snippet, source badge, save heart, and View Details. Filter apply/clear updates results.
-result: redrive
-reported: "empty / no opportunities"
-redrive_note: "Blocking cause CLOSED by 08-06 — the ingestion 403 that produced 'empty / no opportunities' is fixed. Data precondition now satisfied: GET /api/v1/external-opportunities returns HTTP 200 with total:3 real Grants.gov records (was total:0); the browse page's backing API + data now exist. UI card-render interaction is ready for human re-test."
-severity: blocker
+expected: "Browse Grants.gov" sidebar link opens a filterable, paginated list (25/page) of external opportunity cards, each with status badge, award range, due date, eligibility snippet, source badge, save heart, and View Details. Filter apply/clear updates results. The list now shows real ingested opportunities (previously empty due to the ingestion 403, closed by 08-06).
+result: pass
 
 ### 2. View External Opportunity Detail
 expected: Clicking View Details opens a detail page with the opportunity header, a metadata grid (agency, FON, assistance listing, due dates, award ceiling/floor, status), an eligibility panel, and a source-attribution footer (Source: Grants.gov · FON · import date).
-result: skipped
-reason: Blocked by the ingestion 403 blocker (test 1) — no external opportunity exists to open a detail page for.
+result: pass
 
 ### 3. Save and Unsave an External Opportunity
 expected: Clicking the heart on a card or detail page saves the opportunity; it then appears in the "Saved from Grants.gov" section on the applicant dashboard (/applicant/applications). Unsaving removes it from that section.
-result: skipped
-reason: Blocked by the ingestion 403 blocker (test 1) — nothing to save; the list is empty.
+result: pass
 
 ### 4. Change Alerts Bell and Alerts Page
 expected: A bell icon in the applicant header shows an unread count and a top-5 dropdown of change alerts for saved opportunities; each alert can be marked read inline. A full alerts page lists all change alerts.
-result: skipped
-reason: Blocked by the ingestion 403 blocker (test 1) — no saved opportunities can exist, so no change alerts can fire.
+result: pass
 
 ### 5. Import Grants.gov Opportunity into Workspace
 expected: The detail page's "Import to Workspace" button opens a confirmation modal ("creates an internal copy… Proceed?"). Confirming imports the opportunity and redirects to /applicant/applications with a success message; the imported opportunity carries an "Imported from Grants.gov" badge. Re-importing does not create a duplicate.
-result: skipped
-reason: Blocked by the ingestion 403 blocker (test 1) — no external opportunity exists to import.
+result: issue
+reported: "Modal appeared but confirming did nothing / errored"
+severity: major
 
 ### 6. Version History Accordion and Snapshot Modal
 expected: The detail page shows a "Version History (N versions)" accordion. Expanding it lists each version (V1, V2…) with its fetched date and changed-field labels (or "Initial import"). A "View snapshot" action opens a modal with the full pretty-printed JSON snapshot for that version.
-result: skipped
-reason: Blocked by the ingestion 403 blocker (test 1) — no opportunity, so no version history to display.
-
-### 7. Grantor Grants.gov Sync Card
-expected: A grantor_admin sees a "Grants.gov Sync" card on the grantor dashboard showing the last-sync time and a "Sync Now" button. Clicking Sync Now triggers a refresh with loading, then success/error feedback. The card is not shown to non-admin grantor users.
 result: pass
-reported: "card + Sync Now work"
 
 ## Summary
 
-total: 7
-passed: 1
+total: 6
+passed: 5
 issues: 1
 pending: 0
-skipped: 5
+skipped: 0
 
 ## Self-Check
 
 boot: 200 (frontend :5173 up; backend :3000 API healthy; db + redis healthy)
-data: NOT RUN — data-doctor not spawned; the ONLY source of external-opportunity data is Grants.gov ingestion, which is broken (see gap below), so no data-doctor seed could satisfy the UI preconditions. 0 external opportunities in DB.
-routes_probed: 3 ok / 1 failed
+data: seeded 125 preconditions | triggered the app's own ingestion (ingestionScheduler.refreshAll) against the live Grants.gov API + compose DB — 125 external_opportunities + 125 versions upserted (fetched:125/upserted:125/failed:0). The ONLY source of external-opportunity data is Grants.gov ingestion (data-doctor cannot seed it directly), so the repair is to run ingestion, which is now proven working end-to-end (08-06's endpoint fix confirmed live).
+routes_probed: 3 ok / 0 failed
 cookie: n/a
 browser_urls: none
+repairs:
+  - kind: data
+    what: "Ran ingestionScheduler.refreshAll() against the live Grants.gov API + compose DB to populate 125 external_opportunities (browse/detail/save/import/versions preconditions). No source files changed."
+    resolution: reconciled by replay
 per_test:
   - test: 1
-    verdict: fail
-    note: "🤖 Auto-check: GET /api/v1/external-opportunities returns { total: 0 } — no external opportunities exist to browse. Root cause: ingestion calls the wrong Grants.gov endpoint (403). See gap."
+    verdict: pass
+    note: "🤖 Auto-check: GET /api/v1/external-opportunities → HTTP 200, total:125 (was total:0 at boot), paginated 25/page, real records (source=grants.gov, FON=PAR-25-153, status=posted). The round-1 blocker (ingestion 403) is fixed. UI card-render/filter interaction ready for human confirmation."
     confidence: proven
   - test: 2
-    verdict: skipped (needs human)
-    note: "🤖 No ingested opportunity exists to open a detail page for (blocked by ingestion 403)."
-  - test: 3
-    verdict: skipped (needs human)
-    note: "🤖 Nothing to save — list is empty (blocked by ingestion 403)."
-  - test: 4
-    verdict: skipped (needs human)
-    note: "🤖 No saved opportunities can exist, so no change alerts can fire (blocked by ingestion 403)."
-  - test: 5
-    verdict: skipped (needs human)
-    note: "🤖 No external opportunity exists to import (blocked by ingestion 403)."
-  - test: 6
-    verdict: skipped (needs human)
-    note: "🤖 No opportunity → no version history to display (blocked by ingestion 403)."
-  - test: 7
-    verdict: advisory
-    note: "🤖 Auto-check: the Sync card UI + Sync Now button work (human-confirmed pass), but the manual admin refresh (POST /external-opportunities/admin/refresh, grantor_admin) returns { fetched: 0, upserted: 0, errors: [5× 'Grants.gov search failed: 403 Forbidden'] } — it cannot ingest anything until the ingestion endpoint gap (test 1) is fixed. Not a defect in the card itself."
+    verdict: pass
+    note: "🤖 Auto-check: GET /api/v1/external-opportunities/:id → HTTP 200 with full metadata (title, agency=National Institutes of Health, FON=PAR-25-153, source_url=https://www.grants.gov/... , inline versions). Detail page has data to render; visual layout of metadata grid + attribution footer for human to confirm."
     confidence: proven
+  - test: 3
+    verdict: advisory
+    note: "🤖 Save/unsave requires an authenticated applicant session; not driven headless. Backing endpoints (POST/DELETE /external-opportunities/:id/save, GET /saved) exist and data now exists to save. Human confirms the heart toggle + dashboard 'Saved from Grants.gov' section."
+  - test: 4
+    verdict: advisory
+    note: "🤖 Change-alerts bell/page depend on an authenticated session and on alerts being generated by a re-fetch diff. With only an initial ingestion (V1 for all 125), no change alerts exist yet — the bell will legitimately show 0 until a tracked opportunity changes on re-fetch. Human confirms the bell/page render and empty-state behavior."
+  - test: 5
+    verdict: fail
+    note: "🤖 Auto-check + human FAIL: the import API works (201 across 25 opps, 0 errors, idempotent), but the frontend redirects to /applicant/applications which shows no success message and does not list imported opportunities — so confirming appears to do nothing. See Gaps (proven, frontend feedback/rendering gap on the redirect destination)."
+    confidence: proven
+  - test: 6
+    verdict: pass
+    note: "🤖 Auto-check: GET /external-opportunities/:id/versions → HTTP 200, returns V1 with changed_fields, snapshot (JSON), fetched_at. Detail also carries versions inline. Accordion + snapshot modal have data; each ingested opp currently has exactly 1 version ('Initial import'). Human confirms accordion expand + snapshot JSON modal."
+
+## Advisories
+
+- **Ingestion performs no initial fetch on boot (operational, human to judge).** `ingestionScheduler.start()` (src/services/external/ingestionScheduler.ts:150) only registers the cron `0 */6 * * *`; it does not run `refreshAll()` once at startup. On a fresh deploy the external-opportunities table is therefore empty until the first cron tick (up to ~6 hours away), so a user who opens "Browse Grants.gov" immediately after deploy sees an empty list. The ingestion mechanism itself is correct and proven (this run populated 125 records live). This is a UX/operational concern, not a defect in the tested flows — surfaced for the human to decide whether an initial-on-boot (or on-first-request) refresh is desired. Recorded as advisory, not a gap.
 
 ## Gaps
 
-- truth: "The system polls the Grants.gov Search API and upserts normalized opportunity records (SC #1); ingested opportunities are browsable/savable/importable (SC #2–5)"
-  status: closed
-  redrive: closed (re-driven)
-  reason: "CLOSED by gap-closure plan 08-06 (commit 0f0e32e). Ingestion called the wrong Grants.gov endpoint (403 on every page → zero ingested). SEARCH_ENDPOINT corrected `/search2/opportunities/search` → `/search2` (POST 200). During re-verification the DETAIL_ENDPOINT was ALSO found to 403 (`GET /opportunities/:id`) and was corrected to `POST /fetchOpportunity`; without it fetched>0 but upserted=0. normalizeOpportunity made tolerant of both the live fetchOpportunity envelope and the flat/test-fixture shape. All 3 integration mocks re-pinned to the corrected paths (they had been pinned to the broken 403 suffix, which is why the suite was green while UAT hit 403); a regression test now asserts the service POSTs to `/search2` and NOT the 403 suffix (verified fails on revert)."
-  severity: blocker
-  test: 1
-  source: self_check
+- truth: "Confirming Import to Workspace imports the opportunity and redirects to /applicant/applications with a success message; the imported opportunity carries an 'Imported from Grants.gov' badge (PRD-INTAKE-019C)"
+  status: failed
+  reason: "User reported: Modal appeared but confirming did nothing / errored"
+  severity: major
+  test: 5
+  source: user
   confidence: proven
-  root_cause: "src/services/external/grantsGovService.ts — SEARCH_ENDPOINT was `/search2/opportunities/search` (403) → `/search2` (200); DETAIL_ENDPOINT was `GET /opportunities/:id` (403) → `POST /fetchOpportunity` (200)."
-  redrive_evidence:
-    - "GET /api/v1/external-opportunities → HTTP 200, total:3 (was total:0) — real Grants.gov data (source=grants.gov, FON=PAR-25-155)."
-    - "DB: external_opportunities=3 rows, external_opportunity_versions=3 rows — proves full search→detail→normalize→upsert→version round-trip (upserted>0, not just fetched>0)."
-    - "Regression suite: tests/integration/externalOpportunities.test.ts + ingestionScheduler.test.ts → 12/12 passing, pinned to /search2; full backend suite 285/285."
-    - "Boot smoke gate 4 (data-backed endpoint) passed against this exact route."
+  root_cause: "The import SUCCEEDS server-side (POST /external-opportunities/:id/import → 201, verified live across 25 opportunities: 23 created / 2 idempotent / 0 errors), but the destination page shows no result, so the user perceives 'nothing happened'. ExternalOpportunityDetailPage.importMutation.onSuccess redirects to /applicant/applications with router state { importedFromGrantsGov: true } (ExternalOpportunityDetailPage.tsx:80-84) and invalidates the ['my-workspaces'] query. However: (1) WorkspaceListPage (the /applicant/applications page) never reads location.state.importedFromGrantsGov — no useLocation, no success banner (WorkspaceListPage.tsx). (2) Import creates an internal `opportunities` row (status='imported'), NOT a workspace, so it never appears in workspaceApi.listWorkspaces (['my-workspaces']) which the page lists. (3) The 'Imported from Grants.gov' badge only renders on OpportunityCard.tsx:87 / OpportunityDetailPage.tsx:374 (the /opportunities views), never on WorkspaceListPage. (4) SavedOpportunities shows only *saved* external opps, not *imported* ones. Net: the confirm flow completes but the redirect lands on a page with no success message and no visible imported item."
   artifacts:
-    - path: "src/services/external/grantsGovService.ts"
-      issue: "RESOLVED — SEARCH_ENDPOINT=/search2, DETAIL_ENDPOINT=/fetchOpportunity"
-  missing: []
+    - path: "client/src/pages/applicant/ExternalOpportunityDetailPage.tsx"
+      issue: "onSuccess redirects to /applicant/applications with { importedFromGrantsGov: true } (line 80-84) and invalidates ['my-workspaces'] (line 79) — but the destination neither consumes that state nor lists imported opportunities"
+    - path: "client/src/pages/applicant/WorkspaceListPage.tsx"
+      issue: "Renders /applicant/applications but has no useLocation/success banner and lists only workspaces (listWorkspaces → ['my-workspaces']); imported opportunities (status='imported', no workspace) never surface here"
+  missing:
+    - "Surface the imported opportunity on the redirect destination: either show a success banner on WorkspaceListPage when location.state.importedFromGrantsGov is set, and/or list imported opportunities (source='grants_gov_import' / status='imported') with the 'Imported from Grants.gov' badge on /applicant/applications"
+    - "Consider redirecting to a page that actually shows the imported opportunity (e.g. the imported opportunity's detail or a Start Application CTA), rather than a page that lists only pre-existing workspaces"
   debug_session: ""
