@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 08-enhancements-grantsgov-ingestion-02-PLAN.md (parallel with 08-04)
-last_updated: "2026-09-02T04:22:16.794Z"
-last_activity: "2026-09-02 — Plan 08-04 complete: scheduled refresh env config, addenda/instructions change alerts, grantor Sync Now UI; backend 278/278 tests passing"
+stopped_at: Completed 08-enhancements-grantsgov-ingestion-03-PLAN.md
+last_updated: "2026-09-02T04:32:45.414Z"
+last_activity: "2026-09-02 — Plan 08-03 complete: import endpoint + field mapping + audit event, confirmation flow, attribution badges; backend 279/279 tests passing, client build green"
 progress:
   total_phases: 15
   completed_phases: 6
   total_plans: 52
-  completed_plans: 49
+  completed_plans: 50
   percent: 92
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 8 of 8 (Enhancements: Grants.gov Opportunity Ingestion)
-Plan: 4 of 5 in current phase — Plan 08-04 complete
-Status: Plan 08-04 Complete — Scheduled refresh & change alerts: env-configurable node-cron refresh, addenda_change/instructions_change detection from raw_metadata, ingestion-scheduler alert-delivery test, grantor-admin "Grants.gov Sync" dashboard card
-Last activity: 2026-09-02 — Plan 08-04 complete: scheduled refresh env config, addenda/instructions change alerts, grantor Sync Now UI; backend 278/278 tests passing
+Plan: 08-03 complete (4 of 5 plans in phase 8 done: 08-01, 08-02, 08-03, 08-04)
+Status: Plan 08-03 Complete — Import external opportunity into internal workspace: migration 018 (external_opportunity_id FK + source column), POST /external-opportunities/:id/import with system import org+program, OPPORTUNITY_IMPORTED audit, idempotent re-import, in-page confirmation modal, "Imported from Grants.gov" badge across builder/detail/card; backend 279/279 tests passing
+Last activity: 2026-09-02 — Plan 08-03 complete: import endpoint + field mapping + audit event, confirmation flow, attribution badges; backend 279/279 tests passing, client build green
 
 Progress: [█████████▒] 92%
 
@@ -100,6 +100,7 @@ Progress: [█████████▒] 92%
 | Phase 08-enhancements-grantsgov-ingestion P01 | 7 min | 6 tasks | 10 files |
 | Phase 08-enhancements-grantsgov-ingestion P04 | 5 min | 5 tasks | 9 files |
 | Phase 08-enhancements-grantsgov-ingestion P02 | 8 min | 8 tasks | 13 files |
+| Phase 08-enhancements-grantsgov-ingestion P03 | 5 min | 5 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -210,6 +211,9 @@ Recent decisions affecting current work:
 - [Phase 08-enhancements-grantsgov-ingestion / 08-04]: Grantor "Grants.gov Sync" dashboard card gated to grantor_admin; last-sync time stored client-side (localStorage) — no server field; grantor-scoped externalSyncApi kept separate from applicant client to avoid parallel-plan (08-02) file conflicts
 - [Phase 08-enhancements-grantsgov-ingestion]: Plan 08-02 (frontend): Grants.gov browser built in client/** — externalOpportunitiesApi + React Query; browse page (draft-vs-applied filters), detail page (version-history accordion + source attribution), header change-alerts bell, Saved-from-Grants.gov on WorkspaceListPage
 - [Phase 08-enhancements-grantsgov-ingestion]: Plan 08-02: E2E spec at repo-standard e2e/ (not client/tests/e2e); Import-to-Workspace CTA forward-references /applicant/grants-gov/:id/import (plan 08-03) via router state; 5/5 Playwright tests pass against live stack
+- [Phase 08-enhancements-grantsgov-ingestion / 08-03]: Imported Grants.gov opps live under a system 'Grants.gov Imports' grantor org + per-agency program (satisfies programs→opportunities FK with no real tenant); status='imported', source='grants_gov_import' on the internal opportunity
+- [Phase 08-enhancements-grantsgov-ingestion / 08-03]: Import is idempotent: unique partial index on opportunities.external_opportunity_id + service guard returns existing record on re-import (200 already_imported vs 201); funding_amount_max (NOT NULL) falls back award_ceiling→award_floor→0
+- [Phase 08-enhancements-grantsgov-ingestion / 08-03]: Detail-page import is an in-page confirmation modal (plan Task 3), replacing 08-02's forward-reference navigate to an unbuilt /import route; attribution ('Imported from Grants.gov') surfaced via existing SELECT o.* opportunity reads by adding source to searchService
 
 ### Pending Todos
 
@@ -217,10 +221,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- [08-04 → 08-02]: client `vite build` blocked by out-of-scope unused import `ChangeAlertsBell` in client/src/layouts/ApplicantLayout.tsx (owned by parallel plan 08-02, commit 88a77c2). Backend build + tsc -b pass; resolves when 08-02 wires in or removes the import. Logged to phase deferred-items.md.
+- None. (Resolved 2026-09-02 during 08-03: client `tsc -b` and `vite build` both pass — the prior 08-04→08-02 `ChangeAlertsBell` unused-import blocker is gone.)
 
 ## Session Continuity
 
-Last session: 2026-09-02T04:22:16.792Z
-Stopped at: Completed 08-enhancements-grantsgov-ingestion-02-PLAN.md (parallel with 08-04)
+Last session: 2026-09-02T04:32:45.412Z
+Stopped at: Completed 08-enhancements-grantsgov-ingestion-03-PLAN.md
 Resume file: None
