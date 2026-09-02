@@ -705,3 +705,51 @@ Gap closure execution re-drove the exact evidence that opened each gap before ha
 - **E2E** (`e2e/externalOpportunities.spec.ts:264`, live stack, Chromium, 1/1): import → confirm modal → land on `/applicant/applications` → `import-success-banner` visible ("imported successfully") → `imported-opportunity-card` count 1 with `imported-badge` "Imported from Grants.gov" → re-import → still exactly one card (`importCount === 2`). The asserted `data-testid`s did not exist on WorkspaceListPage before 08-07, so the check is a genuine red→green reproduction, not a post-hoc green tick.
 
 No recurrence file present (`/tmp/pivota-gap-recurrence.md` absent) — first-round closure.
+
+## Backend pre-push gate
+
+- Status: passed
+- Result marker + failing output tail:
+```
+__GATE__ build_exit=0 test_exit=0 build_cmd=[npm run build] test_cmd=[npm test] head=0fb12e0ebc6340f933a54a78ce708df09e51711a test_files=56 skip_marks=42 shadow_files=0
+
+ [32m✓[39m tests/integration/ingestionScheduler.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+ [32m✓[39m tests/integration/deadlines.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 300[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+ [32m✓[39m tests/integration/programs.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[33m 429[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+ [32m✓[39m tests/integration/sectionConditions.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 294[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+
+ [32m✓[39m tests/integration/screeningCriteria.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 287[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+ [32m✓[39m tests/integration/opportunityTemplates.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[90m 285[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+ [32m✓[39m tests/integration/guidance.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 285[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+ [32m✓[39m tests/integration/contextBoot.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+ [32m✓[39m tests/integration/serverHeaders.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 2[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m32 passed[39m[22m[90m (32)[39m
+[2m      Tests [22m [1m[32m289 passed[39m[22m[90m (289)[39m
+[2m   Start at [22m 13:34:15
+[2m   Duration [22m 17.57s[2m (transform 293ms, setup 1ms, collect 1.02s, tests 16.39s, environment 0ms, prepare 27ms)[22m
+
+```
