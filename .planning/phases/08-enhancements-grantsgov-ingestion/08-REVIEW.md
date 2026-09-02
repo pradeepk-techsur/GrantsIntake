@@ -1,6 +1,6 @@
 ---
 phase: 8
-status: issues_found
+status: fixes_applied
 blockers: 1
 warnings: 2
 files_reviewed: 8
@@ -77,6 +77,13 @@ Diff established from `git diff 5190eb9..HEAD` (first 08-07 commit is `c89c890`)
   the WHERE clause, mirroring the `/saved` and `/alerts` ownership derivation.
   Add a two-user integration assertion (user B must NOT see user A's import).
 
+**Resolution:** fixed (61baa32) — threaded `req.user!.user_id` into
+`listImportedOpportunities(actorUserId)` and added `AND o.created_by = $3`
+(parameterized) to the WHERE clause; replaced the misleading "not per-applicant
+scoped" comment. Added a two-user integration assertion (verified to FAIL
+against the un-scoped query and PASS after the fix). Backend build + full
+vitest suite (289 tests) green.
+
 ## WARNINGs
 
 ### W1: `status_badge` union declares `'not_yet_open'` but the deriver can never produce it
@@ -91,6 +98,13 @@ Diff established from `git diff 5190eb9..HEAD` (first 08-07 commit is `c89c890`)
 - **Fix direction:** Either drop `'not_yet_open'` from the union, or derive it
   from the opportunity's open/start date when available.
 
+**Resolution:** fixed (86cc586) — dropped `'not_yet_open'` from the
+`ImportedOpportunityListItem['status_badge']` union in both backend
+(importService.ts) and client (externalOpportunity.ts), the minimal correct
+fix since the imported deriver only emits open/closing_soon/closed. Left the
+separate publication `StatusBadge` type untouched (its deriver does produce
+`not_yet_open`). Backend + client builds clean.
+
 ### W2: Imported-opportunities query has no error surface on the applications page
 - **File:** client/src/pages/applicant/WorkspaceListPage.tsx:48-51,208-223
 - **Evidence:** `importedQuery` is consumed only via `isLoading` and
@@ -103,6 +117,12 @@ Diff established from `git diff 5190eb9..HEAD` (first 08-07 commit is `c89c890`)
   131-135) — inconsistent handling.
 - **Fix direction:** Add an `importedQuery.isError` branch rendering a small
   retry/error notice, consistent with the workspaces error alert.
+
+**Resolution:** fixed (8fe5586) — added an `importedQuery.isError` branch on
+WorkspaceListPage rendering a `gf-alert--error` notice with a Retry button
+(`importedQuery.refetch()`), and gated the empty-state on `!isError` so a failed
+load no longer masquerades as "no imported opportunities yet". Client build
+clean.
 
 ## Cross-file seams checked
 - Route order `/imported` (routes:64) precedes `/:id/versions` (142) and bare `/:id` (242), and sits among the other static authenticated paths — OK, literal segment not swallowed by `:id`.
