@@ -77,6 +77,7 @@ export function ExternalOpportunityDetailPage() {
       // Refresh the applicant's workspace/opportunity views, then route to the
       // applications dashboard where the imported opportunity now lives.
       queryClient.invalidateQueries({ queryKey: ['my-workspaces'] });
+      queryClient.invalidateQueries({ queryKey: ['imported-opportunities'] });
       setTimeout(() => {
         navigate('/applicant/applications', {
           state: { importedFromGrantsGov: true },

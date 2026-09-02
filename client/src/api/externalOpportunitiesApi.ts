@@ -7,6 +7,7 @@ import type {
   AlertsResponse,
   VersionsResponse,
   ImportOpportunityResponse,
+  ImportedListResponse,
 } from '../types/externalOpportunity';
 
 /**
@@ -49,4 +50,7 @@ export const externalOpportunitiesApi = {
     apiClient.post<ImportOpportunityResponse>(
       `/external-opportunities/${id}/import`,
     ),
+
+  listImported: () =>
+    apiClient.get<ImportedListResponse>('/external-opportunities/imported'),
 };

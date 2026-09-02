@@ -82,3 +82,22 @@ export interface ImportOpportunityResponse {
   workspace_url: string;
   already_imported: boolean;
 }
+
+// Imported internal opportunities surfaced on /applicant/applications after the
+// Grants.gov import flow (PRD-INTAKE-019C / uat/5). Mirrors the backend
+// GET /external-opportunities/imported response shape.
+export interface ImportedOpportunityListItem {
+  opportunity_id: string;
+  title: string;
+  funder_name: string | null;
+  program_area: string;
+  max_award_amount: number | null;
+  application_close_date: string | null;
+  status_badge: 'open' | 'closing_soon' | 'closed' | 'not_yet_open';
+  source: 'grants_gov_import';
+  import_timestamp: string | null;
+}
+
+export interface ImportedListResponse {
+  items: ImportedOpportunityListItem[];
+}
