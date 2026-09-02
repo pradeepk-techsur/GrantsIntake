@@ -230,7 +230,7 @@ externalOpportunitiesRouter.get(
       return;
     }
     try {
-      const opp = await externalOpportunityService.getOpportunityById(
+      const opp = await externalOpportunityService.getOpportunityDetail(
         req.params.id,
       );
       if (!opp) {

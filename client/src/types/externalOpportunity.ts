@@ -21,6 +21,9 @@ export interface ExternalOpportunity {
   raw_metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+  // Present on the detail endpoint (GET /:id) per PRD-INTAKE-019E source
+  // attribution contract; absent on list payloads.
+  versions?: ExternalOpportunityVersion[];
 }
 
 export interface ExternalOpportunityVersion {
