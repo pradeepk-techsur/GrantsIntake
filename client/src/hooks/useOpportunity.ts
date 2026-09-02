@@ -23,6 +23,8 @@ export interface Opportunity {
   contact_title: string | null;
   program_area: string;
   status: string;
+  source?: string | null;
+  external_opportunity_id?: string | null;
   published_at: string | null;
   published_by: string | null;
   // Deadline fields (F4)

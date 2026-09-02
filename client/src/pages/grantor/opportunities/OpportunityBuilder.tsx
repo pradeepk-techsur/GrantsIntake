@@ -248,7 +248,28 @@ export function OpportunityBuilder() {
           >
             {statusLabel}
           </span>
+          {opportunity.source === 'grants_gov_import' && (
+            <span
+              className="gf-badge gf-badge--info"
+              data-testid="imported-badge"
+            >
+              Imported from Grants.gov
+            </span>
+          )}
         </div>
+        {opportunity.source === 'grants_gov_import' && (
+          <p
+            style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: '#71767a' }}
+            data-testid="imported-attribution"
+          >
+            Source: Grants.gov · {opportunity.opportunity_number} · Imported{' '}
+            {new Date(opportunity.created_at).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </p>
+        )}
       </div>
 
       {/* Section navigation tabs */}
