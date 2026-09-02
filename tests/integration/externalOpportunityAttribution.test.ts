@@ -77,7 +77,9 @@ function detailV2() {
 function makeMockFetch(detail: () => Record<string, unknown>) {
   return vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
     const u = typeof url === 'string' ? url : url.toString();
-    if (u.includes('/search2/opportunities/search')) {
+    // Search: POST to the corrected /search2 path (must NOT match the old 403
+    // path /search2/opportunities/search).
+    if (init?.method === 'POST' && /\/search2(\?|$)/.test(u)) {
       const startRecordNum = init?.body
         ? JSON.parse(init.body as string).startRecordNum ?? 0
         : 0;
@@ -90,7 +92,8 @@ function makeMockFetch(detail: () => Record<string, unknown>) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    if (u.includes('/opportunities/')) {
+    // Detail: POST to /fetchOpportunity (the live GET /opportunities/:id 403s).
+    if (u.includes('/fetchOpportunity')) {
       return new Response(JSON.stringify({ data: detail() }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },

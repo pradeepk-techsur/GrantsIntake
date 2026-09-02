@@ -63,7 +63,9 @@ function detailV2() {
 function makeMockFetch(detail: () => Record<string, unknown>, hits = [SEARCH_HIT]) {
   return vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
     const u = typeof url === 'string' ? url : url.toString();
-    if (u.includes('/search2/opportunities/search')) {
+    // Search: POST to the corrected /search2 path (must NOT match the old 403
+    // path /search2/opportunities/search — a regression there would 404 here).
+    if (init?.method === 'POST' && /\/search2(\?|$)/.test(u)) {
       const startRecordNum = init?.body
         ? (JSON.parse(init.body as string).startRecordNum ?? 0)
         : 0;
@@ -74,7 +76,8 @@ function makeMockFetch(detail: () => Record<string, unknown>, hits = [SEARCH_HIT
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    if (u.includes('/opportunities/')) {
+    // Detail: POST to /fetchOpportunity (the live GET /opportunities/:id 403s).
+    if (u.includes('/fetchOpportunity')) {
       return new Response(JSON.stringify({ data: detail() }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -196,6 +199,34 @@ describe('External Opportunities (Grants.gov ingestion)', () => {
     expect(normalized.application_package_url).toContain('PKG-1');
     expect(normalized.source_url).toBe('https://www.grants.gov/search-results-detail/900001');
     expect(normalized.source).toBe('grants.gov');
+  });
+
+  // ─── Regression: search must POST to /search2, never the 403 suffix ───────
+  it('POSTs to /search2 (not /search2/opportunities/search) and parses data.oppHits', async () => {
+    const calls: { url: string; method?: string }[] = [];
+    const mock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      const u = url.toString();
+      calls.push({ url: u, method: init?.method });
+      return new Response(JSON.stringify({ data: { oppHits: [SEARCH_HIT] } }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    });
+    vi.stubGlobal('fetch', mock);
+
+    const results = await grantsGovService.searchOpportunities({ rows: 1 });
+
+    const searchCall = calls.find((c) => c.method === 'POST');
+    expect(searchCall).toBeDefined();
+    // Corrected path: ends in /search2 (optionally with a query string).
+    expect(searchCall!.url).toMatch(/\/search2(\?|$)/);
+    // A regression back to the broken 403 path must fail this assertion.
+    expect(searchCall!.url).not.toMatch(/\/search2\/opportunities\/search/);
+    // The data.oppHits envelope is parsed into search results.
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].opportunityNumber).toBe('TEST-FON-001');
+
+    vi.unstubAllGlobals();
   });
 
   // ─── PRD-INTAKE-019A: scheduler ingests search results ────────────────────

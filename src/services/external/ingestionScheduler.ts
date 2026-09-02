@@ -62,7 +62,15 @@ class IngestionScheduler {
           const detail = await grantsGovService.getOpportunityDetail(
             hit.opportunityId,
           );
-          const normalized = grantsGovService.normalizeOpportunity(detail);
+          // The live /fetchOpportunity detail carries no flat status field and
+          // may omit the closeDate; the search hit is authoritative for both.
+          // Only fill gaps so the detail's own values still win when present.
+          const enriched = {
+            ...detail,
+            oppStatus: detail.oppStatus ?? hit.status ?? hit.raw?.oppStatus,
+            closeDate: detail.closeDate ?? hit.closeDate ?? hit.raw?.closeDate,
+          };
+          const normalized = grantsGovService.normalizeOpportunity(enriched);
           if (!normalized.source_opportunity_number) {
             throw new Error('missing source_opportunity_number after normalize');
           }
@@ -118,7 +126,12 @@ class IngestionScheduler {
       const detail = await grantsGovService.getOpportunityDetail(
         match.opportunityId,
       );
-      const normalized = grantsGovService.normalizeOpportunity(detail);
+      const enriched = {
+        ...detail,
+        oppStatus: detail.oppStatus ?? match.status ?? match.raw?.oppStatus,
+        closeDate: detail.closeDate ?? match.closeDate ?? match.raw?.closeDate,
+      };
+      const normalized = grantsGovService.normalizeOpportunity(enriched);
       await externalOpportunityService.upsertOpportunity(normalized);
       result.upserted++;
     } catch (err) {
