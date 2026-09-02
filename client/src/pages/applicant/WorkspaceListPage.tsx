@@ -2,6 +2,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { workspaceApi } from '../../api/workspaceApi';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { SavedOpportunities } from '../../components/SavedOpportunities';
 import type { Workspace } from '../../types/workspace';
 
 function getGreeting(): string {
@@ -156,6 +157,9 @@ export function WorkspaceListPage() {
           </div>
         )}
       </div>
+
+      {/* ── Saved from Grants.gov ─────────────────────────────────── */}
+      <SavedOpportunities />
     </div>
   );
 }
