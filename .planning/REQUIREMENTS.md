@@ -103,6 +103,18 @@ Requirements for the initial release. All items are from the reference PRD marke
 
 - [ ] **US-1.0**: Grantor portal shell with role-appropriate navigation, landing dashboard, and WCAG 2.1 AA compliance
 
+## Phase 8 Requirements — Enhancements
+
+New requirements added 2026-09-02. Cover the Grants.gov API ingestion capability.
+
+### Grants.gov Opportunity Ingestion
+
+- [ ] **PRD-INTAKE-019A**: The product shall automatically ingest active funding opportunities from Grants.gov using available Grants.gov APIs, including opportunity search and opportunity detail retrieval where supported.
+- [ ] **PRD-INTAKE-019B**: The product shall normalize imported opportunity metadata, including title, agency, funding opportunity number, Assistance Listing number, eligibility, due dates, award ceiling/floor, opportunity status, and application package references.
+- [ ] **PRD-INTAKE-019C**: The product shall allow users to save, track, compare, and import external opportunities into an internal intake workspace.
+- [ ] **PRD-INTAKE-019D**: The product shall refresh imported opportunities on a scheduled basis and alert users when due dates, status, package, addenda, or instructions change.
+- [ ] **PRD-INTAKE-019E**: The product shall preserve source attribution, source URL/API reference, import timestamp, and version history for each imported opportunity.
+
 ## v2 Requirements
 
 Deferred to Phase 2. Tracked but not in current roadmap.
@@ -218,19 +230,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRD-INTAKE-063 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
 | PRD-INTAKE-064 | Phase 6 — Intake Queue, Screening & Analytics | Pending |
 
+| PRD-INTAKE-019A | Phase 8 — Enhancements: Grants.gov Ingestion | Pending |
+| PRD-INTAKE-019B | Phase 8 — Enhancements: Grants.gov Ingestion | Pending |
+| PRD-INTAKE-019C | Phase 8 — Enhancements: Grants.gov Ingestion | Pending |
+| PRD-INTAKE-019D | Phase 8 — Enhancements: Grants.gov Ingestion | Pending |
+| PRD-INTAKE-019E | Phase 8 — Enhancements: Grants.gov Ingestion | Pending |
+
 **Coverage:**
 - v1 requirements: 61 total (60 MVP + US-1.0 grantor shell)
-- Mapped to phases: 61
+- Phase 8 enhancement requirements: 5 (PRD-INTAKE-019A–019E)
+- Total mapped: 66
 - Unmapped: 0 ✓
 
-**Phase mapping (11 PRD stages → 6 roadmap phases):**
+**Phase mapping (11 PRD stages → 8 roadmap phases):**
 - Phase 1: US-1.0 + Stage 1 (7 requirements)
 - Phase 2: Stage 2 + Stage 3 (10 requirements)
 - Phase 3: Stage 4 + Stage 5 (10 requirements)
 - Phase 4: Stage 6 + Stage 7 (13 requirements)
 - Phase 5: Stage 8 + Stage 9 (11 requirements)
 - Phase 6: Stage 10 + Stage 11 (9 requirements)
+- Phase 8: Grants.gov Ingestion (5 enhancement requirements)
 
 ---
 *Requirements defined: 2026-07-24*
-*Last updated: 2026-07-24 — Traceability updated after roadmap creation (6-phase structure)*
+*Last updated: 2026-09-02 — Phase 8 Enhancements added: PRD-INTAKE-019A through 019E (Grants.gov ingestion)*

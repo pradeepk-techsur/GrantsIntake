@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Intake Queue, Screening & Analytics** - Stages 10–11: intake queue routing, administrative screening, dispositions, and reporting
 - [x] **UI: GrantFlow Design System v1.0** - Full migration from USWDS to GrantFlow DS; all 51 components converted, CSS 570KB→15KB, Figma spec implemented
 - [x] **Phase 7: Navigation Cleanup** - Remove Awards and Monitoring from grantor sidebar; remove Awards from applicant sidebar
+- [ ] **Phase 8: Enhancements — Grants.gov Opportunity Ingestion** - Automatically ingest, normalize, track, and alert on funding opportunities from Grants.gov APIs; allow applicants to save, compare, and import external opportunities into internal workspaces
 
 ## Phase Details
 
@@ -177,10 +178,30 @@ Plans:
 Plans:
 - [x] 07-01-PLAN.md — Remove Awards and Monitoring from GrantorSidebar; remove Awards from ApplicantSidebar; UI-only, no backend changes
 
+### Phase 8: Enhancements — Grants.gov Opportunity Ingestion
+**Status**: Pending
+**Goal**: Automatically ingest active funding opportunities from Grants.gov APIs, normalize and persist opportunity metadata with full source attribution and version history, allow applicants to save/track/compare/import external opportunities into internal workspaces, and deliver in-app change alerts when tracked opportunities are updated
+**Depends on**: Phase 7 (Navigation Cleanup)
+**Requirements**: PRD-INTAKE-019A, PRD-INTAKE-019B, PRD-INTAKE-019C, PRD-INTAKE-019D, PRD-INTAKE-019E
+**Success Criteria** (what must be TRUE):
+  1. The system polls the Grants.gov Opportunity Search and Detail APIs on a configurable schedule (default every 6 hours) and upserts normalized opportunity records without duplicates
+  2. Every ingested opportunity exposes normalized metadata: title, agency, FON, assistance listing number, eligibility summary, due dates, award ceiling/floor, opportunity status, and application package reference
+  3. Authenticated applicants can save, unsave, and list saved external opportunities; import an external opportunity into an internal GrantsIntake workspace pre-populated with external metadata
+  4. When a tracked opportunity's due date, status, package URL, addenda, or instructions change on re-fetch, in-app change alerts are created for all users who saved that opportunity
+  5. Every external opportunity record permanently stores source attribution (source name, source URL, API reference snapshot, import timestamp) and a complete immutable version history with per-version changed-fields diff
+**Plans:** 5 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Backend ingestion service: Grants.gov API client, normalizer, ExternalOpportunityService (upsert + versioning + alerts), ingestion scheduler (node-cron), REST API routes, integration tests (PRD-INTAKE-019A, 019B, 019E)
+- [ ] 08-02-PLAN.md — Frontend UI: ExternalOpportunityBrowserPage (filter sidebar + paginated results), ExternalOpportunityCard (save toggle), ExternalOpportunityDetailPage (metadata + version history), alert bell in ApplicantLayout, Saved tab on dashboard, routing + sidebar nav (PRD-INTAKE-019C)
+- [ ] 08-03-PLAN.md — Import external opportunity into internal workspace: import endpoint, migration 018 (external_opportunity_id FK), imported opportunity badge in UI, import audit event (PRD-INTAKE-019C)
+- [ ] 08-04-PLAN.md — Scheduled refresh & change alerts: env config, scheduler startup, change detection logic, alert delivery integration test, grantor admin manual sync UI (PRD-INTAKE-019D)
+- [ ] 08-05-PLAN.md — Source attribution, version history & audit: API contract tests (all 5 attribution fields), version history UI, audit events for ingestion/refresh/save/import actions, regression tests (PRD-INTAKE-019E)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans | Status | Completed |
 |-------|-------|--------|-----------|
@@ -192,9 +213,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 6. Intake Queue, Screening & Analytics | 3/3 | Complete | 2026-08-02 |
 | UI: GrantFlow Design System v1.0 | 1/1 | passed | 2026-08-03 |
 | 7. Navigation Cleanup | 1/1 | Complete | 2026-08-03 |
+| 8. Enhancements — Grants.gov Ingestion | 0/5 | Pending | — |
 
 ---
 *Roadmap created: 2026-07-24*
-*Last updated: 2026-08-03 — Phase 7 Navigation Cleanup complete; all 7 phases passed*
-*Granularity: standard (7 phases + 1 UI upgrade, 46 plans)*
-*Coverage: 61/61 v1 requirements mapped*
+*Last updated: 2026-09-02 — Phase 8 Enhancements added; Grants.gov opportunity ingestion (PRD-INTAKE-019A–019E)*
+*Granularity: standard (8 phases + 1 UI upgrade, 51 plans)*
+*Coverage: 61 v1 requirements + 5 Phase 8 enhancement requirements mapped*

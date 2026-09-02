@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-last_updated: "2026-09-02T01:34:02.684Z"
-last_activity: "2026-09-02 — Phase 7 complete"
+last_updated: "2026-09-02T12:00:00.000Z"
+last_activity: "2026-09-02 — Phase 8 Enhancements created (Grants.gov ingestion)"
 progress:
-  total_phases: 13
-  completed_phases: 6
-  total_plans: 47
+  total_phases: 14
+  completed_phases: 7
+  total_plans: 52
   completed_plans: 46
-  percent: 46
+  percent: 88
 ---
 
 # Project State
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** Grantors receive better applications and applicants submit with less burden — by replacing fragmented, document-heavy intake with a structured, guided, data-driven workflow that enforces completeness, preserves auditability, and accelerates handoff from submission to review.
-**Current focus:** Phase 5 — Q&A, Submission & Validation
+**Current focus:** Phase 8 — Enhancements: Grants.gov Opportunity Ingestion
 
 ## Current Position
 
@@ -194,6 +194,9 @@ Recent decisions affecting current work:
 - [Phase 06-intake-queue-screening-analytics]: Array.isArray shape guard in NotificationsPage handles both raw array and { notifications: [] } API response shapes
 - [Phase 06-intake-queue-screening-analytics]: Single Playwright route handler dispatches on method+URL for notifications tests to handle GET list and PUT mark-read in one handler
 - [Phase 07-navigation-cleanup]: Navigation scoped to intake module: Awards and Monitoring removed from grantor sidebar, Awards removed from applicant sidebar — routes retained in App.tsx, no backend changes
+- [Phase 08-enhancements-grantsgov-ingestion]: Phase created 2026-09-02. Scope: PRD-INTAKE-019A–019E. Grants.gov REST API ingestion (not S2S), node-cron scheduler, ExternalOpportunityService with versioning + change alerts, 5 plans (backend, frontend browser, import flow, scheduler, attribution). Depends on Phase 7.
+- [Phase 08-enhancements-grantsgov-ingestion]: Grants.gov API base URL: https://api.grants.gov/v1/api — Opportunity Search endpoint: POST /search2/opportunities/search, Detail endpoint: GET /opportunities/:id. No API key required for public search.
+- [Phase 08-enhancements-grantsgov-ingestion]: source_opportunity_number is the unique key for upsert (not grants.gov internal ID) — FON (funding opportunity number) is stable across fetches and human-readable for audit trail.
 
 ### Pending Todos
 
@@ -205,6 +208,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-08-03T15:30:52.406Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-09-02T12:00:00.000Z
+Stopped at: Phase 8 created — 5 plans written, all artifacts updated. Ready to plan → execute.
 Resume file: None

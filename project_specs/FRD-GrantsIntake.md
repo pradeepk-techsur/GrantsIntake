@@ -5769,6 +5769,58 @@ opportunity_id, disposition_status, applicant_type, submitted_from, submitted_to
 
 ---
 
+### INT-08 (Phase 8): Grants.gov Opportunity Search and Detail APIs
+
+**Purpose:** Automatically ingest active funding opportunities from Grants.gov, normalize metadata, and provide applicants with a browseable, trackable, importable external opportunity catalog.
+
+**Status:** Planned — Phase 8 (PRD-INTAKE-019A through 019E)
+
+**API Endpoints Used:**
+- `POST https://api.grants.gov/v1/api/search2/opportunities/search` — paginated search with filters (oppStatuses, rows, startRecordNum)
+- `GET https://api.grants.gov/v1/api/opportunities/{opportunityId}` — full opportunity detail
+
+**Authentication:** No API key required for public search and detail endpoints. Requests sent as anonymous GET/POST with `Content-Type: application/json`.
+
+**Data Normalization Contract (PRD-INTAKE-019B):**
+
+| Grants.gov API Field | Internal Field | Notes |
+|---|---|---|
+| `opportunityTitle` | `title` | Required |
+| `agencyName` | `agency` | Required |
+| `opportunityNumber` | `source_opportunity_number` | Unique key for upsert |
+| `cfdaNumbers[0]` | `source_assistance_listing` | Assistance Listing (CFDA) |
+| `opportunityStatus` | `opportunity_status` | posted / forecasted / closed / archived |
+| `closeDate` | `due_date` | Normalized to DATE |
+| `awardCeiling` | `award_ceiling` | Numeric, nullable |
+| `awardFloor` | `award_floor` | Numeric, nullable |
+| eligibility fields (joined) | `eligibility_summary` | Text summary |
+| `packages[0].packageURL` | `application_package_url` | May be null |
+| `https://www.grants.gov/search-results-detail/{id}` | `source_url` | Computed canonical URL |
+| Full raw response | `api_reference` | JSONB — preserved for audit (PRD-INTAKE-019E) |
+
+**Source Attribution (PRD-INTAKE-019E):**
+Every record stores: `source = 'grants.gov'`, `source_url`, `source_opportunity_number`, `import_timestamp` (set once, never updated), and `api_reference` (full raw API response snapshot).
+
+**Version History (PRD-INTAKE-019E):**
+On each fetch: compare incoming normalized record to stored record. If any watched field differs (title, agency, opportunity_status, due_date, award_ceiling, award_floor, eligibility_summary, application_package_url), insert a new `external_opportunity_versions` row with `changed_fields` diff array and full `snapshot`. Version 1 always created on first import with empty `changed_fields`.
+
+**Change Alerts (PRD-INTAKE-019D):**
+When re-fetch detects changes, insert `change_alerts` rows for all users who saved the opportunity. Alert types: `due_date_change`, `status_change`, `package_change`, `addenda_change`, `instructions_change`.
+
+**Scheduler:** `node-cron` running `0 */6 * * *` (configurable via `GRANTS_GOV_REFRESH_CRON` env var). Fetches up to 5 pages × 25 results. Graceful per-opportunity error handling — batch continues on single failure.
+
+**Error Handling:**
+
+| Failure Mode | Fallback |
+|---|---|
+| Grants.gov API timeout (>10s) | Log warning, skip batch, retry on next scheduled run |
+| Single opportunity detail fetch failure | Log error, skip that opportunity, continue batch |
+| API returns 429 (rate limit) | Exponential backoff (1s, 2s, 4s), then skip with log |
+| API returns malformed JSON | Log error with raw body snippet, skip record |
+| Duplicate opportunity number on INSERT | ON CONFLICT DO UPDATE (upsert) — safe by design |
+
+---
+
 ## Non-Integration Boundaries (Out of Scope for Intake Module)
 
 The following integration points are explicitly excluded from the intake module scope:
@@ -5778,7 +5830,7 @@ The following integration points are explicitly excluded from the intake module 
 | Merit review / scoring platform | Post-intake; separate module. Intake boundary ends at `review_handoffs` table |
 | Payment / financial systems (ERP) | Award and disbursement are post-intake |
 | SAM.gov payment registration | Post-award banking setup |
-| Grants.gov applicant workspace | Phase 3 connector only |
+| Grants.gov System-to-System (S2S) applicant workspace | Phase 3 connector only — Phase 8 uses REST search/detail only |
 | Analytics / BI platforms | Intake export provides data; BI platform integration is consumer's responsibility |
 | Identity provider / SSO configuration | Platform-level concern; not intake module |
 
@@ -5791,4 +5843,7 @@ External Email Provider  ←── notification_records ←── Intake Events
 Object Storage           ←── attachments, org_attachments, submission_snapshots
 SAM.gov (MVP: manual)    ←── organizations.uei, organizations.sam_expiration_date [manual entry]
 Review Module            ←── review_handoffs [intake boundary end]
+Grants.gov REST API ────►── external_opportunities ──►── saved_external_opportunities
+                                                    ──►── external_opportunity_versions
+                                                    ──►── change_alerts ──►── applicant notifications
 ```

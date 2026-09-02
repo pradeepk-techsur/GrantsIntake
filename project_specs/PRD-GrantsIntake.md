@@ -77,6 +77,7 @@ Create a low-burden, rules-driven, auditable grants intake experience that allow
 | Application State | Immutable submission snapshots with timestamps, confirmation numbers, and full audit trails |
 | Integrations (MVP) | Manual UEI/SAM entry with assisted lookup; external integrations deferred to Phase 2/3 |
 | Integrations (Phase 2) | SAM.gov API integration, external opportunity feeds |
+| Integrations (Phase 8) | Grants.gov Opportunity Search and Detail APIs — automated ingestion, normalization, save/track/import, change alerts, source attribution, version history |
 | Integrations (Phase 3) | Grants.gov System-to-System connector, common data standard exports |
 | AI Guardrails | AI assists only — assistive summarization, extraction, suggestions; non-binding, labeled |
 
@@ -1217,8 +1218,13 @@ The 66 product requirements (PRD-INTAKE-001 through PRD-INTAKE-066) are organize
 | F63 | PRD-INTAKE-064 | Intake Data Export | 11 | P0 | MVP |
 | F64 | PRD-INTAKE-065 | Validation Failure Analytics | 11 | P2 | Phase 2 |
 | F65 | PRD-INTAKE-066 | Portfolio-Level Intake Analytics | 11 | P2 | Phase 2 |
+| F66 | PRD-INTAKE-019A | Grants.gov API Automated Ingestion | Phase 8 | P0 | MVP |
+| F67 | PRD-INTAKE-019B | Grants.gov Metadata Normalization | Phase 8 | P0 | MVP |
+| F68 | PRD-INTAKE-019C | Save, Track, Compare, and Import External Opportunities | Phase 8 | P0 | MVP |
+| F69 | PRD-INTAKE-019D | Scheduled Refresh and Change Alerts | Phase 8 | P0 | MVP |
+| F70 | PRD-INTAKE-019E | Source Attribution, Version History, and API Reference Preservation | Phase 8 | P0 | MVP |
 
-**Summary:** 60 MVP features (P0), 6 Phase 2 features (P2 — deferred)
+**Summary:** 65 MVP features (P0), 6 Phase 2 features (P2 — deferred)
 
 ---
 
@@ -1235,7 +1241,7 @@ The following are explicitly out of scope for the GrantsIntake module:
 - Full ERP accounting integration — enterprise integration deferred
 - Automated award decisioning — AI should assist, not decide
 - Autonomous AI-generated application submission — human certification required
-- Grants.gov System-to-System integration at MVP launch — Phase 3
+- Grants.gov System-to-System integration at MVP launch — Phase 3 (note: Grants.gov REST API ingestion added in Phase 8)
 - Advanced portfolio optimization — Phase 3
 - Complex multi-stage subrecipient monitoring — post-award
 - Full cross-funder universal applicant profile network — Phase 3

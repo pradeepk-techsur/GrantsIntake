@@ -1043,6 +1043,103 @@
 
 ---
 
+## Phase 8 Stories — Grants.gov Opportunity Ingestion
+
+*Added: 2026-09-02 — PRD-INTAKE-019A through 019E*
+
+### Stage: External Opportunity Discovery (Grants.gov)
+
+#### US-P8.1: Browse Opportunities from Grants.gov
+**As** Jordan Kim (Proposal Manager),  
+**I want** to browse active funding opportunities pulled directly from Grants.gov,  
+**so that** I can discover external funding sources without leaving GrantsIntake.
+
+**Acceptance Criteria:**
+- A "Browse Grants.gov" page is accessible from the applicant sidebar
+- Results are paginated (25 per page) and show title, agency, status, due date, and award range
+- I can filter by status, keyword, agency, due date range, and award ceiling/floor
+- Results are sourced from the live Grants.gov API and refreshed every 6 hours
+- A "Powered by Grants.gov API" attribution badge is visible on the page
+
+**PRD:** PRD-INTAKE-019A, PRD-INTAKE-019B | **Feature:** F66, F67 | **Priority:** P0 | **Persona:** Jordan Kim
+
+---
+
+#### US-P8.2: Save and Track an External Opportunity
+**As** Jordan Kim (Proposal Manager),  
+**I want** to save external Grants.gov opportunities I'm interested in,  
+**so that** I can track them and receive alerts when they change.
+
+**Acceptance Criteria:**
+- Each opportunity card has a Save/Unsave toggle button
+- Saved opportunities appear in a "Saved from Grants.gov" section on my dashboard
+- I can unsave an opportunity at any time
+- Saving requires authentication; browsing does not
+
+**PRD:** PRD-INTAKE-019C | **Feature:** F68 | **Priority:** P0 | **Persona:** Jordan Kim
+
+---
+
+#### US-P8.3: Receive Alerts When a Tracked Opportunity Changes
+**As** Jordan Kim (Proposal Manager),  
+**I want** to receive in-app alerts when a saved opportunity's due date, status, package, or instructions change,  
+**so that** I can respond quickly without manually monitoring Grants.gov.
+
+**Acceptance Criteria:**
+- An alert bell icon in the applicant header shows unread alert count
+- Alert types include: due date change, status change, package change, addenda change, instructions change
+- Each alert shows the opportunity title, change type, old value → new value
+- I can mark alerts as read individually; unread count updates immediately
+- Alerts are created automatically on the next scheduled refresh after a change is detected
+
+**PRD:** PRD-INTAKE-019D | **Feature:** F69 | **Priority:** P0 | **Persona:** Jordan Kim
+
+---
+
+#### US-P8.4: View Full External Opportunity Details and Version History
+**As** Jordan Kim (Proposal Manager),  
+**I want** to see the complete normalized details of a Grants.gov opportunity and its change history,  
+**so that** I understand exactly what has changed since it was first imported.
+
+**Acceptance Criteria:**
+- Detail page shows: title, agency, FON, assistance listing, status, due date, award ceiling/floor, eligibility summary, package URL, source URL
+- Source attribution footer shows: "Source: Grants.gov API · Imported {date} · Reference: {FON}"
+- Version history accordion lists all versions with changed fields and fetch date
+- "View snapshot" on any version shows the full record state at that point in time
+- `import_timestamp` reflects the first time this opportunity was ingested (not the most recent fetch)
+
+**PRD:** PRD-INTAKE-019E | **Feature:** F70 | **Priority:** P0 | **Persona:** Jordan Kim
+
+---
+
+#### US-P8.5: Import an External Opportunity into GrantsIntake
+**As** Jordan Kim (Proposal Manager),  
+**I want** to import a Grants.gov opportunity into my GrantsIntake workspace,  
+**so that** I can start an application with the metadata already filled in.
+
+**Acceptance Criteria:**
+- "Import to Workspace" button is available on the external opportunity detail page
+- Confirmation modal explains what will happen before I confirm
+- On import, an internal opportunity record is created pre-populated with title, agency, FON, award range, eligibility summary, and deadline from the external source
+- The imported opportunity shows an "Imported from Grants.gov" badge in the internal UI
+- After import I am navigated to the new internal opportunity with a success message
+
+**PRD:** PRD-INTAKE-019C | **Feature:** F68 | **Priority:** P0 | **Persona:** Jordan Kim
+
+---
+
+### Phase 8 User Story Summary
+
+| Story ID | Title | Priority | Feature Ref | Persona |
+|---|---|---|---|---|
+| US-P8.1 | Browse Opportunities from Grants.gov | P0 | F66, F67 | Jordan Kim |
+| US-P8.2 | Save and Track an External Opportunity | P0 | F68 | Jordan Kim |
+| US-P8.3 | Receive Alerts When a Tracked Opportunity Changes | P0 | F69 | Jordan Kim |
+| US-P8.4 | View Full Details and Version History | P0 | F70 | Jordan Kim |
+| US-P8.5 | Import an External Opportunity into GrantsIntake | P0 | F68 | Jordan Kim |
+
+---
+
 ## Deferred Stories (Phase 2 — Out of MVP Scope)
 
 | Feature Ref | Feature Name | Reason Deferred |

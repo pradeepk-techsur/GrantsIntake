@@ -388,4 +388,49 @@ All 16 sampled NaC statements are directly verifiable against formal acceptance 
 
 ---
 
-*Document generated: July 24, 2026 | Source: PERSONAS-GrantsIntake.md, JTBD-GrantsIntake.md, JOURNEYS-GrantsIntake.md, UserStories-GrantsIntake.md, PRD-GrantsIntake.md*
+## Phase 8 Story Map — Grants.gov Opportunity Ingestion
+
+*Added: 2026-09-02 — PRD-INTAKE-019A through 019E*
+
+### Persona: Jordan Kim — Proposal Manager (External Discovery Journey)
+
+| Activity | Step | Story | NaC Statement |
+|---|---|---|---|
+| Discover Funding | Browse Grants.gov | US-P8.1 | Jordan can browse Grants.gov opportunities without leaving GrantsIntake; page loads within 2 seconds and results are ≤ 6 hours stale |
+| Discover Funding | Save opportunity | US-P8.2 | Saving takes one click; saved opportunities persist across sessions and appear on the dashboard |
+| Track Opportunities | Receive change alert | US-P8.3 | Jordan receives an in-app alert within the next scheduled refresh cycle (≤ 6 hours) when a saved opportunity's due date changes |
+| Research Opportunity | View full details | US-P8.4 | Detail page shows all normalized metadata and every version change with a `changed_fields` diff; source attribution is always visible |
+| Start Application | Import to workspace | US-P8.5 | Import creates a pre-populated internal opportunity in ≤ 3 seconds; all 6 normalized metadata fields are carried over without manual re-entry |
+
+### Epic: External Opportunity Discovery
+
+```
+Epic: External Opportunity Discovery
+├── Feature: Automated Grants.gov Ingestion (PRD-INTAKE-019A)
+│   └── US-P8.1 (Browse page, powered by scheduler)
+├── Feature: Metadata Normalization (PRD-INTAKE-019B)
+│   └── US-P8.1 (Normalized fields displayed in cards/detail)
+│   └── US-P8.5 (Normalized fields pre-populate import)
+├── Feature: Save, Track, Compare, Import (PRD-INTAKE-019C)
+│   └── US-P8.2 (Save/unsave toggle)
+│   └── US-P8.5 (Import to internal workspace)
+├── Feature: Scheduled Refresh & Change Alerts (PRD-INTAKE-019D)
+│   └── US-P8.3 (Alert bell, per-field alerts)
+└── Feature: Source Attribution & Version History (PRD-INTAKE-019E)
+    └── US-P8.4 (Detail page: attribution footer, version history accordion)
+```
+
+### Phase 8 NaC Statements
+
+| SM-ID | Story | NaC Core Assertion | Verified AC |
+|---|---|---|---|
+| SM-P8.1 | US-P8.1 | Results ≤ 6 hours stale; "Powered by Grants.gov API" badge visible | ✅ AC: "A 'Powered by Grants.gov API' attribution badge is visible on the page" |
+| SM-P8.2 | US-P8.2 | Save persists across sessions; appears on dashboard | ✅ AC: "Saved opportunities appear in a 'Saved from Grants.gov' section on my dashboard" |
+| SM-P8.3 | US-P8.3 | Alert created within next refresh cycle (≤ 6h) after due_date change | ✅ AC: "Alerts are created automatically on the next scheduled refresh after a change is detected" |
+| SM-P8.4 | US-P8.4 | import_timestamp never changes on re-fetch; version history is ordered and immutable | ✅ AC: "`import_timestamp` reflects the first time this opportunity was ingested (not the most recent fetch)" |
+| SM-P8.5 | US-P8.5 | Import creates pre-populated internal opportunity; "Imported from Grants.gov" badge shown | ✅ AC: "The imported opportunity shows an 'Imported from Grants.gov' badge in the internal UI" |
+
+---
+
+*Document generated: July 24, 2026 | Last updated: 2026-09-02 — Phase 8 story map added (Grants.gov ingestion)*  
+*Source: PERSONAS-GrantsIntake.md, JTBD-GrantsIntake.md, JOURNEYS-GrantsIntake.md, UserStories-GrantsIntake.md, PRD-GrantsIntake.md*

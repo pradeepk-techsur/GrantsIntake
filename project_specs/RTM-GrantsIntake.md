@@ -874,6 +874,47 @@ The following features are explicitly deferred to Phase 2. They have no MVP user
 
 ---
 
+## Phase 8 Traceability — Grants.gov Opportunity Ingestion
+
+*Added: 2026-09-02*
+
+### Requirements → Features → User Stories → Tests
+
+| Requirement ID | Description | Feature ID | User Story | Phase | Test Coverage |
+|---|---|---|---|---|---|
+| PRD-INTAKE-019A | Automated ingestion from Grants.gov APIs | F66 | US-P8.1 | Phase 8 | INT-P8.1: Scheduler calls Grants.gov search API and upserts results |
+| PRD-INTAKE-019B | Normalize opportunity metadata (title, agency, FON, CFDA, eligibility, dates, award range, status, package) | F67 | US-P8.1, US-P8.4, US-P8.5 | Phase 8 | UNIT-P8.1: normalizeOpportunity() maps all 9 required fields |
+| PRD-INTAKE-019C | Save, track, compare, and import external opportunities into workspace | F68 | US-P8.2, US-P8.5 | Phase 8 | INT-P8.2: Save/unsave round-trip; INT-P8.3: Import creates pre-populated opportunity |
+| PRD-INTAKE-019D | Scheduled refresh; alerts on due_date, status, package, addenda, instructions change | F69 | US-P8.3 | Phase 8 | INT-P8.4: Changed due_date triggers change_alerts for saved users |
+| PRD-INTAKE-019E | Source attribution: source, source_url, source_opportunity_number, import_timestamp, api_reference; version history | F70 | US-P8.4 | Phase 8 | INT-P8.5: All 5 attribution fields non-null after ingest; import_timestamp immutable |
+
+### Phase 8 Test Plan
+
+| Test ID | Type | Requirement | Description |
+|---|---|---|---|
+| INT-P8.1 | Integration (nock) | PRD-INTAKE-019A | Scheduler calls Grants.gov search API, receives mocked response, upserts to external_opportunities without duplicates |
+| UNIT-P8.1 | Unit | PRD-INTAKE-019B | normalizeOpportunity() correctly maps all 9 normalized fields from raw API response |
+| INT-P8.2 | Integration | PRD-INTAKE-019C | Applicant POST /:id/save; GET /saved returns saved record; DELETE /:id/save removes it |
+| INT-P8.3 | Integration | PRD-INTAKE-019C | POST /:id/import creates internal opportunity with all 6 mapped fields and external_opportunity_id FK |
+| INT-P8.4 | Integration (nock) | PRD-INTAKE-019D | Re-fetch with changed due_date creates change_alerts row for saving user; external_opportunity_versions row created |
+| INT-P8.5 | Integration | PRD-INTAKE-019E | After ingest: source, source_url, source_opportunity_number, import_timestamp, api_reference all non-null; re-fetch does not update import_timestamp |
+| INT-P8.6 | Integration | PRD-INTAKE-019E | GET /:id/versions returns V1 with empty changed_fields; V2 with accurate diff after field change |
+| E2E-P8.1 | Playwright | PRD-INTAKE-019A, 019C | Applicant navigates to Browse Grants.gov, sees paginated results, saves opportunity, views it on dashboard |
+| E2E-P8.2 | Playwright | PRD-INTAKE-019D | Alert bell shows unread count; mark-as-read updates count |
+| E2E-P8.3 | Playwright | PRD-INTAKE-019E | Detail page shows version history accordion; source attribution footer present |
+
+### Completeness Check — Phase 8
+
+- [x] All 5 Phase 8 requirements (PRD-INTAKE-019A through 019E) mapped to features (F66–F70)
+- [x] All 5 features mapped to user stories (US-P8.1 through US-P8.5)
+- [x] All 5 requirements have at least one integration or unit test planned
+- [x] Source attribution requirements (019E) covered by both API contract tests and UI audit
+- [x] Change alert requirements (019D) covered by change detection integration test
+- [x] Import workflow (019C) covered by import endpoint integration test and E2E
+- [x] Scheduler (019A) covered by nock-mocked integration test
+
+---
+
 ## 10. Approval
 
 | Role | Name | Organization | Signature | Date |
@@ -888,5 +929,6 @@ The following features are explicitly deferred to Phase 2. They have no MVP user
 ---
 
 *Document generated: July 24, 2026*  
-*Source documents: PRD-GrantsIntake.md (v1.0 Draft), FRD-GrantsIntake.md (v1.0 Draft), TechArch-GrantsIntake.md (v1.0 Draft), UserStories-GrantsIntake.md (v1.0 Draft), .planning/PROJECT.md*  
-*Next review: Prior to MVP launch gate*
+*Last updated: 2026-09-02 — Phase 8 traceability added (PRD-INTAKE-019A through 019E, F66–F70, US-P8.1–P8.5, 10 planned tests)*  
+*Source documents: PRD-GrantsIntake.md (v1.1), FRD-GrantsIntake.md (v1.1), TechArch-GrantsIntake.md (v1.1), UserStories-GrantsIntake.md (v1.1), .planning/PROJECT.md*  
+*Next review: Prior to Phase 8 execution gate*

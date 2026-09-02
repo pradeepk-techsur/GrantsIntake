@@ -2392,3 +2392,120 @@ grants-intake-files/
 | S3 storage | Upload failure | Return error to client with retry guidance; do not mark attachment as uploaded |
 | SAM.gov API (Phase 2) | API timeout / unavailable | Fall back to manual entry with warning to user; cache last-known status for 24 hours |
 | Readability scoring | Service error | Return HTTP 200 with readability indicator hidden; field remains editable (degraded gracefully) |
+| Grants.gov REST API (Phase 8) | Timeout >10s | Log warning, skip batch, retry on next scheduled run |
+| Grants.gov REST API (Phase 8) | 429 rate limit | Exponential backoff 1s/2s/4s then skip with log |
+| Grants.gov REST API (Phase 8) | Malformed JSON | Log error with raw body snippet, skip record, continue batch |
+| Grants.gov REST API (Phase 8) | Single opportunity detail failure | Log per-opportunity error, continue batch — partial success acceptable |
+
+---
+
+## Phase 8: Grants.gov Ingestion Architecture
+
+*Added: 2026-09-02 — PRD-INTAKE-019A through 019E*
+
+### New Service: GrantsGovService
+
+**File:** `src/services/grantsGovService.ts`
+
+Responsibilities:
+- HTTP client for Grants.gov public REST API (no authentication required)
+- `searchOpportunities()` — POST `/search2/opportunities/search`, paginated, configurable page size
+- `getOpportunityDetail()` — GET `/opportunities/{id}`, full detail
+- `normalizeOpportunity()` — maps raw API fields to internal `NormalizedOpportunity` type
+
+### New Service: ExternalOpportunityService
+
+**File:** `src/services/externalOpportunityService.ts`
+
+Responsibilities:
+- `upsertOpportunity()` — ON CONFLICT(source_opportunity_number) DO UPDATE; computes changed_fields diff; inserts version row only when fields changed
+- `saveOpportunity()` / `unsaveOpportunity()` / `listSavedOpportunities()` — user save/track management
+- `createChangeAlerts()` — fan-out alert creation to all users who saved the opportunity when watched fields change
+- `listOpportunities()` — paginated search with filters (status, keyword, agency, due date, award range)
+- `getVersionHistory()` — ordered immutable version list
+- `getUnreadAlerts()` / `markAlertRead()` — alert management
+
+### New Service: IngestionScheduler
+
+**File:** `src/services/ingestionScheduler.ts`
+
+- Uses `node-cron` (new dependency) scheduled via `GRANTS_GOV_REFRESH_CRON` env var (default: `0 */6 * * *`)
+- `refreshAll()` — fetches N pages, upserts each, creates change alerts
+- `refreshSingle(opportunityNumber)` — on-demand fetch for admin trigger
+- Started in `src/index.ts` after server listen
+
+### New Database Tables (Migration 017)
+
+```sql
+external_opportunities        -- normalized opportunity records, source attribution
+external_opportunity_versions -- immutable version history with changed_fields diff
+saved_external_opportunities  -- user save/track many-to-many
+change_alerts                 -- pending alerts per user per field change
+```
+
+### New Database Table Link (Migration 018)
+
+```sql
+ALTER TABLE opportunities ADD COLUMN external_opportunity_id UUID REFERENCES external_opportunities(id);
+ALTER TABLE opportunities ADD COLUMN source VARCHAR(50) DEFAULT 'internal';
+```
+
+### New API Routes
+
+Mounted at `/api/v1/external-opportunities`:
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/` | Public | List/search external opportunities |
+| GET | `/:id` | Public | Get single opportunity with metadata |
+| GET | `/:id/versions` | Public | Version history |
+| POST | `/:id/save` | Applicant | Save/track opportunity |
+| DELETE | `/:id/save` | Applicant | Unsave opportunity |
+| GET | `/saved` | Applicant | List saved opportunities |
+| GET | `/alerts` | Applicant | List unread change alerts |
+| PUT | `/alerts/:alertId/read` | Applicant | Mark alert read |
+| POST | `/admin/refresh` | Grantor Admin | Trigger full refresh |
+| POST | `/admin/refresh/:opportunityNumber` | Grantor Admin | Refresh single opportunity |
+
+### New Frontend Routes (Phase 8)
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/applicant/grants-gov` | ExternalOpportunityBrowserPage | Browse/filter Grants.gov opportunities |
+| `/applicant/grants-gov/:id` | ExternalOpportunityDetailPage | Detail, version history, import |
+
+### Architecture Diagram Update
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Phase 8 Addition                      │
+│                                                         │
+│  Grants.gov REST API                                    │
+│  POST /search2/opportunities/search                     │
+│  GET  /opportunities/{id}                               │
+│         │                                               │
+│         ▼                                               │
+│  IngestionScheduler (node-cron, every 6h)               │
+│         │                                               │
+│         ▼                                               │
+│  GrantsGovService.normalizeOpportunity()                │
+│         │                                               │
+│         ▼                                               │
+│  ExternalOpportunityService.upsertOpportunity()         │
+│    ├── external_opportunities (upsert)                  │
+│    ├── external_opportunity_versions (diff insert)      │
+│    └── change_alerts (fan-out to saved users)           │
+│                                                         │
+│  Applicant UI ──► ExternalOpportunityBrowserPage        │
+│                   ExternalOpportunityDetailPage         │
+│                   ├── Save/Unsave toggle                │
+│                   ├── Version history accordion         │
+│                   └── Import to Workspace button        │
+│                         │                              │
+│                         ▼                              │
+│               POST /external-opportunities/:id/import   │
+│                         │                              │
+│                         ▼                              │
+│               opportunities (source='grants_gov_import')│
+└─────────────────────────────────────────────────────────┘
+```
