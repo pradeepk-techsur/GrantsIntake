@@ -2,6 +2,7 @@ import { Outlet, Navigate, Link } from 'react-router-dom';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useAuthStore } from '../store/authStore';
 import { ApplicantSidebar } from '../components/nav/ApplicantSidebar';
+import { ChangeAlertsBell } from '../components/ChangeAlertsBell';
 
 /**
  * Layout for the applicant portal — GrantFlow Design System v1.0.
@@ -38,6 +39,7 @@ export function ApplicantLayout() {
           GrantFlow
         </Link>
         <span className="gf-header__spacer" />
+        <ChangeAlertsBell />
         <span className="gf-header__role">Applicant</span>
         {user && (
           <span className="gf-header__user" aria-label={`Logged in as ${user.full_name}`}>
