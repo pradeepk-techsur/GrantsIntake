@@ -21,6 +21,7 @@ import { workspacesRouter } from './routes/workspaces';
 import { authenticate } from './middleware/authenticate';
 import { submissionService } from './services/workspace/submissionService';
 import { intakeQueueRouter } from './routes/intakeQueue';
+import { ingestionScheduler } from './services/external/ingestionScheduler';
 
 const app = express();
 
@@ -141,6 +142,8 @@ function startServer() {
   const server = app.listen(port, '0.0.0.0', () => {
     console.log(`GrantsIntake API running on http://0.0.0.0:${port}`);
     console.log(`Environment: ${env.NODE_ENV}`);
+    // Start Grants.gov ingestion scheduler after boot (Phase 8, PRD-INTAKE-019A)
+    ingestionScheduler.start();
   });
   return server;
 }
