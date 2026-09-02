@@ -3,8 +3,16 @@ import { grantsGovService } from './grantsGovService';
 import { externalOpportunityService } from './externalOpportunityService';
 
 const DEFAULT_CRON = '0 */6 * * *'; // every 6 hours
-const PAGES = 5;
-const ROWS_PER_PAGE = 25;
+const DEFAULT_MAX_PAGES = 5;
+const DEFAULT_PAGE_SIZE = 25;
+
+/** Read a positive integer env var, falling back to a default. */
+function envInt(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : fallback;
+}
 
 export interface RefreshResult {
   fetched: number;
@@ -29,12 +37,15 @@ class IngestionScheduler {
       errors: [],
     };
 
-    for (let page = 0; page < PAGES; page++) {
+    const maxPages = envInt('GRANTS_GOV_MAX_PAGES', DEFAULT_MAX_PAGES);
+    const pageSize = envInt('GRANTS_GOV_PAGE_SIZE', DEFAULT_PAGE_SIZE);
+
+    for (let page = 0; page < maxPages; page++) {
       let hits;
       try {
         hits = await grantsGovService.searchOpportunities({
-          rows: ROWS_PER_PAGE,
-          startRecordNum: page * ROWS_PER_PAGE,
+          rows: pageSize,
+          startRecordNum: page * pageSize,
           oppStatuses: 'posted',
         });
       } catch (err) {
@@ -90,7 +101,7 @@ class IngestionScheduler {
     try {
       const hits = await grantsGovService.searchOpportunities({
         keyword: opportunityNumber,
-        rows: ROWS_PER_PAGE,
+        rows: envInt('GRANTS_GOV_PAGE_SIZE', DEFAULT_PAGE_SIZE),
         oppStatuses: 'forecasted|posted|closed|archived',
       });
       const match =
