@@ -22,6 +22,7 @@ import { authenticate } from './middleware/authenticate';
 import { submissionService } from './services/workspace/submissionService';
 import { intakeQueueRouter } from './routes/intakeQueue';
 import { ingestionScheduler } from './services/external/ingestionScheduler';
+import { externalOpportunitiesRouter } from './routes/externalOpportunities';
 
 const app = express();
 
@@ -80,6 +81,9 @@ app.use('/api/v1', workspacesRouter);
 
 // Mount intake queue routes (plan 06-01)
 app.use('/api/v1', intakeQueueRouter);
+
+// Mount Grants.gov external opportunity routes (plan 08-01)
+app.use('/api/v1', externalOpportunitiesRouter);
 
 // Mount intake configuration routes (plan 02-02)
 app.use('/api/v1', sectionConditionsRouter);
