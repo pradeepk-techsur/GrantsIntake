@@ -14,8 +14,9 @@ updated: 2026-09-02T11:48:30Z
 
 ### 1. Browse Grants.gov Opportunities
 expected: "Browse Grants.gov" sidebar link opens a filterable, paginated list (25/page) of external opportunity cards, each with status badge, award range, due date, eligibility snippet, source badge, save heart, and View Details. Filter apply/clear updates results.
-result: issue
+result: redrive
 reported: "empty / no opportunities"
+redrive_note: "Blocking cause CLOSED by 08-06 — the ingestion 403 that produced 'empty / no opportunities' is fixed. Data precondition now satisfied: GET /api/v1/external-opportunities returns HTTP 200 with total:3 real Grants.gov records (was total:0); the browse page's backing API + data now exist. UI card-render interaction is ready for human re-test."
 severity: blocker
 
 ### 2. View External Opportunity Detail
@@ -91,18 +92,21 @@ per_test:
 ## Gaps
 
 - truth: "The system polls the Grants.gov Search API and upserts normalized opportunity records (SC #1); ingested opportunities are browsable/savable/importable (SC #2–5)"
-  status: failed
-  reason: "Ingestion calls the wrong Grants.gov endpoint and gets 403 Forbidden on every page, so zero opportunities are ever ingested. grantsGovService.ts:14 builds SEARCH_ENDPOINT = `${GRANTS_GOV_BASE}/search2/opportunities/search`, which returns HTTP 403. The correct endpoint is `${GRANTS_GOV_BASE}/search2` (POST), which returns HTTP 200 with the exact `data.oppHits` envelope the normalizer at grantsGovService.ts:76 already reads. Manual admin refresh returns {fetched:0, upserted:0, errors:[5× '403 Forbidden']}; GET /external-opportunities returns {total:0}. Every Phase 8 UAT flow (browse/save/alerts/import/versions/sync) is blocked because no external opportunity data can exist."
+  status: closed
+  redrive: closed (re-driven)
+  reason: "CLOSED by gap-closure plan 08-06 (commit 0f0e32e). Ingestion called the wrong Grants.gov endpoint (403 on every page → zero ingested). SEARCH_ENDPOINT corrected `/search2/opportunities/search` → `/search2` (POST 200). During re-verification the DETAIL_ENDPOINT was ALSO found to 403 (`GET /opportunities/:id`) and was corrected to `POST /fetchOpportunity`; without it fetched>0 but upserted=0. normalizeOpportunity made tolerant of both the live fetchOpportunity envelope and the flat/test-fixture shape. All 3 integration mocks re-pinned to the corrected paths (they had been pinned to the broken 403 suffix, which is why the suite was green while UAT hit 403); a regression test now asserts the service POSTs to `/search2` and NOT the 403 suffix (verified fails on revert)."
   severity: blocker
   test: 1
   source: self_check
   confidence: proven
-  root_cause: "src/services/external/grantsGovService.ts:14 — SEARCH_ENDPOINT path is `/search2/opportunities/search` (403); should be `/search2` (200). Also verify DETAIL_ENDPOINT at line 15 (`${GRANTS_GOV_BASE}/opportunities/${id}`) resolves against the same live API."
+  root_cause: "src/services/external/grantsGovService.ts — SEARCH_ENDPOINT was `/search2/opportunities/search` (403) → `/search2` (200); DETAIL_ENDPOINT was `GET /opportunities/:id` (403) → `POST /fetchOpportunity` (200)."
+  redrive_evidence:
+    - "GET /api/v1/external-opportunities → HTTP 200, total:3 (was total:0) — real Grants.gov data (source=grants.gov, FON=PAR-25-155)."
+    - "DB: external_opportunities=3 rows, external_opportunity_versions=3 rows — proves full search→detail→normalize→upsert→version round-trip (upserted>0, not just fetched>0)."
+    - "Regression suite: tests/integration/externalOpportunities.test.ts + ingestionScheduler.test.ts → 12/12 passing, pinned to /search2; full backend suite 285/285."
+    - "Boot smoke gate 4 (data-backed endpoint) passed against this exact route."
   artifacts:
     - path: "src/services/external/grantsGovService.ts"
-      issue: "SEARCH_ENDPOINT uses non-existent path /search2/opportunities/search → 403; correct path is /search2"
-  missing:
-    - "Change SEARCH_ENDPOINT to `${GRANTS_GOV_BASE}/search2` (verified 200 with the same request body and data.oppHits response shape)"
-    - "Re-verify DETAIL_ENDPOINT against the live Grants.gov detail API and confirm a full ingest → detail round-trip"
-    - "After fix: trigger admin refresh and confirm GET /external-opportunities returns items so UAT flows have data"
+      issue: "RESOLVED — SEARCH_ENDPOINT=/search2, DETAIL_ENDPOINT=/fetchOpportunity"
+  missing: []
   debug_session: ""
