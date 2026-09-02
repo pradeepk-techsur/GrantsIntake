@@ -179,7 +179,8 @@ Plans:
 - [x] 07-01-PLAN.md — Remove Awards and Monitoring from GrantorSidebar; remove Awards from ApplicantSidebar; UI-only, no backend changes
 
 ### Phase 8: Enhancements — Grants.gov Opportunity Ingestion
-**Status**: Passed
+**Status**: Complete (2026-09-02)
+**Last Updated**: 2026-09-02T14:30:25Z
 **Goal**: Automatically ingest active funding opportunities from Grants.gov APIs, normalize and persist opportunity metadata with full source attribution and version history, allow applicants to save/track/compare/import external opportunities into internal workspaces, and deliver in-app change alerts when tracked opportunities are updated
 **Depends on**: Phase 7 (Navigation Cleanup)
 **Requirements**: PRD-INTAKE-019A, PRD-INTAKE-019B, PRD-INTAKE-019C, PRD-INTAKE-019D, PRD-INTAKE-019E
