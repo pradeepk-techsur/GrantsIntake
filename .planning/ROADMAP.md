@@ -179,7 +179,7 @@ Plans:
 - [x] 07-01-PLAN.md — Remove Awards and Monitoring from GrantorSidebar; remove Awards from ApplicantSidebar; UI-only, no backend changes
 
 ### Phase 8: Enhancements — Grants.gov Opportunity Ingestion
-**Status**: In progress
+**Status**: Awaiting verify
 **Goal**: Automatically ingest active funding opportunities from Grants.gov APIs, normalize and persist opportunity metadata with full source attribution and version history, allow applicants to save/track/compare/import external opportunities into internal workspaces, and deliver in-app change alerts when tracked opportunities are updated
 **Depends on**: Phase 7 (Navigation Cleanup)
 **Requirements**: PRD-INTAKE-019A, PRD-INTAKE-019B, PRD-INTAKE-019C, PRD-INTAKE-019D, PRD-INTAKE-019E
@@ -213,7 +213,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 6. Intake Queue, Screening & Analytics | 3/3 | Complete | 2026-08-02 |
 | UI: GrantFlow Design System v1.0 | 1/1 | passed | 2026-08-03 |
 | 7. Navigation Cleanup | 1/1 | Complete | 2026-08-03 |
-| 8. Enhancements — Grants.gov Ingestion | 0/5 | In progress | — |
+| 8. Enhancements — Grants.gov Ingestion | 0/5 | Awaiting verify | — |
 
 ---
 *Roadmap created: 2026-07-24*
