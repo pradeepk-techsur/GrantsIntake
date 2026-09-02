@@ -686,3 +686,22 @@ __GATE__ build_exit=0 test_exit=0 build_cmd=[npm run build] test_cmd=[npm test] 
 [2m   Duration [22m 17.31s[2m (transform 293ms, setup 0ms, collect 1.03s, tests 16.12s, environment 0ms, prepare 26ms)[22m
 
 ```
+
+## Gap redrive (--gaps-only)
+
+Gap closure execution re-drove the exact evidence that opened each gap before handing back.
+
+| Gap | Verdict | Proof |
+|-----|---------|-------|
+| uat/5 (import invisible on redirect — PRD-INTAKE-019C) | closed (re-driven) | Integration + e2e both green against the current tree |
+
+**uat/5 — closed (re-driven).** The reported truth ("confirming Import to Workspace redirects to /applicant/applications with a success message; the imported opportunity carries an 'Imported from Grants.gov' badge; re-importing does not duplicate") is now proven end to end:
+
+- **Integration** (`tests/integration/externalOpportunities.test.ts`, real DB, 13/13):
+  - `returns the imported opportunity after an import (happy path)` — the imported opp is now listable (was invisible).
+  - `is idempotent at the surface: double-import yields exactly one item` — re-import does not duplicate.
+  - `scopes to the caller: user B does not see user A's import (IDOR guard)` — regression guard added by the code-review fix (B1); asserted to FAIL against the un-scoped query and PASS after the fix.
+  - `requires authentication (401 without a bearer token)`.
+- **E2E** (`e2e/externalOpportunities.spec.ts:264`, live stack, Chromium, 1/1): import → confirm modal → land on `/applicant/applications` → `import-success-banner` visible ("imported successfully") → `imported-opportunity-card` count 1 with `imported-badge` "Imported from Grants.gov" → re-import → still exactly one card (`importCount === 2`). The asserted `data-testid`s did not exist on WorkspaceListPage before 08-07, so the check is a genuine red→green reproduction, not a post-hoc green tick.
+
+No recurrence file present (`/tmp/pivota-gap-recurrence.md` absent) — first-round closure.
