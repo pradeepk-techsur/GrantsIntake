@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 08-enhancements-grantsgov-ingestion-04-PLAN.md
-last_updated: "2026-09-02T04:18:34.977Z"
+stopped_at: Completed 08-enhancements-grantsgov-ingestion-02-PLAN.md (parallel with 08-04)
+last_updated: "2026-09-02T04:22:16.794Z"
 last_activity: "2026-09-02 — Plan 08-04 complete: scheduled refresh env config, addenda/instructions change alerts, grantor Sync Now UI; backend 278/278 tests passing"
 progress:
   total_phases: 15
   completed_phases: 6
   total_plans: 52
-  completed_plans: 48
+  completed_plans: 49
   percent: 92
 ---
 
@@ -99,6 +99,7 @@ Progress: [█████████▒] 92%
 | Phase 07-navigation-cleanup P01 | 2 min | 1 tasks | 2 files |
 | Phase 08-enhancements-grantsgov-ingestion P01 | 7 min | 6 tasks | 10 files |
 | Phase 08-enhancements-grantsgov-ingestion P04 | 5 min | 5 tasks | 9 files |
+| Phase 08-enhancements-grantsgov-ingestion P02 | 8 min | 8 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -207,6 +208,8 @@ Recent decisions affecting current work:
 - [Phase 08-enhancements-grantsgov-ingestion / 08-04]: GRANTS_GOV_MAX_PAGES / GRANTS_GOV_PAGE_SIZE wired into the scheduler (were hardcoded); GRANTS_GOV_REFRESH_CRON/API_BASE/INGESTION_ENABLED documented in .env.example
 - [Phase 08-enhancements-grantsgov-ingestion / 08-04]: addenda_change (synopsis.synopsisAddendum) and instructions_change (packages[].instructions) now diffed from raw_metadata (normalizer persists them); removed 08-01's incorrect eligibility_summary→instructions_change mapping per PRD-INTAKE-019D
 - [Phase 08-enhancements-grantsgov-ingestion / 08-04]: Grantor "Grants.gov Sync" dashboard card gated to grantor_admin; last-sync time stored client-side (localStorage) — no server field; grantor-scoped externalSyncApi kept separate from applicant client to avoid parallel-plan (08-02) file conflicts
+- [Phase 08-enhancements-grantsgov-ingestion]: Plan 08-02 (frontend): Grants.gov browser built in client/** — externalOpportunitiesApi + React Query; browse page (draft-vs-applied filters), detail page (version-history accordion + source attribution), header change-alerts bell, Saved-from-Grants.gov on WorkspaceListPage
+- [Phase 08-enhancements-grantsgov-ingestion]: Plan 08-02: E2E spec at repo-standard e2e/ (not client/tests/e2e); Import-to-Workspace CTA forward-references /applicant/grants-gov/:id/import (plan 08-03) via router state; 5/5 Playwright tests pass against live stack
 
 ### Pending Todos
 
@@ -218,6 +221,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T04:17:34Z
-Stopped at: Completed 08-enhancements-grantsgov-ingestion-04-PLAN.md
+Last session: 2026-09-02T04:22:16.792Z
+Stopped at: Completed 08-enhancements-grantsgov-ingestion-02-PLAN.md (parallel with 08-04)
 Resume file: None
