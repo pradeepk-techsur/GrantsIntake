@@ -639,3 +639,51 @@ __GATE__ build_exit=0 test_exit=0 build_cmd=[npm run build] test_cmd=[npm test] 
 [2m   Duration [22m 17.34s[2m (transform 290ms, setup 0ms, collect 1.00s, tests 16.18s, environment 0ms, prepare 27ms)[22m
 
 ```
+
+## Backend pre-push gate
+
+- Status: passed
+- Result marker + failing output tail:
+```
+__GATE__ build_exit=0 test_exit=0 build_cmd=[npm run build] test_cmd=[npm test] head=78d165b30510702918a2883d2398460bb8ca3f30 test_files=56 skip_marks=42 shadow_files=0
+
+ [32m✓[39m tests/integration/ingestionScheduler.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 26[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+ [32m✓[39m tests/integration/deadlines.test.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 289[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+
+ [32m✓[39m tests/integration/programs.test.ts [2m ([22m[2m8 tests[22m[2m)[22m[33m 418[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+
+ [32m✓[39m tests/integration/sectionConditions.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 285[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+ [32m✓[39m tests/integration/screeningCriteria.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 285[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+
+ [32m✓[39m tests/integration/opportunityTemplates.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[90m 281[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+ [32m✓[39m tests/integration/guidance.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 278[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+ [32m✓[39m tests/integration/contextBoot.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+[90mstdout[2m | _log (/home/daytona/project/node_modules/dotenv/lib/main.js:131:11)[22m[39m
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+
+ [32m✓[39m tests/integration/serverHeaders.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 2[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m32 passed[39m[22m[90m (32)[39m
+[2m      Tests [22m [1m[32m285 passed[39m[22m[90m (285)[39m
+[2m   Start at [22m 12:29:39
+[2m   Duration [22m 17.31s[2m (transform 293ms, setup 0ms, collect 1.03s, tests 16.12s, environment 0ms, prepare 26ms)[22m
+
+```
