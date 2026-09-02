@@ -12,12 +12,15 @@ finalizeApp();
 const UNIQUE_ID = `ext-${Date.now()}`;
 const ADMIN_EMAIL = `ext.admin.${UNIQUE_ID}@example.com`;
 const APPLICANT_EMAIL = `ext.applicant.${UNIQUE_ID}@example.com`;
+const APPLICANT_B_EMAIL = `ext.applicant.b.${UNIQUE_ID}@example.com`;
 const TEST_PASSWORD = 'TestPass123!';
 
 let adminToken: string;
 let applicantToken: string;
+let applicantBToken: string;
 let adminUserId: string;
 let applicantUserId: string;
+let applicantBUserId: string;
 let grantorOrgId: string;
 
 // ─── Grants.gov API fixtures ─────────────────────────────────────────────────
@@ -98,7 +101,7 @@ describe('External Opportunities (Grants.gov ingestion)', () => {
     const hash = await bcrypt.hash(TEST_PASSWORD, 12);
 
     // Clean leftover users
-    for (const email of [ADMIN_EMAIL, APPLICANT_EMAIL]) {
+    for (const email of [ADMIN_EMAIL, APPLICANT_EMAIL, APPLICANT_B_EMAIL]) {
       const existing = await pool.query('SELECT user_id FROM users WHERE email = $1', [email]);
       if (existing.rows.length > 0) {
         const uid = existing.rows[0].user_id;
@@ -122,6 +125,12 @@ describe('External Opportunities (Grants.gov ingestion)', () => {
     );
     applicantUserId = applicantRes.rows[0].user_id;
 
+    const applicantBRes = await pool.query<{ user_id: string }>(
+      `INSERT INTO users (email, full_name, password_hash, is_active) VALUES ($1, $2, $3, true) RETURNING user_id`,
+      [APPLICANT_B_EMAIL, 'Ext Applicant B', hash],
+    );
+    applicantBUserId = applicantBRes.rows[0].user_id;
+
     const orgRes = await pool.query<{ org_id: string }>(
       `INSERT INTO grantor_organizations (org_name, org_type) VALUES ($1, $2) RETURNING org_id`,
       [`Ext Grantor Org ${UNIQUE_ID}`, 'federal_agency'],
@@ -136,6 +145,7 @@ describe('External Opportunities (Grants.gov ingestion)', () => {
 
     adminToken = await loginUser(ADMIN_EMAIL, TEST_PASSWORD);
     applicantToken = await loginUser(APPLICANT_EMAIL, TEST_PASSWORD);
+    applicantBToken = await loginUser(APPLICANT_B_EMAIL, TEST_PASSWORD);
   });
 
   afterEach(() => {
@@ -171,14 +181,15 @@ describe('External Opportunities (Grants.gov ingestion)', () => {
   afterAll(async () => {
     await cleanOpportunities();
     ingestionScheduler.stop();
-    await pool.query('DELETE FROM change_alerts WHERE user_id = ANY($1)', [[adminUserId, applicantUserId]]);
-    await pool.query('DELETE FROM saved_external_opportunities WHERE user_id = ANY($1)', [[adminUserId, applicantUserId]]);
+    const allUserIds = [adminUserId, applicantUserId, applicantBUserId];
+    await pool.query('DELETE FROM change_alerts WHERE user_id = ANY($1)', [allUserIds]);
+    await pool.query('DELETE FROM saved_external_opportunities WHERE user_id = ANY($1)', [allUserIds]);
     await pool.query('DELETE FROM grantor_roles WHERE user_id = $1', [adminUserId]);
     // audit_events is immutable via trigger; disable to clean up login events (Phase 1 pattern)
     await pool.query('ALTER TABLE audit_events DISABLE TRIGGER audit_events_immutable');
-    await pool.query('DELETE FROM audit_events WHERE actor_user_id = ANY($1)', [[adminUserId, applicantUserId]]);
+    await pool.query('DELETE FROM audit_events WHERE actor_user_id = ANY($1)', [allUserIds]);
     await pool.query('ALTER TABLE audit_events ENABLE TRIGGER audit_events_immutable');
-    await pool.query('DELETE FROM users WHERE user_id = ANY($1)', [[adminUserId, applicantUserId]]);
+    await pool.query('DELETE FROM users WHERE user_id = ANY($1)', [allUserIds]);
     await pool.query('DELETE FROM grantor_organizations WHERE org_id = $1', [grantorOrgId]);
     await closeRedisClient();
     await pool.end();
@@ -524,6 +535,44 @@ describe('External Opportunities (Grants.gov ingestion)', () => {
         (i: { opportunity_id: string }) => i.opportunity_id === internalId,
       );
       expect(matches.length).toBe(1);
+    });
+
+    it('scopes to the caller: user B does not see user A\'s import (IDOR guard)', async () => {
+      vi.stubGlobal('fetch', makeMockFetch(detailV1));
+      await ingestionScheduler.refreshAll();
+      const opp = await externalOpportunityService.listOpportunities({});
+      const target = opp.items.find(
+        (o) => o.source_opportunity_number === 'TEST-FON-001',
+      )!;
+
+      // User A imports the opportunity.
+      const importRes = await request(app)
+        .post(`/api/v1/external-opportunities/${target.id}/import`)
+        .set('Authorization', `Bearer ${applicantToken}`);
+      expect(importRes.status).toBe(201);
+      const internalId = importRes.body.opportunity_id as string;
+
+      // User A sees their own import.
+      const listA = await request(app)
+        .get('/api/v1/external-opportunities/imported')
+        .set('Authorization', `Bearer ${applicantToken}`);
+      expect(listA.status).toBe(200);
+      expect(
+        listA.body.items.some(
+          (i: { opportunity_id: string }) => i.opportunity_id === internalId,
+        ),
+      ).toBe(true);
+
+      // User B — who imported nothing — must NOT see user A's import.
+      const listB = await request(app)
+        .get('/api/v1/external-opportunities/imported')
+        .set('Authorization', `Bearer ${applicantBToken}`);
+      expect(listB.status).toBe(200);
+      expect(
+        listB.body.items.some(
+          (i: { opportunity_id: string }) => i.opportunity_id === internalId,
+        ),
+      ).toBe(false);
     });
 
     it('requires authentication (401 without a bearer token)', async () => {

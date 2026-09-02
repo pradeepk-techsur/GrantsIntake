@@ -64,10 +64,12 @@ externalOpportunitiesRouter.get(
 externalOpportunitiesRouter.get(
   '/external-opportunities/imported',
   authenticate,
-  async (_req: Request, res: Response): Promise<void> => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
       const items =
-        await externalOpportunityImportService.listImportedOpportunities();
+        await externalOpportunityImportService.listImportedOpportunities(
+          req.user!.user_id,
+        );
       res.json({ items });
     } catch {
       res.status(500).json({ error: 'INTERNAL_ERROR' });

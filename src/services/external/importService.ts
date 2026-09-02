@@ -149,14 +149,16 @@ export class ExternalOpportunityImportService {
   }
 
   /**
-   * List the internal opportunities created by the Grants.gov import flow
-   * (source='grants_gov_import', status='imported'). Read-only surface for the
-   * applicant portal so a freshly imported opportunity is visible after the
-   * redirect to /applicant/applications (PRD-INTAKE-019C). Imports live under
-   * the shared system "Grants.gov Imports" org and are not per-applicant
-   * scoped, so all imported opportunities are returned.
+   * List the internal opportunities the given applicant created via the
+   * Grants.gov import flow (source='grants_gov_import', status='imported').
+   * Read-only surface for the applicant portal so a freshly imported
+   * opportunity is visible after the redirect to /applicant/applications
+   * (PRD-INTAKE-019C). Scoped per-caller via `created_by` (populated by
+   * insertOpportunity) so an applicant only ever sees their own imports.
    */
-  async listImportedOpportunities(): Promise<ImportedOpportunityListItem[]> {
+  async listImportedOpportunities(
+    actorUserId: string,
+  ): Promise<ImportedOpportunityListItem[]> {
     const result = await pool.query<{
       opportunity_id: string;
       title: string;
@@ -178,9 +180,9 @@ export class ExternalOpportunityImportService {
          FROM opportunities o
          LEFT JOIN programs p ON o.program_id = p.program_id
          LEFT JOIN grantor_organizations go ON p.grantor_org_id = go.org_id
-        WHERE o.source = $1 AND o.status = $2
+        WHERE o.source = $1 AND o.status = $2 AND o.created_by = $3
         ORDER BY o.created_at DESC`,
-      [IMPORT_SOURCE, IMPORT_STATUS],
+      [IMPORT_SOURCE, IMPORT_STATUS, actorUserId],
     );
 
     return result.rows.map((row) => {
