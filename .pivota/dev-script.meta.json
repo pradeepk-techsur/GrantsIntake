@@ -2,20 +2,22 @@
   "generator_version": "init-dev-server@1",
   "catalog_entry": null,
   "generated_at": "2026-08-02T21:27:14Z",
-  "inspection_inputs_hash": "d63c669c16c1e50399780db65034baefb3ae7b2c43bb7d948a99342ac2d93069",
+  "inspection_inputs_hash": "6e1f4b395991e594d1d7fd5d066b621ed26c8a4688e1bff7ea84b57b9aa3bbd6",
   "inspection_inputs": {
     "matched_globs": [
-      "client/package.json",
-      "client/vite.config.ts",
       "docker-compose.yml",
       "package.json"
     ],
     "manifest_signatures": [
-      "client/package.json:dep:vite@^8.1.1",
-      "client/package.json:dev-script:vite",
-      "docker-compose.yml:services:app,db,redis",
-      "package.json:dep:express@^4.18.2",
-      "package.json:dev-script:tsx watch src/server.ts"
+      "package.json:dependencies:express@^4.18.2",
+      "package.json:dev-script:tsx watch src/server.ts",
+      "package.json:script:build=tsc",
+      "package.json:script:dev=tsx watch src/server.ts",
+      "package.json:script:migrate=tsx src/db/migrate.ts",
+      "package.json:script:seed=tsx src/db/seed.ts",
+      "package.json:script:start=node dist/server.js",
+      "package.json:script:test:watch=vitest",
+      "package.json:script:test=NODE_ENV=test vitest run"
     ],
     "existing_scripts": []
   }
