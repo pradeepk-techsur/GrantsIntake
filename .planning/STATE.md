@@ -3,14 +3,14 @@ pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 08-enhancements-grantsgov-ingestion-06-PLAN.md
-last_updated: "2026-09-02T12:17:54.331Z"
+stopped_at: Completed 08-enhancements-grantsgov-ingestion-07-PLAN.md
+last_updated: "2026-09-02T13:18:16.558Z"
 last_activity: "2026-09-02 — Plan 08-06 (gap closure) complete: Grants.gov search+detail 403 endpoints fixed, ingestion proven live (fetched:3/upserted:3, list total:3), regression test pins /search2, gate verdicts recorded; 285/285 tests passing"
 progress:
   total_phases: 15
   completed_phases: 7
-  total_plans: 53
-  completed_plans: 52
+  total_plans: 54
+  completed_plans: 53
   percent: 92
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 8 of 8 (Enhancements: Grants.gov Opportunity Ingestion)
-Plan: 08-06 complete (gap closure) — Phase 8 backend gaps closed; ingestion proven end-to-end
-Status: Plan 08-06 Complete (GAP CLOSURE) — Fixed the two 403-ing Grants.gov endpoints: SEARCH_ENDPOINT /search2/opportunities/search→/search2 (POST 200), DETAIL_ENDPOINT GET /opportunities/:id→POST /fetchOpportunity (200); normalizeOpportunity made tolerant of the live fetchOpportunity envelope + flat/test shapes; scheduler enriches detail with search-hit status/closeDate; re-pinned all 3 integration mocks + added a /search2 regression test (fails on the 403 path); live refreshAll fetched:3/upserted:3/failed:0 and GET list total:3 (browse/save/alerts/import/versions UAT flows now have data); recorded boot_smoke: pass and review_blockers_open: 0 in 08-GATE.md; backend 285/285 tests passing, build green
-Last activity: 2026-09-02 — Plan 08-06 (gap closure) complete: Grants.gov search+detail 403 endpoints fixed, ingestion proven live (fetched:3/upserted:3, list total:3), regression test pins /search2, gate verdicts recorded; 285/285 tests passing
+Plan: 08-07 complete (gap closure, uat/5) — import visibility fixed; imported opps now surfaced to the applicant
+Status: Plan 08-07 Complete (GAP CLOSURE uat/5) — Made a successful Grants.gov import observable: new authenticated GET /external-opportunities/imported read endpoint (importService.listImportedOpportunities over opportunities WHERE source='grants_gov_import' AND status='imported', ordered before the /:id catch-all); WorkspaceListPage reads router state importedFromGrantsGov via useLocation → dismissible success banner + 'Imported from Grants.gov' list (reuses gf-badge--info badge); ExternalOpportunityDetailPage invalidates ['imported-opportunities'] on import success. Import write path / migration 018 / ingestion UNCHANGED. New integration tests (happy path, double-import single-item idempotency, 401) + new Playwright test (import→land on /applicant/applications→banner+badge→no-duplicate) as permanent regression assets. Backend 288/288 tests passing, backend+client builds green, e2e spec 6/6 green.
+Last activity: 2026-09-02 — Plan 08-07 (gap closure uat/5) complete: GET /external-opportunities/imported endpoint + success banner + imported-opps list with badge; e2e reproduces UAT test 5; 288/288 backend tests, e2e 6/6
 
 Progress: [█████████▒] 92%
 
@@ -103,6 +103,7 @@ Progress: [█████████▒] 92%
 | Phase 08-enhancements-grantsgov-ingestion P03 | 5 min | 5 tasks | 12 files |
 | Phase 08-enhancements-grantsgov-ingestion P05 | 8 min | 5 tasks | 6 files |
 | Phase 08 P06 | 7 min | 3 tasks | 6 files |
+| Phase 08-enhancements-grantsgov-ingestion P07 | 6 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -218,6 +219,7 @@ Recent decisions affecting current work:
 - [Phase 08-enhancements-grantsgov-ingestion / 08-03]: Detail-page import is an in-page confirmation modal (plan Task 3), replacing 08-02's forward-reference navigate to an unbuilt /import route; attribution ('Imported from Grants.gov') surfaced via existing SELECT o.* opportunity reads by adding source to searchService
 - [Phase 08-enhancements-grantsgov-ingestion]: Plan 08-05: external opportunity detail response now carries versions[] inline alongside source attribution; ingestion audit trail (EXTERNAL_OPPORTUNITY_IMPORTED/REFRESHED with NULL actor, SAVED with user actor); version-history accordion + snapshot JSON modal; attribution regression suite. Backend 284/284, client build green.
 - [Phase 08]: 08-06 gap closure: Grants.gov SEARCH_ENDPOINT corrected to /search2 and DETAIL_ENDPOINT to POST /fetchOpportunity (both prior paths 403); normalizeOpportunity made tolerant of the live fetchOpportunity envelope + flat/test shapes; scheduler enriches detail with search-hit status/closeDate; regression test pins POST /search2 and rejects the 403 suffix; live ingestion proven fetched:3/upserted:3/list total:3; boot_smoke=pass, review_blockers_open=0 recorded in GATE.md
+- [Phase 08-enhancements-grantsgov-ingestion]: 08-07 gap closure (uat/5): kept import redirect on /applicant/applications and made the import observable via a new authenticated GET /external-opportunities/imported read endpoint + a useLocation success banner + imported-opportunities list reusing the 'Imported from Grants.gov' badge; import write path/migration 018/ingestion unchanged; new integration (288/288) + e2e (6/6) regression assets
 
 ### Pending Todos
 
@@ -229,6 +231,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-02T12:17:54.329Z
-Stopped at: Completed 08-enhancements-grantsgov-ingestion-06-PLAN.md
+Last session: 2026-09-02T13:18:16.556Z
+Stopped at: Completed 08-enhancements-grantsgov-ingestion-07-PLAN.md
 Resume file: None
