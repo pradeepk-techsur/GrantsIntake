@@ -73,3 +73,9 @@ export interface AlertsResponse {
 export interface VersionsResponse {
   versions: ExternalOpportunityVersion[];
 }
+
+export interface ImportOpportunityResponse {
+  opportunity_id: string;
+  workspace_url: string;
+  already_imported: boolean;
+}

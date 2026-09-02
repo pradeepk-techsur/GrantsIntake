@@ -6,6 +6,7 @@ import type {
   SavedListResponse,
   AlertsResponse,
   VersionsResponse,
+  ImportOpportunityResponse,
 } from '../types/externalOpportunity';
 
 /**
@@ -42,5 +43,10 @@ export const externalOpportunitiesApi = {
   markAlertRead: (alertId: string) =>
     apiClient.put<{ ok: boolean }>(
       `/external-opportunities/alerts/${alertId}/read`,
+    ),
+
+  importOpportunity: (id: string) =>
+    apiClient.post<ImportOpportunityResponse>(
+      `/external-opportunities/${id}/import`,
     ),
 };

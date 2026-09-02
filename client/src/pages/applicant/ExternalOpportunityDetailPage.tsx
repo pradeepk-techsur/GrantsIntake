@@ -34,6 +34,9 @@ export function ExternalOpportunityDetailPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [importConfirmOpen, setImportConfirmOpen] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState(false);
 
   const { data: opp, isLoading, isError } = useQuery({
     queryKey: ['external-opportunity', id],
@@ -66,6 +69,29 @@ export function ExternalOpportunityDetailPage() {
       queryClient.invalidateQueries({
         queryKey: ['external-opportunities', 'saved'],
       });
+    },
+  });
+
+  const importMutation = useMutation({
+    mutationFn: () =>
+      externalOpportunitiesApi.importOpportunity(id).then((r) => r.data),
+    onSuccess: () => {
+      setImportConfirmOpen(false);
+      setImportError(null);
+      setImportSuccess(true);
+      // Refresh the applicant's workspace/opportunity views, then route to the
+      // applications dashboard where the imported opportunity now lives.
+      queryClient.invalidateQueries({ queryKey: ['my-workspaces'] });
+      setTimeout(() => {
+        navigate('/applicant/applications', {
+          state: { importedFromGrantsGov: true },
+        });
+      }, 1200);
+    },
+    onError: () => {
+      setImportError(
+        'Import failed. Please try again or contact support if the problem persists.',
+      );
     },
   });
 
@@ -263,21 +289,115 @@ export function ExternalOpportunityDetailPage() {
           type="button"
           className="gf-btn gf-btn--primary"
           data-testid="import-to-workspace"
-          onClick={() =>
-            navigate(`/applicant/grants-gov/${opp.id}/import`, {
-              state: {
-                title: opp.title,
-                agency: opp.agency,
-                source_opportunity_number: opp.source_opportunity_number,
-                source_url: opp.source_url,
-                application_package_url: opp.application_package_url,
-              },
-            })
-          }
+          disabled={!accessToken || importSuccess}
+          onClick={() => {
+            setImportError(null);
+            setImportConfirmOpen(true);
+          }}
         >
           Import to Workspace
         </button>
       </div>
+
+      {/* ── Import success alert ───────────────────────────── */}
+      {importSuccess && (
+        <div
+          className="gf-alert gf-alert--success"
+          role="status"
+          data-testid="import-success"
+          style={{ marginTop: 16 }}
+        >
+          <div>
+            <p className="gf-alert__title">Opportunity imported successfully</p>
+            <p className="gf-alert__text">
+              You can now start an application. Taking you to your applications…
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Import error alert ─────────────────────────────── */}
+      {importError && (
+        <div
+          className="gf-alert gf-alert--error"
+          role="alert"
+          data-testid="import-error"
+          style={{ marginTop: 16 }}
+        >
+          <div>
+            <p className="gf-alert__text">{importError}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Import confirmation modal ──────────────────────── */}
+      {importConfirmOpen && (
+        <div
+          className="is-visible"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="import-confirm-heading"
+          data-testid="import-confirm-modal"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              padding: '2rem',
+              maxWidth: 480,
+              width: '100%',
+              borderRadius: 4,
+            }}
+          >
+            <h2 id="import-confirm-heading" className="gf-card__title">
+              Import to GrantsIntake
+            </h2>
+            <p>
+              This will create an internal copy of this opportunity in
+              GrantsIntake. You can then start an application. Proceed?
+            </p>
+            {importError && (
+              <div
+                className="gf-alert gf-alert--error"
+                role="alert"
+                style={{ marginTop: 12 }}
+              >
+                <div>
+                  <p className="gf-alert__text">{importError}</p>
+                </div>
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+              <button
+                type="button"
+                className="gf-btn gf-btn--primary"
+                data-testid="import-confirm-submit"
+                disabled={importMutation.isPending}
+                onClick={() => importMutation.mutate()}
+              >
+                {importMutation.isPending ? 'Importing…' : 'Import opportunity'}
+              </button>
+              <button
+                type="button"
+                className="gf-btn gf-btn--ghost"
+                data-testid="import-confirm-cancel"
+                disabled={importMutation.isPending}
+                onClick={() => setImportConfirmOpen(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Source attribution footer ──────────────────────── */}
       <footer
