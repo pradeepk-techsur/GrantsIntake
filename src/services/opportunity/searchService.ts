@@ -29,6 +29,7 @@ export interface OpportunityCard {
   public_slug: string | null;
   program_id: string;
   published_at: Date | null;
+  source: string | null;
 }
 
 export interface SearchResult {
@@ -195,7 +196,8 @@ export class SearchService {
         o.application_open_date,
         o.public_slug,
         o.program_id,
-        o.published_at
+        o.published_at,
+        o.source
       FROM opportunities o
       LEFT JOIN programs p ON o.program_id = p.program_id
       LEFT JOIN grantor_organizations go ON p.grantor_org_id = go.org_id

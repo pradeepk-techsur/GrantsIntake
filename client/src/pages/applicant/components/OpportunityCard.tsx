@@ -11,6 +11,7 @@ export interface OpportunityListItem {
   application_close_date: string | null;
   status_badge: StatusBadge;
   public_slug: string | null;
+  source?: string | null;
 }
 
 function badgeClass(status: StatusBadge): string {
@@ -77,6 +78,15 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
           <span className={badgeClass(opportunity.status_badge)}>
             {badgeLabel(opportunity.status_badge)}
           </span>
+          {opportunity.source === 'grants_gov_import' && (
+            <span
+              className="gf-badge gf-badge--info"
+              data-testid="imported-badge"
+              style={{ marginLeft: 8 }}
+            >
+              Imported from Grants.gov
+            </span>
+          )}
         </div>
 
         <div className="gf-opp-card__meta">

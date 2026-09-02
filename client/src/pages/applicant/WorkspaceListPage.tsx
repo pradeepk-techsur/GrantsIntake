@@ -1,7 +1,10 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { workspaceApi } from '../../api/workspaceApi';
+import { externalOpportunitiesApi } from '../../api/externalOpportunitiesApi';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { SavedOpportunities } from '../../components/SavedOpportunities';
 import type { Workspace } from '../../types/workspace';
 
 function getGreeting(): string {
@@ -28,17 +31,31 @@ function statusBadgeClass(status: string): string {
  */
 export function WorkspaceListPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useCurrentUser();
+
+  const justImported = Boolean(
+    (location.state as { importedFromGrantsGov?: boolean } | null)
+      ?.importedFromGrantsGov,
+  );
+  const [bannerOpen, setBannerOpen] = useState(justImported);
 
   const workspacesQuery = useQuery({
     queryKey: ['my-workspaces'],
     queryFn: workspaceApi.listWorkspaces,
   });
 
+  const importedQuery = useQuery({
+    queryKey: ['imported-opportunities'],
+    queryFn: () => externalOpportunitiesApi.listImported().then((r) => r.data),
+  });
+
   const greeting = getGreeting();
   const firstName = user?.full_name?.split(' ')[0] ?? '';
   const workspaces = workspacesQuery.data ?? [];
   const submitted = workspaces.filter((w: Workspace) => w.status === 'submitted').length;
+
+  const importedItems = importedQuery.data?.items ?? [];
 
   return (
     <div>
@@ -49,6 +66,31 @@ export function WorkspaceListPage() {
         </h1>
         <p className="gf-page-subtitle">Here is what needs your attention.</p>
       </div>
+
+      {/* ── Import success banner (PRD-INTAKE-019C / uat/5) ───────── */}
+      {bannerOpen && (
+        <div
+          className="gf-alert gf-alert--success"
+          role="status"
+          data-testid="import-success-banner"
+          style={{ marginBottom: 16 }}
+        >
+          <div>
+            <p className="gf-alert__title">Opportunity imported successfully</p>
+            <p className="gf-alert__text">
+              It now appears in your imported opportunities below. You can start an application from it.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="gf-btn gf-btn--ghost gf-btn--sm"
+            data-testid="import-banner-dismiss"
+            onClick={() => setBannerOpen(false)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* ── Stat cards ───────────────────────────────────────────── */}
       <div className="gf-stat-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
@@ -156,6 +198,98 @@ export function WorkspaceListPage() {
           </div>
         )}
       </div>
+
+      {/* ── Imported from Grants.gov ──────────────────────────────── */}
+      <div className="gf-card" data-testid="imported-opportunities-section">
+        <div className="gf-card__header">
+          <h2 className="gf-card__title">Imported from Grants.gov</h2>
+        </div>
+
+        {importedQuery.isLoading && (
+          <div className="gf-loading">Loading imported opportunities…</div>
+        )}
+
+        {importedQuery.isError && (
+          <div
+            className="gf-alert gf-alert--error"
+            role="alert"
+            data-testid="imported-error"
+            style={{ margin: '16px 20px' }}
+          >
+            <p className="gf-alert__text">
+              Failed to load your imported opportunities.{' '}
+              <button
+                type="button"
+                className="gf-btn gf-btn--ghost gf-btn--sm"
+                onClick={() => importedQuery.refetch()}
+              >
+                Retry
+              </button>
+            </p>
+          </div>
+        )}
+
+        {!importedQuery.isLoading && !importedQuery.isError && importedItems.length === 0 && (
+          <div
+            style={{ padding: '24px 20px', color: 'var(--gf-muted)' }}
+            data-testid="imported-empty"
+          >
+            <p style={{ margin: 0 }}>
+              You have no imported opportunities yet. Browse{' '}
+              <Link to="/applicant/grants-gov">Grants.gov opportunities</Link> and
+              import one to start an application from it.
+            </p>
+          </div>
+        )}
+
+        {importedItems.length > 0 && (
+          <div style={{ padding: '8px 20px 20px' }}>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {importedItems.map((item) => (
+                <li
+                  key={item.opportunity_id}
+                  data-testid="imported-opportunity-card"
+                  style={{
+                    padding: '12px 0',
+                    borderBottom: '1px solid var(--gf-border, #e2e8f0)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 4,
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>{item.title}</span>
+                    <span
+                      className="gf-badge gf-badge--info"
+                      data-testid="imported-badge"
+                      style={{ marginLeft: 8 }}
+                    >
+                      Imported from Grants.gov
+                    </span>
+                  </div>
+                  <div
+                    className="gf-opp-card__meta"
+                    style={{ color: 'var(--gf-muted)', marginTop: 4 }}
+                  >
+                    {item.funder_name && <span>{item.funder_name}</span>}
+                    {item.funder_name && item.program_area && (
+                      <span style={{ margin: '0 6px' }}>·</span>
+                    )}
+                    <span>{item.program_area}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* ── Saved from Grants.gov ─────────────────────────────────── */}
+      <SavedOpportunities />
     </div>
   );
 }

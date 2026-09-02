@@ -44,6 +44,7 @@ interface OpportunityDetail {
   contact_phone?: string;
   public_slug: string | null;
   status: string;
+  source?: string | null;
   status_badge: StatusBadge;
   eligibility_rules: EligibilityRule[];
   attachment_requirements: AttachmentRequirement[];
@@ -364,6 +365,15 @@ export function OpportunityDetailPage() {
                 >
                   {STATUS_BADGE_LABELS[opportunity.status_badge]}
                 </span>
+                {opportunity.source === 'grants_gov_import' && (
+                  <span
+                    className="gf-badge gf-badge--info"
+                    data-testid="imported-badge"
+                    style={{ marginLeft: '0.5rem' }}
+                  >
+                    Imported from Grants.gov
+                  </span>
+                )}
               </div>
             </div>
 

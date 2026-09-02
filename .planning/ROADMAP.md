@@ -179,7 +179,8 @@ Plans:
 - [x] 07-01-PLAN.md — Remove Awards and Monitoring from GrantorSidebar; remove Awards from ApplicantSidebar; UI-only, no backend changes
 
 ### Phase 8: Enhancements — Grants.gov Opportunity Ingestion
-**Status**: Passed
+**Status**: Complete (2026-09-02)
+**Last Updated**: 2026-09-02T14:30:25Z
 **Goal**: Automatically ingest active funding opportunities from Grants.gov APIs, normalize and persist opportunity metadata with full source attribution and version history, allow applicants to save/track/compare/import external opportunities into internal workspaces, and deliver in-app change alerts when tracked opportunities are updated
 **Depends on**: Phase 7 (Navigation Cleanup)
 **Requirements**: PRD-INTAKE-019A, PRD-INTAKE-019B, PRD-INTAKE-019C, PRD-INTAKE-019D, PRD-INTAKE-019E
@@ -188,8 +189,8 @@ Plans:
   2. Every ingested opportunity exposes normalized metadata: title, agency, FON, assistance listing number, eligibility summary, due dates, award ceiling/floor, opportunity status, and application package reference
   3. Authenticated applicants can save, unsave, and list saved external opportunities; import an external opportunity into an internal GrantsIntake workspace pre-populated with external metadata
   4. When a tracked opportunity's due date, status, package URL, addenda, or instructions change on re-fetch, in-app change alerts are created for all users who saved that opportunity
-  5. Every external opportunity record permanently stores source attribution (source name, source URL, API reference snapshot, import timestamp) and a complete immutable version history with per-version changed-fields diff
-**Plans:** 5 plans
+   5. Every external opportunity record permanently stores source attribution (source name, source URL, API reference snapshot, import timestamp) and a complete immutable version history with per-version changed-fields diff
+**Plans:** 7 plans
 
 Plans:
 - [ ] 08-01-PLAN.md — Backend ingestion service: Grants.gov API client, normalizer, ExternalOpportunityService (upsert + versioning + alerts), ingestion scheduler (node-cron), REST API routes, integration tests (PRD-INTAKE-019A, 019B, 019E)
@@ -197,6 +198,8 @@ Plans:
 - [ ] 08-03-PLAN.md — Import external opportunity into internal workspace: import endpoint, migration 018 (external_opportunity_id FK), imported opportunity badge in UI, import audit event (PRD-INTAKE-019C)
 - [ ] 08-04-PLAN.md — Scheduled refresh & change alerts: env config, scheduler startup, change detection logic, alert delivery integration test, grantor admin manual sync UI (PRD-INTAKE-019D)
 - [ ] 08-05-PLAN.md — Source attribution, version history & audit: API contract tests (all 5 attribution fields), version history UI, audit events for ingestion/refresh/save/import actions, regression tests (PRD-INTAKE-019E)
+- [ ] 08-06-PLAN.md — Gap closure: fix Grants.gov search endpoint 403 (SEARCH_ENDPOINT → `/search2`), re-verify DETAIL_ENDPOINT, re-pin integration mocks + regression test proving ingestion returns >0 (uat/1); record boot_smoke verdict (gate/boot_smoke); record review_blockers_open count (gate/review_blockers_open)
+- [ ] 08-07-PLAN.md — Gap closure (uat/5): make the successful import visible — add authenticated GET /external-opportunities/imported read endpoint, surface a success banner + imported-opportunities list with the "Imported from Grants.gov" badge on /applicant/applications, re-prove idempotency (no duplicate) via new integration + e2e tests (PRD-INTAKE-019C)
 
 ## Progress
 
@@ -213,7 +216,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 6. Intake Queue, Screening & Analytics | 3/3 | Complete | 2026-08-02 |
 | UI: GrantFlow Design System v1.0 | 1/1 | passed | 2026-08-03 |
 | 7. Navigation Cleanup | 1/1 | Complete | 2026-08-03 |
-| 8. Enhancements — Grants.gov Ingestion | 5/5 | Passed | — |
+| 8. Enhancements — Grants.gov Ingestion | 0/7 | In progress | — |
 
 ---
 *Roadmap created: 2026-07-24*

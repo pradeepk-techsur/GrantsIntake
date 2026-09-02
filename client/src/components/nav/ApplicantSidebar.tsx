@@ -31,6 +31,17 @@ export function ApplicantSidebar() {
         </li>
         <li className="gf-sidebar__item">
           <NavLink
+            to="/applicant/grants-gov"
+            className={({ isActive }) =>
+              isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'
+            }
+            data-testid="nav-browse-grants-gov"
+          >
+            Browse Grants.gov
+          </NavLink>
+        </li>
+        <li className="gf-sidebar__item">
+          <NavLink
             to="/applicant/applications"
             className={({ isActive }) =>
               isActive ? 'gf-sidebar__link active' : 'gf-sidebar__link'

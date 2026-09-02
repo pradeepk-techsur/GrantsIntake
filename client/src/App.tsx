@@ -23,6 +23,9 @@ import { QAManagementPage } from './pages/grantor/QAManagementPage';
 import { IntakeQueuePage } from './pages/grantor/IntakeQueuePage';
 import { IntakeQueueDetailPage } from './pages/grantor/IntakeQueueDetailPage';
 import { NotificationsPage } from './pages/applicant/NotificationsPage';
+import { ExternalOpportunityBrowserPage } from './pages/applicant/ExternalOpportunityBrowserPage';
+import { ExternalOpportunityDetailPage } from './pages/applicant/ExternalOpportunityDetailPage';
+import { ChangeAlertsPage } from './pages/applicant/ChangeAlertsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +72,10 @@ function App() {
             <Route path="opportunities/:opportunityId/prescreen/result" element={<PrescreenResultPage />} />
             <Route path="opportunities/:opportunityId/qa" element={<QASubmitPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            {/* Grants.gov external opportunity browser (PRD-INTAKE-019C/019D/019E) */}
+            <Route path="grants-gov" element={<ExternalOpportunityBrowserPage />} />
+            <Route path="grants-gov/alerts" element={<ChangeAlertsPage />} />
+            <Route path="grants-gov/:id" element={<ExternalOpportunityDetailPage />} />
             <Route path="dashboard" element={<div data-testid="applicant-dashboard-placeholder"><h1>My Dashboard</h1><p>Coming soon.</p></div>} />
           </Route>
           <Route path="/grantor" element={<GrantorLayout />}>
