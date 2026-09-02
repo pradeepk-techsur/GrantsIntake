@@ -232,6 +232,32 @@ class ExternalOpportunityService {
         );
       }
 
+      // Ingestion audit trail (PRD-INTAKE-019E). Scheduler-driven, so
+      // actor_user_id is NULL. First import → EXTERNAL_OPPORTUNITY_IMPORTED;
+      // a refresh that detects changes → EXTERNAL_OPPORTUNITY_REFRESHED.
+      if (isNew) {
+        await this.writeAuditEvent(
+          client,
+          'EXTERNAL_OPPORTUNITY_IMPORTED',
+          opportunity.id,
+          {
+            source: opportunity.source,
+            source_opportunity_number: opportunity.source_opportunity_number,
+            source_url: opportunity.source_url,
+          },
+        );
+      } else if (changedFields.length > 0) {
+        await this.writeAuditEvent(
+          client,
+          'EXTERNAL_OPPORTUNITY_REFRESHED',
+          opportunity.id,
+          {
+            source_opportunity_number: opportunity.source_opportunity_number,
+            changed_fields: changedFields,
+          },
+        );
+      }
+
       await client.query('COMMIT');
       return opportunity;
     } catch (err) {
@@ -240,6 +266,26 @@ class ExternalOpportunityService {
     } finally {
       client.release();
     }
+  }
+
+  /**
+   * Append an immutable audit_events row for an ingestion action
+   * (PRD-INTAKE-019E). entity_type is always 'external_opportunity';
+   * actor_user_id is NULL for scheduler-driven events and set to the acting
+   * user for user-driven events (e.g. save).
+   */
+  private async writeAuditEvent(
+    client: PoolClient,
+    eventType: string,
+    externalOpportunityId: string,
+    payload: Record<string, unknown>,
+    actorUserId: string | null = null,
+  ): Promise<void> {
+    await client.query(
+      `INSERT INTO audit_events (event_type, actor_user_id, entity_type, entity_id, payload)
+       VALUES ($1, $2, 'external_opportunity', $3, $4::jsonb)`,
+      [eventType, actorUserId, externalOpportunityId, JSON.stringify(payload)],
+    );
   }
 
   private async writeVersion(
@@ -311,17 +357,42 @@ class ExternalOpportunityService {
     }
   }
 
-  /** Save/track an opportunity for a user (PRD-INTAKE-019C). Idempotent. */
+  /**
+   * Save/track an opportunity for a user (PRD-INTAKE-019C). Idempotent — a
+   * re-save is a no-op and does not emit a duplicate audit event. Emits an
+   * EXTERNAL_OPPORTUNITY_SAVED audit event on first save (PRD-INTAKE-019E).
+   */
   async saveOpportunity(
     userId: string,
     externalOpportunityId: string,
   ): Promise<void> {
-    await pool.query(
-      `INSERT INTO saved_external_opportunities (user_id, external_opportunity_id)
-       VALUES ($1, $2)
-       ON CONFLICT (user_id, external_opportunity_id) DO NOTHING`,
-      [userId, externalOpportunityId],
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const inserted = await client.query(
+        `INSERT INTO saved_external_opportunities (user_id, external_opportunity_id)
+         VALUES ($1, $2)
+         ON CONFLICT (user_id, external_opportunity_id) DO NOTHING
+         RETURNING id`,
+        [userId, externalOpportunityId],
+      );
+      // Only audit a genuinely new save (ON CONFLICT returns no rows on re-save).
+      if (inserted.rows.length > 0) {
+        await this.writeAuditEvent(
+          client,
+          'EXTERNAL_OPPORTUNITY_SAVED',
+          externalOpportunityId,
+          { external_opportunity_id: externalOpportunityId },
+          userId,
+        );
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 
   async unsaveOpportunity(
@@ -421,6 +492,21 @@ class ExternalOpportunityService {
       [id],
     );
     return res.rows[0] ? rowToOpportunity(res.rows[0]) : null;
+  }
+
+  /**
+   * Fetch a single opportunity together with its full version history, for the
+   * source-attribution API contract (PRD-INTAKE-019E). The detail response
+   * always carries a `versions` array so consumers get attribution + history in
+   * one request.
+   */
+  async getOpportunityDetail(
+    id: string,
+  ): Promise<(ExternalOpportunity & { versions: ExternalOpportunityVersion[] }) | null> {
+    const opp = await this.getOpportunityById(id);
+    if (!opp) return null;
+    const versions = await this.getVersionHistory(id);
+    return { ...opp, versions };
   }
 
   async getVersionHistory(
