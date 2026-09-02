@@ -2,16 +2,15 @@
 pivota_spec_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 08-enhancements-grantsgov-ingestion-07-PLAN.md
-last_updated: "2026-09-02T13:18:16.558Z"
-last_activity: "2026-09-02 — Plan 08-06 (gap closure) complete: Grants.gov search+detail 403 endpoints fixed, ingestion proven live (fetched:3/upserted:3, list total:3), regression test pins /search2, gate verdicts recorded; 285/285 tests passing"
+status: planning
+last_updated: "2026-09-02T14:30:39.774Z"
+last_activity: "2026-09-02 — Phase 8 complete"
 progress:
   total_phases: 15
   completed_phases: 7
   total_plans: 54
   completed_plans: 53
-  percent: 92
+  percent: 47
 ---
 
 # Project State
