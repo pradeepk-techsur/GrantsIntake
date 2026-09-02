@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { GrantsGovSyncCard } from '../../components/grantor/GrantsGovSyncCard';
 
 function hasRole(roles: string[], ...check: string[]): boolean {
   return roles.some((r) => check.includes(r));
@@ -31,6 +32,7 @@ export function Dashboard() {
 
   const allRoles = grantor_memberships.flatMap((m) => m.roles);
   const isProgramOfficerOrAdmin = hasRole(allRoles, 'grantor_admin', 'program_officer');
+  const isGrantorAdmin = hasRole(allRoles, 'grantor_admin');
   const isIntakeAdmin = hasRole(allRoles, 'intake_administrator');
   const greeting = getGreeting();
 
@@ -124,6 +126,9 @@ export function Dashboard() {
             </table>
           </div>
         </div>
+
+        {/* ── Grants.gov sync (grantor_admin only) ────────────────── */}
+        {isGrantorAdmin && <GrantsGovSyncCard />}
       </div>
     );
   }
