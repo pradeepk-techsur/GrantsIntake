@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Platform Foundation & Opportunity Setup
-**Status**: passed
+**Status**: Complete (2026-07-25)
 **Goal**: Grantors can authenticate, access a role-appropriate portal, and create well-structured, validated funding opportunities from templates
 **Depends on**: Nothing (first phase)
 **Requirements**: US-1.0, PRD-INTAKE-001, PRD-INTAKE-002, PRD-INTAKE-003, PRD-INTAKE-005, PRD-INTAKE-006, PRD-INTAKE-007
@@ -45,7 +45,7 @@ Plans:
 - [ ] 01-06-PLAN.md — Gap closure: make funding_amount_max optional in createOpportunitySchema, remove funding_amount_max: 0 from TemplateLibrary payload, surface create errors via USWDS alert (fixes silent "Create Opportunity" failure — unblocks UAT Tests 3–7)
 
 ### Phase 2: Eligibility & Intake Rules Configuration
-**Status**: passed
+**Status**: Complete (2026-07-25)
 **Completed**: 2026-07-25
 **Goal**: Grantors can define enforceable eligibility rules, configure pre-screening questionnaires, set attachment requirements and administrative screening criteria, and publish opportunities to an applicant-facing portal with search and discovery
 **Depends on**: Phase 1
@@ -66,7 +66,7 @@ Plans:
 - [ ] 02-05-PLAN.md — Gap closure: add UUID format guard to public opportunity detail route so slug-based URLs (e.g., /opportunities/my-grant-abc123) resolve correctly instead of returning 500 INTERNAL_ERROR
 
 ### Phase 3: Organization Profile & Eligibility Pre-Screening
-**Status**: passed
+**Status**: Complete (2026-07-28)
 **Goal**: Applicants can create a reusable organization profile with credentials and team roles, and run an eligibility pre-screen to get a clear, explained determination before investing effort in an application
 **Depends on**: Phase 2
 **Requirements**: PRD-INTAKE-019, PRD-INTAKE-020, PRD-INTAKE-021, PRD-INTAKE-022, PRD-INTAKE-023, PRD-INTAKE-024, PRD-INTAKE-025, PRD-INTAKE-026, PRD-INTAKE-027, PRD-INTAKE-029
@@ -86,7 +86,7 @@ Plans:
 - [ ] 03-05-PLAN.md — Gap closure: add GET /prescreening/my-result endpoint + prescreeningApi.getMyResult(); update PrescreenResultPage to fetch stored result on mount when location.state is null; fix PrescreenPage 409 handler to navigate to result page instead of dead-end error; fixes UAT Test 9 (PRD-INTAKE-026, PRD-INTAKE-027)
 
 ### Phase 4: Application Workspace & Form Capture
-**Status**: completed (2026-07-31)
+**Status**: Complete (2026-07-31)
 **Last Updated**: 2026-07-31T01:52:49Z
 **Completed**: 2026-07-27
 **Goal**: Applicants have a collaborative, structured workspace for building their application — with configurable forms, a structured budget builder, attachment management, and a readiness dashboard — all kept grantee-private until submission
@@ -116,7 +116,7 @@ Plans:
 - [x] 04-13-PLAN.md — Gap closure (UAT Tests 3+5+8): WorkspacePage fetch opportunity title (not UUID), overflow:hidden on content column, AttachmentManager overflow-x:auto table wrapper, ReadinessDashboard loading state fix
 
 ### Phase 5: Q&A, Submission & Validation
-**Status**: passed
+**Status**: Complete (2026-08-01)
 **Goal**: Grantors can manage public Q&A and addenda with an auditable history; applicants experience continuous validation during drafting and can submit a fully certified, immutable application that is locked post-submission
 **Depends on**: Phase 4
 **Requirements**: PRD-INTAKE-044, PRD-INTAKE-045, PRD-INTAKE-047, PRD-INTAKE-048, PRD-INTAKE-049, PRD-INTAKE-050, PRD-INTAKE-051, PRD-INTAKE-052, PRD-INTAKE-053, PRD-INTAKE-054, PRD-INTAKE-055
@@ -143,7 +143,7 @@ Plans:
 - [ ] 05-12-PLAN.md — Gap closure (UAT Test 6): Add mock-based Playwright test to workspaceSubmission.spec.ts asserting all form inputs carry disabled attribute when workspace.is_locked=true; proves isLocked prop threading from 05-10 (WorkspacePage → SectionFormPanel → FormFieldRenderer)
 
 ### Phase 6: Intake Queue, Screening & Analytics
-**Status**: passed
+**Status**: Complete (2026-08-02)
 **Goal**: Grantor intake administrators have a structured queue for receiving, triaging, and routing applications; both grantors and applicants have dashboards and export capabilities to monitor intake status and generate audit-ready reports
 **Depends on**: Phase 5
 **Requirements**: PRD-INTAKE-056, PRD-INTAKE-057, PRD-INTAKE-058, PRD-INTAKE-059, PRD-INTAKE-060, PRD-INTAKE-061, PRD-INTAKE-062, PRD-INTAKE-063, PRD-INTAKE-064
@@ -161,7 +161,7 @@ Plans:
 - [ ] 06-03-PLAN.md — Review handoff auto-creation on accepted_for_review (PRD-INTAKE-061); grantor intake analytics dashboard with /intake-analytics endpoint + 3 analytics cards in Dashboard.tsx (PRD-INTAKE-062); ApplicantDashboard page + route + sidebar wiring (PRD-INTAKE-063); synchronous CSV export via /intake-queue/export + Export button (PRD-INTAKE-064)
 
 ### Phase 7: Navigation Cleanup
-**Status**: executing
+**Status**: In progress
 **Completed**: 2026-08-03
 **Goal**: Remove post-award navigation items (Awards, Monitoring) that are outside the intake module scope, and correct a mislabeled nav item in the applicant portal
 **Depends on**: UI: GrantFlow Design System v1.0
@@ -183,14 +183,14 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans | Status | Completed |
 |-------|-------|--------|-----------|
-| 1. Platform Foundation & Opportunity Setup | 6/6 | passed | 2026-07-25 |
-| 2. Eligibility & Intake Rules Configuration | 5/5 | passed | 2026-07-25 |
-| 3. Organization Profile & Eligibility Pre-Screening | 5/5 | passed | 2026-07-28 |
-| 4. Application Workspace & Form Capture | 13/13 | passed | 2026-07-31 |
-| 5. Q&A, Submission & Validation | 12/12 | passed | 2026-08-01 |
-| 6. Intake Queue, Screening & Analytics | 3/3 | passed | 2026-08-02 |
+| 1. Platform Foundation & Opportunity Setup | 6/6 | Complete | 2026-07-25 |
+| 2. Eligibility & Intake Rules Configuration | 5/5 | Complete | 2026-07-25 |
+| 3. Organization Profile & Eligibility Pre-Screening | 5/5 | Complete | 2026-07-28 |
+| 4. Application Workspace & Form Capture | 13/13 | Complete | 2026-07-31 |
+| 5. Q&A, Submission & Validation | 12/12 | Complete | 2026-08-01 |
+| 6. Intake Queue, Screening & Analytics | 3/3 | Complete | 2026-08-02 |
 | UI: GrantFlow Design System v1.0 | 1/1 | passed | 2026-08-03 |
-| 7. Navigation Cleanup | 1/1 | passed | 2026-08-03 |
+| 7. Navigation Cleanup | 1/1 | In progress | 2026-08-03 |
 
 ---
 *Roadmap created: 2026-07-24*
