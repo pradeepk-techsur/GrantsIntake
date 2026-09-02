@@ -58,6 +58,23 @@ externalOpportunitiesRouter.get(
   },
 );
 
+// ─── List imported internal opportunities (authenticated, PRD-INTAKE-019C) ──
+// GET /external-opportunities/imported — MUST precede /:id so the literal
+// `/imported` segment is not swallowed by the `:id` catch-all.
+externalOpportunitiesRouter.get(
+  '/external-opportunities/imported',
+  authenticate,
+  async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const items =
+        await externalOpportunityImportService.listImportedOpportunities();
+      res.json({ items });
+    } catch {
+      res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  },
+);
+
 // ─── Change alerts (authenticated) — MUST precede /:id ──────────────────────
 externalOpportunitiesRouter.get(
   '/external-opportunities/alerts',

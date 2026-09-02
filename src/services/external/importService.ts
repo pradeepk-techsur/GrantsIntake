@@ -17,6 +17,53 @@ export interface ImportResult {
   already_imported: boolean;
 }
 
+export interface ImportedOpportunityListItem {
+  opportunity_id: string;
+  title: string;
+  funder_name: string | null;
+  program_area: string;
+  max_award_amount: number | null;
+  application_close_date: string | null;
+  status_badge: 'open' | 'closing_soon' | 'closed' | 'not_yet_open';
+  source: 'grants_gov_import';
+  import_timestamp: string | null;
+}
+
+/** Normalize a pg DATE/TIMESTAMPTZ value to a YYYY-MM-DD string (or null). */
+function formatDate(value: unknown): string | null {
+  if (!value) return null;
+  const d = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 10);
+}
+
+/** Normalize a pg TIMESTAMPTZ value to an ISO string (or null). */
+function formatTimestamp(value: unknown): string | null {
+  if (!value) return null;
+  const d = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+/**
+ * Derive a coarse status badge from the application close date, matching the
+ * rules the applicant OpportunityCard expects: no date → open; past → closed;
+ * within 7 days → closing_soon; otherwise → open.
+ */
+function deriveStatusBadge(
+  closeDate: string | null,
+): ImportedOpportunityListItem['status_badge'] {
+  if (!closeDate) return 'open';
+  const close = new Date(closeDate);
+  if (Number.isNaN(close.getTime())) return 'open';
+  const now = new Date();
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const daysUntil = Math.floor((close.getTime() - now.getTime()) / msPerDay);
+  if (daysUntil < 0) return 'closed';
+  if (daysUntil <= 7) return 'closing_soon';
+  return 'open';
+}
+
 export class ExternalOpportunityImportService {
   /**
    * Import a Grants.gov external opportunity into the internal workspace system.
@@ -99,6 +146,60 @@ export class ExternalOpportunityImportService {
     } finally {
       client.release();
     }
+  }
+
+  /**
+   * List the internal opportunities created by the Grants.gov import flow
+   * (source='grants_gov_import', status='imported'). Read-only surface for the
+   * applicant portal so a freshly imported opportunity is visible after the
+   * redirect to /applicant/applications (PRD-INTAKE-019C). Imports live under
+   * the shared system "Grants.gov Imports" org and are not per-applicant
+   * scoped, so all imported opportunities are returned.
+   */
+  async listImportedOpportunities(): Promise<ImportedOpportunityListItem[]> {
+    const result = await pool.query<{
+      opportunity_id: string;
+      title: string;
+      funder_name: string | null;
+      program_area: string;
+      max_award_amount: string | number | null;
+      application_close_date: Date | string | null;
+      source: string;
+      import_timestamp: Date | string | null;
+    }>(
+      `SELECT o.opportunity_id,
+              o.title,
+              go.org_name              AS funder_name,
+              o.program_area,
+              o.funding_amount_max     AS max_award_amount,
+              o.application_close_date,
+              o.source,
+              o.created_at             AS import_timestamp
+         FROM opportunities o
+         LEFT JOIN programs p ON o.program_id = p.program_id
+         LEFT JOIN grantor_organizations go ON p.grantor_org_id = go.org_id
+        WHERE o.source = $1 AND o.status = $2
+        ORDER BY o.created_at DESC`,
+      [IMPORT_SOURCE, IMPORT_STATUS],
+    );
+
+    return result.rows.map((row) => {
+      const closeDate = formatDate(row.application_close_date);
+      return {
+        opportunity_id: row.opportunity_id,
+        title: row.title,
+        funder_name: row.funder_name ?? null,
+        program_area: row.program_area,
+        max_award_amount:
+          row.max_award_amount === null || row.max_award_amount === undefined
+            ? null
+            : Number(row.max_award_amount),
+        application_close_date: closeDate,
+        status_badge: deriveStatusBadge(closeDate),
+        source: 'grants_gov_import',
+        import_timestamp: formatTimestamp(row.import_timestamp),
+      };
+    });
   }
 
   /** Find or create the system org that hosts imported opportunities. */
