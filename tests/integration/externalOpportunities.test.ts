@@ -327,4 +327,78 @@ describe('External Opportunities (Grants.gov ingestion)', () => {
     expect(res.status).toBe(200);
     expect(res.body.versions.length).toBeGreaterThanOrEqual(1);
   });
+
+  // ─── PRD-INTAKE-019C: import external opportunity into internal workspace ──
+  it('PRD-INTAKE-019C: import creates an internal opportunity with mapped fields', async () => {
+    vi.stubGlobal('fetch', makeMockFetch(detailV1));
+    await ingestionScheduler.refreshAll();
+    const opp = await externalOpportunityService.listOpportunities({});
+    const target = opp.items.find(
+      (o) => o.source_opportunity_number === 'TEST-FON-001',
+    )!;
+
+    // Unauthenticated import is rejected.
+    const anon = await request(app).post(
+      `/api/v1/external-opportunities/${target.id}/import`,
+    );
+    expect(anon.status).toBe(401);
+
+    // Applicant imports the opportunity.
+    const importRes = await request(app)
+      .post(`/api/v1/external-opportunities/${target.id}/import`)
+      .set('Authorization', `Bearer ${applicantToken}`);
+    expect(importRes.status).toBe(201);
+    expect(importRes.body.opportunity_id).toBeTruthy();
+    expect(importRes.body.workspace_url).toContain(importRes.body.opportunity_id);
+    expect(importRes.body.already_imported).toBe(false);
+
+    const internalId = importRes.body.opportunity_id as string;
+
+    // Internal opportunity is pre-populated from the external source.
+    const internal = await pool.query(
+      `SELECT title, opportunity_number, funding_amount_max, funding_amount_min,
+              eligibility_summary, application_close_date, source, external_opportunity_id, status
+         FROM opportunities WHERE opportunity_id = $1`,
+      [internalId],
+    );
+    expect(internal.rows.length).toBe(1);
+    const row = internal.rows[0];
+    expect(row.title).toBe('Community Health Innovation Grant');
+    expect(row.opportunity_number).toBe('TEST-FON-001');
+    expect(Number(row.funding_amount_max)).toBe(500000);
+    expect(Number(row.funding_amount_min)).toBe(50000);
+    expect(row.eligibility_summary).toContain('Nonprofits');
+    expect(row.application_close_date).toBeTruthy();
+    expect(row.source).toBe('grants_gov_import');
+    expect(row.external_opportunity_id).toBe(target.id);
+    expect(row.status).toBe('imported');
+
+    // OPPORTUNITY_IMPORTED audit event was emitted.
+    const audit = await pool.query(
+      `SELECT payload FROM audit_events
+        WHERE event_type = 'OPPORTUNITY_IMPORTED' AND entity_id = $1`,
+      [internalId],
+    );
+    expect(audit.rows.length).toBe(1);
+    expect(audit.rows[0].payload.source_opportunity_number).toBe('TEST-FON-001');
+
+    // Re-import is idempotent: returns the same internal record (200).
+    const reimport = await request(app)
+      .post(`/api/v1/external-opportunities/${target.id}/import`)
+      .set('Authorization', `Bearer ${applicantToken}`);
+    expect(reimport.status).toBe(200);
+    expect(reimport.body.opportunity_id).toBe(internalId);
+    expect(reimport.body.already_imported).toBe(true);
+
+    // Cleanup this test's internal artifacts.
+    await pool.query('ALTER TABLE audit_events DISABLE TRIGGER audit_events_immutable');
+    await pool.query(`DELETE FROM audit_events WHERE entity_id = $1`, [internalId]);
+    await pool.query('ALTER TABLE audit_events ENABLE TRIGGER audit_events_immutable');
+    await pool.query(`DELETE FROM opportunities WHERE opportunity_id = $1`, [internalId]);
+    await pool.query(
+      `DELETE FROM programs WHERE grantor_org_id IN
+         (SELECT org_id FROM grantor_organizations WHERE org_name = 'Grants.gov Imports')`,
+    );
+    await pool.query(`DELETE FROM grantor_organizations WHERE org_name = 'Grants.gov Imports'`);
+  });
 });
