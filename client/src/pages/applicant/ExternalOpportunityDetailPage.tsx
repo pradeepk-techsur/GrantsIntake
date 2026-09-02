@@ -34,6 +34,8 @@ export function ExternalOpportunityDetailPage() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [snapshotVersion, setSnapshotVersion] =
+    useState<ExternalOpportunityVersion | null>(null);
   const [importConfirmOpen, setImportConfirmOpen] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState(false);
@@ -43,13 +45,6 @@ export function ExternalOpportunityDetailPage() {
     queryFn: () =>
       externalOpportunitiesApi.getExternalOpportunity(id).then((r) => r.data),
     enabled: !!id,
-  });
-
-  const { data: versionsData } = useQuery({
-    queryKey: ['external-opportunity', id, 'versions'],
-    queryFn: () =>
-      externalOpportunitiesApi.getVersionHistory(id).then((r) => r.data),
-    enabled: !!id && versionsOpen,
   });
 
   const { data: savedData } = useQuery({
@@ -119,7 +114,9 @@ export function ExternalOpportunityDetailPage() {
     );
   }
 
-  const versions: ExternalOpportunityVersion[] = versionsData?.versions ?? [];
+  // Version history now ships with the detail response (PRD-INTAKE-019E source
+  // attribution contract), ordered ascending by version_number.
+  const versions: ExternalOpportunityVersion[] = opp.versions ?? [];
 
   return (
     <div style={{ padding: 24, maxWidth: 900 }}>
@@ -217,45 +214,115 @@ export function ExternalOpportunityDetailPage() {
         </div>
       )}
 
-      {/* ── Version history accordion ──────────────────────── */}
-      <section style={{ margin: '24px 0' }}>
+      {/* ── Version history accordion (PRD-INTAKE-019E) ────── */}
+      <section
+        className="gf-accordion"
+        data-testid="version-history-accordion"
+        style={{
+          margin: '24px 0',
+          border: '1px solid var(--gf-border, #e2e8f0)',
+          borderRadius: 4,
+        }}
+      >
         <button
           type="button"
-          className="gf-btn gf-btn--ghost"
+          className="gf-accordion__header"
           aria-expanded={versionsOpen}
+          aria-controls="version-history-panel"
           data-testid="version-history-toggle"
           onClick={() => setVersionsOpen((o) => !o)}
+          style={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 16px',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            font: 'inherit',
+            fontWeight: 600,
+            textAlign: 'left',
+          }}
         >
-          {versionsOpen ? '▾' : '▸'} Version history
+          <span>
+            Version History ({versions.length}{' '}
+            {versions.length === 1 ? 'version' : 'versions'})
+          </span>
+          <span aria-hidden="true">{versionsOpen ? '▾' : '▸'}</span>
         </button>
 
         {versionsOpen && (
-          <div data-testid="version-history-panel" style={{ marginTop: 12 }}>
+          <div
+            id="version-history-panel"
+            data-testid="version-history-panel"
+            style={{
+              padding: '0 16px 16px',
+              borderTop: '1px solid var(--gf-border, #e2e8f0)',
+            }}
+          >
             {versions.length === 0 ? (
-              <p className="gf-text-muted">No version history available.</p>
+              <p className="gf-text-muted" style={{ marginTop: 12 }}>
+                No version history available.
+              </p>
             ) : (
-              <ul style={{ listStyle: 'none', padding: 0 }}>
+              <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 0' }}>
                 {versions.map((v) => (
                   <li
                     key={v.id}
                     data-testid="version-history-item"
                     style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: 10,
                       borderLeft: '3px solid var(--gf-primary, #005EA6)',
-                      paddingLeft: 12,
-                      marginBottom: 12,
+                      padding: '8px 0 8px 12px',
+                      marginBottom: 8,
                     }}
                   >
-                    <strong>Version {v.version_number}</strong> ·{' '}
+                    <strong style={{ minWidth: 36 }}>
+                      V{v.version_number}
+                    </strong>
                     <span className="gf-text-muted">
                       {formatTimestamp(v.fetched_at)}
                     </span>
-                    <div style={{ fontSize: '0.9rem' }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        flexWrap: 'wrap',
+                        gap: 6,
+                      }}
+                    >
                       {v.changed_fields.length > 0 ? (
-                        <>Changed: {v.changed_fields.join(', ')}</>
+                        v.changed_fields.map((f) => (
+                          <span
+                            key={f}
+                            className="gf-badge gf-badge--info"
+                            data-testid="version-changed-field"
+                          >
+                            {f}
+                          </span>
+                        ))
                       ) : (
-                        <>Initial import</>
+                        <span className="gf-badge gf-badge--neutral">
+                          Initial import
+                        </span>
                       )}
-                    </div>
+                    </span>
+                    <button
+                      type="button"
+                      className="gf-btn gf-btn--ghost"
+                      data-testid="view-snapshot"
+                      style={{
+                        marginLeft: 'auto',
+                        padding: '2px 8px',
+                        fontSize: '0.85rem',
+                      }}
+                      onClick={() => setSnapshotVersion(v)}
+                    >
+                      View snapshot
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -263,6 +330,77 @@ export function ExternalOpportunityDetailPage() {
           </div>
         )}
       </section>
+
+      {/* ── Version snapshot modal ─────────────────────────── */}
+      {snapshotVersion && (
+        <div
+          className="is-visible"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="snapshot-heading"
+          data-testid="snapshot-modal"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setSnapshotVersion(null)}
+        >
+          <div
+            style={{
+              background: 'white',
+              padding: '1.5rem',
+              maxWidth: 720,
+              width: '90%',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              borderRadius: 4,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h2 id="snapshot-heading" className="gf-card__title">
+                Version {snapshotVersion.version_number} snapshot
+              </h2>
+              <button
+                type="button"
+                className="gf-btn gf-btn--ghost"
+                data-testid="snapshot-close"
+                onClick={() => setSnapshotVersion(null)}
+              >
+                Close
+              </button>
+            </div>
+            <p className="gf-text-muted" style={{ marginTop: 0 }}>
+              Fetched {formatTimestamp(snapshotVersion.fetched_at)}
+            </p>
+            <pre
+              data-testid="snapshot-json"
+              style={{
+                background: '#F7F9FC',
+                border: '1px solid var(--gf-border, #e2e8f0)',
+                borderRadius: 4,
+                padding: 16,
+                overflow: 'auto',
+                fontSize: '0.8rem',
+                lineHeight: 1.5,
+              }}
+            >
+              {JSON.stringify(snapshotVersion.snapshot, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )}
 
       {/* ── Action bar ─────────────────────────────────────── */}
       <div
