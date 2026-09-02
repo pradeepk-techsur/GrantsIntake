@@ -197,6 +197,7 @@ Plans:
 - [ ] 08-03-PLAN.md — Import external opportunity into internal workspace: import endpoint, migration 018 (external_opportunity_id FK), imported opportunity badge in UI, import audit event (PRD-INTAKE-019C)
 - [ ] 08-04-PLAN.md — Scheduled refresh & change alerts: env config, scheduler startup, change detection logic, alert delivery integration test, grantor admin manual sync UI (PRD-INTAKE-019D)
 - [ ] 08-05-PLAN.md — Source attribution, version history & audit: API contract tests (all 5 attribution fields), version history UI, audit events for ingestion/refresh/save/import actions, regression tests (PRD-INTAKE-019E)
+- [ ] 08-06-PLAN.md — Gap closure: fix Grants.gov search endpoint 403 (SEARCH_ENDPOINT → `/search2`), re-verify DETAIL_ENDPOINT, re-pin integration mocks + regression test proving ingestion returns >0 (uat/1); record boot_smoke verdict (gate/boot_smoke); record review_blockers_open count (gate/review_blockers_open)
 
 ## Progress
 
