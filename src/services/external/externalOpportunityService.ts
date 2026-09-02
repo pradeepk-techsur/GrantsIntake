@@ -24,12 +24,49 @@ const TRACKED_FIELDS: (keyof NormalizedOpportunity)[] = [
 ];
 
 // Map a changed field to the change_alert type it should raise (PRD-INTAKE-019D).
+// The two raw_metadata-derived pseudo-fields (addenda, instructions) are diffed
+// separately in computeChangedFields but share this alert-type mapping.
 const FIELD_TO_ALERT_TYPE: Record<string, string> = {
   due_date: 'due_date_change',
   opportunity_status: 'status_change',
   application_package_url: 'package_change',
-  eligibility_summary: 'instructions_change',
+  synopsis_addendum: 'addenda_change',
+  package_instructions: 'instructions_change',
 };
+
+// Extract the synopsis addendum text held in raw_metadata (PRD-INTAKE-019D).
+function extractAddendum(meta: Record<string, unknown> | undefined): string {
+  if (!meta) return '';
+  const value = meta.synopsisAddendum;
+  return typeof value === 'string' ? value : '';
+}
+
+// Extract a stable, comparable representation of package instructions.
+function extractInstructions(meta: Record<string, unknown> | undefined): string {
+  if (!meta) return '';
+  const value = meta.packageInstructions;
+  if (Array.isArray(value)) {
+    return value.map((v) => (typeof v === 'string' ? v : '')).join('\u0000');
+  }
+  if (typeof value === 'string') return value;
+  return '';
+}
+
+// Resolve the human-readable value for a changed field, handling both
+// top-level columns and the raw_metadata-derived pseudo-fields.
+function resolveFieldValue(record: ExternalOpportunity, field: string): string {
+  const rec = record as unknown as Record<string, unknown>;
+  if (field === 'synopsis_addendum') {
+    return extractAddendum(record.raw_metadata);
+  }
+  if (field === 'package_instructions') {
+    return extractInstructions(record.raw_metadata);
+  }
+  if (field === 'due_date') {
+    return formatDbDate(rec[field]) ?? '';
+  }
+  return String(rec[field] ?? '');
+}
 
 // pg returns DATE columns as JS Date objects; format to ISO YYYY-MM-DD (UTC).
 function formatDbDate(value: unknown): string | null {
@@ -89,6 +126,19 @@ function computeChangedFields(
       changed.push(field);
     }
   }
+
+  // raw_metadata-derived diffs (PRD-INTAKE-019D):
+  //  - synopsis addendum → synopsis_addendum → addenda_change
+  //  - package instructions → package_instructions → instructions_change
+  const priorMeta = prior.raw_metadata;
+  const nextMeta = next.raw_metadata;
+  if (extractAddendum(priorMeta) !== extractAddendum(nextMeta)) {
+    changed.push('synopsis_addendum');
+  }
+  if (extractInstructions(priorMeta) !== extractInstructions(nextMeta)) {
+    changed.push('package_instructions');
+  }
+
   return changed;
 }
 
@@ -246,12 +296,8 @@ class ExternalOpportunityService {
         for (const field of alertFields) {
           const alertType = FIELD_TO_ALERT_TYPE[field];
           const prevValue =
-            prior !== null
-              ? String((prior as unknown as Record<string, unknown>)[field] ?? '')
-              : null;
-          const newValue = String(
-            (next as unknown as Record<string, unknown>)[field] ?? '',
-          );
+            prior !== null ? resolveFieldValue(prior, field) : null;
+          const newValue = resolveFieldValue(next, field) ?? '';
           await client.query(
             `INSERT INTO change_alerts
                (user_id, external_opportunity_id, alert_type, previous_value, new_value)

@@ -136,6 +136,20 @@ class GrantsGovService {
         ? String(raw.packages[0].packageURL)
         : null;
 
+    // Preserve synopsis addendum + per-package instructions so scheduled
+    // re-fetches can detect addenda_change / instructions_change (PRD-INTAKE-019D).
+    const synopsisAddendum =
+      raw.synopsis && typeof raw.synopsis.synopsisAddendum === 'string'
+        ? raw.synopsis.synopsisAddendum
+        : null;
+    const packageInstructions = Array.isArray(raw.packages)
+      ? raw.packages
+          .map((p) =>
+            typeof p?.instructions === 'string' ? p.instructions : null,
+          )
+          .filter((v): v is string => v !== null)
+      : [];
+
     return {
       source: 'grants.gov',
       source_url: PUBLIC_DETAIL_URL(opportunityId),
@@ -156,6 +170,8 @@ class GrantsGovService {
         opportunityId,
         cfdaNumbers: cfda,
         eligibilityTypes: raw.eligibilityTypes ?? [],
+        synopsisAddendum,
+        packageInstructions,
       },
     };
   }

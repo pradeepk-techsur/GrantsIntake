@@ -53,8 +53,15 @@ export interface GrantsGovDetail {
   eligibilityTypes?: string[];
   applicantEligibilityDesc?: string;
   eligibilityDesc?: string;
-  synopsis?: Record<string, unknown>;
-  packages?: Array<{ packageURL?: string; id?: string }>;
+  synopsis?: {
+    synopsisAddendum?: string;
+    [key: string]: unknown;
+  };
+  packages?: Array<{
+    packageURL?: string;
+    id?: string;
+    instructions?: string;
+  }>;
   [key: string]: unknown;
 }
 
