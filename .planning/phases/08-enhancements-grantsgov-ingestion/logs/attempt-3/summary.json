@@ -1,0 +1,21 @@
+{
+  "duration_secs": 467.0,
+  "token_usage": {
+    "input": 52,
+    "output": 25338,
+    "total": 1821467,
+    "cache_read": 1657840,
+    "cache_write": 138237,
+    "cost": 2.32661125
+  },
+  "model": "claude-opus-4-8",
+  "files_changed": [
+    ".planning/ROADMAP.md",
+    ".planning/phases/08-enhancements-grantsgov-ingestion/08-06-PLAN.md"
+  ],
+  "verification_status": "passed",
+  "error_message": null,
+  "attempt_number": 3,
+  "created_at": "2026-09-02T11:59:48.421448+00:00",
+  "completed_at": "2026-09-02T12:07:35.729792866+00:00"
+}
