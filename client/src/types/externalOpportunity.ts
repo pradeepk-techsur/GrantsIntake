@@ -93,7 +93,7 @@ export interface ImportedOpportunityListItem {
   program_area: string;
   max_award_amount: number | null;
   application_close_date: string | null;
-  status_badge: 'open' | 'closing_soon' | 'closed' | 'not_yet_open';
+  status_badge: 'open' | 'closing_soon' | 'closed';
   source: 'grants_gov_import';
   import_timestamp: string | null;
 }
